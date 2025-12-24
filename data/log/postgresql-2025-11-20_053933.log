@@ -1,0 +1,4 @@
+2025-11-20 05:39:33 EST LOG:  database system was shut down at 2025-11-20 05:38:54 EST
+2025-11-20 06:01:24 EST LOG:  shutting down
+2025-11-20 06:01:24 EST LOG:  checkpoint starting: shutdown immediate
+2025-11-20 06:01:24 EST LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.002 s, total=0.008 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/30DAF10, redo lsn=0/30DAF10

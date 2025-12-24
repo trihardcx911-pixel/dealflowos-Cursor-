@@ -1,0 +1,31 @@
+# .coderabbit.yaml
+# Schema so editors can validate:
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+language: en-US
+
+reviews:
+  profile: chill                 # “tone” of review
+  high_level_summary: true
+  review_status: true            # adds a status check
+  auto_review:
+    enabled: true                # run automatically
+    auto_incremental_review: true
+    drafts: false                # skip draft PRs
+  path_filters:
+    - "!node_modules/**"         # ignore
+    - "!dist/**"                 # ignore
+    - "!prisma/**"               # (if you generate client code)
+    - "src/**"                   # focus on app code
+    - "scripts/**"               # include scripts
+
+finishing_touches:
+  docstrings:
+    enabled: false               # turn on later if you want
+  unit_tests:
+    enabled: false               # turn on later if you want
+
+tools:
+  eslint:
+    enabled: true                # let it surface lint suggestions
+  gitleaks:
+    enabled: true                # secrets scan

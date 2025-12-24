@@ -1,0 +1,25 @@
+databases:
+  - name: wholesale-crm-db
+    plan: free
+
+services:
+  - type: web
+    name: wholesale-crm-api
+    env: docker
+    autoDeploy: true
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3010
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wholesale-crm-db
+          property: connectionString
+      - key: ADMIN_DATABASE_URL
+        fromDatabase:
+          name: wholesale-crm-db
+          property: connectionString

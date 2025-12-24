@@ -1,0 +1,261 @@
+@import "./styles/theme.css";
+@import "./styles/neon.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure font variable applies globally, overriding Tailwind defaults */
+html {
+  font-family: var(--font-base) !important;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+body {
+  font-family: inherit !important;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base) !important;
+  background-color: var(--bg-base) !important;
+  width: 100%;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+/* Hide scrollbar everywhere but preserve scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE, Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Optional: stronger version (Chrome, Safari, Edge) */
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Neon tooltip */
+.neon-tooltip {
+  background: var(--glass-bg);
+  border: 1px solid var(--neon-red-soft);
+  padding: 8px 12px;
+  border-radius: 10px;
+  box-shadow: 0 0 12px var(--neon-red-dim);
+}
+
+.neon-tooltip .tooltip-value {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.neon-tooltip .tooltip-date {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+
+.chart-card {
+  padding: 1.5rem;
+  border-radius: 18px;
+  background: var(--glass-bg);
+  box-shadow: 0 0 18px var(--neon-red-dim), inset 0 0 25px var(--glass-glow-inner);
+}
+
+.chart-title {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+}
+
+.neon-line-card {
+  padding: 1.5rem;
+  border-radius: 18px;
+  background: var(--glass-bg);
+  box-shadow: 0 0 18px var(--neon-red-dim), inset 0 0 25px var(--glass-glow-inner);
+}
+
+.timeframe-toggle {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.timeframe-toggle.centered {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.tf-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  transition: 0.2s ease-out;
+  cursor: pointer;
+}
+
+.tf-btn.active {
+  color: var(--neon-red);
+  font-weight: 600;
+  text-shadow: 0 0 6px var(--neon-red-glow);
+}
+
+.tf-btn:hover {
+  color: var(--neon-red-soft);
+  text-shadow: 0 0 8px var(--neon-red-glow);
+}
+
+/* ======================================================================
+   ANALYTICS CHART GRID SYSTEM
+   Matches exact geometry, spacing, rhythm, and responsiveness of KPI grid
+   ====================================================================== */
+.analytics-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem; /* EXACT horizontal/vertical rhythm used by KPI cards */
+  margin-top: 2.5rem; /* Matches KPI -> Charts vertical spacing */
+  width: 100%;
+  padding: 0 3rem; /* Match KPI grid padding */
+  max-width: 1600px; /* Match KPI grid max-width */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* RESPONSIVE BEHAVIOR — mirrors KPI grid breakpoints */
+@media (max-width: 1600px) {
+  .analytics-chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .analytics-chart-grid {
+    grid-template-columns: 1fr;
+    padding: 0 2rem;
+  }
+}
+
+/* Ensure chart cards visually match KPI cards EXACTLY */
+.analytics-chart-grid .chart-card {
+  border-radius: 18px;
+  background: var(--glass-bg);
+  box-shadow: 0 0 18px var(--neon-red-dim), inset 0 0 25px var(--glass-glow-inner);
+  padding: 1.5rem;
+  height: auto; /* Prevent unwanted stretching */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─────────────────────────────────────────────
+   VELOCITY GAUGE STYLES (Perfectly Scoped)
+──────────────────────────────────────────────*/
+
+.velocity-gauge-card {
+  padding: 1.75rem;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 330px;
+}
+
+.velocity-gauge-svg {
+  overflow: visible;
+  margin-top: 0.5rem;
+}
+
+.gauge-title {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* --- Animated breathing glow on center cap --- */
+@keyframes pulseGlow {
+  0%   { filter: drop-shadow(0 0 4px rgba(255,255,255,0.4)); }
+  50%  { filter: drop-shadow(0 0 14px rgba(255,255,255,0.95)); }
+  100% { filter: drop-shadow(0 0 4px rgba(255,255,255,0.4)); }
+}
+
+/* Hover pulse for whole gauge card */
+.velocity-hover-pulse {
+  transition: transform 0.25s ease-out;
+}
+.velocity-hover-pulse:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 22px var(--neon-red-soft);
+}
+
+/* Score styling */
+.velocity-score-display {
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+.velocity-score-number {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: block;
+  letter-spacing: -0.5px;
+}
+
+.velocity-score-label {
+  margin-top: -0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Keep SVG perfectly aligned & proportional */
+.velocity-gauge-svg {
+  display: block;
+  margin: 0 auto;
+}
+
+html.dyslexic * {
+  font-family: var(--font-base) !important;
+}
+
+html {
+  font-family: var(--font-ui) !important;
+}
+
+body {
+  font-family: inherit !important;
+}
+
+html.dyslexic * {
+  font-family: var(--font-base) !important;
+}
+
+html.dyslexic body,
+html.dyslexic body * {
+  font-family: var(--font-base) !important;
+}
+
+/* Legal Hub highlight effect (temporary, non-disruptive) */
+.legal-hub-highlight {
+  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  transition: opacity 0.3s ease !important;
+  box-shadow: 0 0 12px rgba(248, 113, 113, 0.15) !important;
+}

@@ -1,0 +1,127 @@
+/* ======================= */
+/* THEME CSS VARIABLES      */
+/* ======================= */
+
+/* Inter Tight Variable */
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@100..900&display=swap');
+
+/* Eurostile (fallback equivalents) */
+@import url('https://fonts.googleapis.com/css2?family=Aldrich&display=swap');
+
+/* OpenDyslexic Font Face */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/opendyslexic@1.0.0/fonts/OpenDyslexic-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/opendyslexic@1.0.0/fonts/OpenDyslexic-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Light Mode (Bleached Neon) - Default */
+:root {
+  /* Typography - Font System */
+  --font-base: 'Inter', sans-serif;
+  --font-ui: 'Inter Tight', Inter, system-ui, sans-serif;
+  --font-heading: 'Aldrich', 'Eurostile', 'Eurostile Next', sans-serif;
+  /* Neon Red System */
+  --neon-red: #ff0033;
+  --neon-red-dim: rgba(255, 0, 51, 0.25);
+  --neon-red-soft: rgba(255, 0, 51, 0.20);
+  --neon-red-edge: rgba(255, 0, 51, 0.10);
+  --neon-red-primary: #ff0033;
+  --neon-red-dark: #cc0029;
+  --neon-red-glow: rgba(255, 0, 51, 0.25);
+  --neon-red-accent: rgba(255, 0, 51, 0.06);
+
+  /* Background System */
+  --bg-base: #f5f5f7;
+  --bg-overlay: rgba(255, 255, 255, 0.85);
+
+  /* Liquid Glass System */
+  --glass-bg: #ffffff;
+  --glass-bg-dark: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-hover: rgba(0, 0, 0, 0.18);
+  --glass-glow-outer: rgba(0, 0, 0, 0.03);
+  --glass-glow-inner: rgba(0, 0, 0, 0.02);
+
+  /* Typography */
+  --text-primary: #1a1a1a;
+  --text-secondary: rgba(0, 0, 0, 0.55);
+
+  /* Layout */
+  --sidebar-bg: #ffffff;
+  --sidebar-border: rgba(0, 0, 0, 0.08);
+  --sidebar-width: 260px;
+  --card-radius: 16px;
+  --card-padding: 24px;
+  --grid-gap: 24px;
+
+  /* Calendar System - Light Mode */
+  --calendar-tile-bg: rgba(240, 240, 245, 1);
+  --calendar-tile-text: var(--text-primary);
+  --calendar-active-day-bg: rgba(255, 255, 255, 0.5);
+  --calendar-active-day-border: var(--neon-red-soft);
+}
+
+/* Dark Mode - Preserve existing values */
+.dark {
+  /* Minimal Neon Red System */
+  --neon-red: #ff003c;
+  --neon-red-dim: rgba(255, 0, 60, 0.14);
+  --neon-red-soft: rgba(255, 0, 60, 0.18);
+  --neon-red-edge: rgba(255, 0, 60, 0.12);
+  --neon-red-primary: #ff003c;
+  --neon-red-dark: #9b0030;
+  --neon-red-glow: rgba(255, 0, 60, 0.14);
+  --neon-red-accent: rgba(255, 0, 60, 0.08);
+
+  /* Background System */
+  --bg-base: #09090b;
+  --bg-overlay: rgba(0, 0, 0, 0.35);
+
+  /* Liquid Glass System */
+  --glass-bg: rgba(15, 15, 17, 0.5);
+  --glass-bg-dark: rgba(15, 15, 17, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.04);
+  --glass-border-hover: rgba(255, 255, 255, 0.08);
+  --glass-glow-outer: var(--neon-red-dim);
+  --glass-glow-inner: rgba(255, 0, 60, 0.06);
+
+  /* Typography */
+  --text-primary: #f2f2f2;
+  --text-secondary: rgba(255, 255, 255, 0.65);
+
+  /* Layout */
+  --sidebar-bg: rgba(10, 10, 12, 0.55);
+  --sidebar-border: rgba(255, 255, 255, 0.03);
+  --sidebar-width: 260px;
+  --card-radius: 16px;
+  --card-padding: 24px;
+  --grid-gap: 24px;
+
+  /* Calendar System - Dark Mode (preserve existing) */
+  --calendar-tile-bg: rgba(7, 5, 18, 0.8);
+  --calendar-tile-text: #ffffff;
+  --calendar-active-day-bg: rgba(11, 7, 28, 0.9);
+  --calendar-active-day-border: rgba(255, 10, 69, 0.7);
+}
+
+/* Dyslexia-Friendly Font Override */
+.dyslexic {
+  --font-base: 'OpenDyslexic', sans-serif;
+}
+
+/* i18n Compatibility - Proper character shaping */
+html {
+  font-feature-settings: "liga" 1, "kern" 1;
+}
+

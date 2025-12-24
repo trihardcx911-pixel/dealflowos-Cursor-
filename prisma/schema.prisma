@@ -1,0 +1,388 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String                @id @default(cuid())
+  email               String                @unique
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  deals               Deal[]
+  memberships         UserOrgMembership[]
+  settings            UserSettings?
+  legalAcknowledgements LegalAcknowledgement[]
+}
+
+model Organization {
+  id                    String                  @id @default(cuid())
+  name                  String                  @default("Demo Org")
+  timezone              String                  @default("America/New_York")
+  marketProfile         String                  @default("metro_sfr")
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  automationLogs        AutomationLog[]
+  deals                 Deal[]
+  kpiSnapshots          KpiSnapshot[]
+  leads                 Lead[]
+  memberships           UserOrgMembership[]
+  legalAcknowledgements LegalAcknowledgement[]
+}
+
+model UserOrgMembership {
+  id     String       @id @default(cuid())
+  userId String
+  orgId  String
+  role   String       @default("member")
+  org    Organization @relation(fields: [orgId], references: [id])
+  user   User         @relation(fields: [userId], references: [id])
+
+  @@unique([userId, orgId])
+}
+
+model Lead {
+  id                   String            @id @default(cuid())
+  orgId                String
+  type                 LeadType          @default(sfr)
+  address              String
+  city                 String
+  state                String
+  zip                  String
+  addressHash          String
+  notes                String?
+  ruralFlag            Boolean           @default(false)
+  populationOk         Boolean           @default(true)
+  landSignals          Json?
+  legalFlag            Boolean           @default(false)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  arv                  Decimal?          @db.Decimal(12, 2)
+  bathrooms            Decimal?          @db.Decimal(3, 1)
+  bedrooms             Int?
+  dealScore            Decimal?          @db.Decimal(5, 2)
+  desiredAssignmentFee Decimal           @default(10000) @db.Decimal(12, 2)
+  estimatedRepairs     Decimal?          @db.Decimal(12, 2)
+  investorMultiplier   Decimal           @default(0.70) @db.Decimal(4, 3)
+  isQualified          Boolean           @default(false)
+  lotSize              Int?
+  moa                  Decimal?          @db.Decimal(12, 2)
+  offerPrice           Decimal?          @db.Decimal(12, 2)
+  propertyType         String?
+  sellerEmail          String?
+  sellerName           String?
+  sellerPhone          String?
+  squareFeet           Int?
+  status               String            @default("new")
+  userId               String?
+  yearBuilt            Int?
+  source               String?           @default("other")
+  automationLogs       AutomationLog[]
+  deals                Deal[]
+  org                  Organization      @relation(fields: [orgId], references: [id])
+  contacts             LeadContact[]
+  events               LeadEvent[]
+  pipelineHistory      PipelineHistory[]
+
+  @@unique([orgId, addressHash], name: "orgId_addressHash")
+  @@index([orgId, type, ruralFlag])
+  @@index([orgId, status])
+}
+
+model LeadContact {
+  id           String    @id @default(cuid())
+  leadId       String
+  type         String
+  value        String
+  source       String?
+  verifiedAt   DateTime?
+  dncStatus    String?
+  dncCheckedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lead         Lead      @relation(fields: [leadId], references: [id])
+
+  @@index([leadId, type])
+}
+
+model LeadEvent {
+  id        String   @id @default(cuid())
+  leadId    String
+  eventType String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, eventType])
+}
+
+model Deal {
+  id                String              @id @default(cuid())
+  leadId            String
+  orgId             String
+  userId            String
+  dealType          String
+  assignmentFee     Decimal?            @db.Decimal(12, 2)
+  profit            Decimal?            @db.Decimal(12, 2)
+  buyerName         String?
+  status            String              @default("in_progress")
+  closeDate         DateTime?
+  legalStage        LegalStage          @default(PRE_CONTRACT)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  lead              Lead                @relation(fields: [leadId], references: [id])
+  org               Organization        @relation(fields: [orgId], references: [id])
+  user              User                @relation(fields: [userId], references: [id])
+  contractMetadata  ContractMetadata?
+  assignmentMetadata AssignmentMetadata?
+  titleMetadata     TitleMetadata?
+  legalEvents       DealEvent[]
+  legalConditions   LegalCondition[]
+
+  @@index([userId, status])
+  @@index([orgId, closeDate])
+}
+
+model PipelineHistory {
+  id        String   @id @default(cuid())
+  leadId    String
+  oldStatus String?
+  newStatus String
+  changedAt DateTime @default(now())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, changedAt])
+}
+
+model UserSettings {
+  userId                  String   @id
+  defaultMultiplier       Decimal  @default(0.70) @db.Decimal(4, 3)
+  defaultAssignmentFee    Decimal  @default(10000) @db.Decimal(12, 2)
+  defaultFollowupInterval Int      @default(3)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  user                    User     @relation(fields: [userId], references: [id])
+}
+
+model CalendarEvent {
+  id        Int      @id @default(autoincrement())
+  title     String
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+  notes     String?
+  urgency   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+
+  @@index([userId, date])
+  @@index([date])
+}
+
+model KpiSnapshot {
+  id                String       @id @default(cuid())
+  orgId             String
+  date              DateTime     @db.Date
+  totalLeads        Int          @default(0)
+  activeLeads       Int          @default(0)
+  qualifiedLeads    Int          @default(0)
+  newLeadsToday     Int          @default(0)
+  dealsCreated      Int          @default(0)
+  dealsClosed       Int          @default(0)
+  revenue           Decimal      @default(0) @db.Decimal(14, 2)
+  profit            Decimal      @default(0) @db.Decimal(14, 2)
+  contactRate       Decimal?     @db.Decimal(5, 2)
+  qualificationRate Decimal?     @db.Decimal(5, 2)
+  closeRate         Decimal?     @db.Decimal(5, 2)
+  avgPipelineDays   Decimal?     @db.Decimal(6, 2)
+  avgDealCycleTime  Decimal?     @db.Decimal(6, 2)
+  createdAt         DateTime     @default(now())
+  org               Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, date])
+  @@index([date])
+  @@index([orgId, date])
+}
+
+model LeadEventArchive {
+  id         String   @id
+  leadId     String
+  eventType  String
+  metadata   Json?
+  createdAt  DateTime
+  archivedAt DateTime @default(now())
+
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+model AutomationLog {
+  id         String       @id @default(cuid())
+  orgId      String
+  leadId     String?
+  ruleId     String
+  ruleName   String
+  actionType String
+  trigger    String
+  metadata   Json?
+  success    Boolean      @default(true)
+  error      String?
+  createdAt  DateTime     @default(now())
+  lead       Lead?        @relation(fields: [leadId], references: [id])
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, createdAt])
+  @@index([leadId])
+  @@index([ruleId])
+}
+
+model ContractMetadata {
+  id           String   @id @default(cuid())
+  dealId       String   @unique
+  sellerName   String?
+  buyerName    String?
+  contractPrice Decimal? @db.Decimal(12, 2)
+  contractDate DateTime?
+  externalUrl  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deal         Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+}
+
+model AssignmentMetadata {
+  id            String   @id @default(cuid())
+  dealId        String   @unique
+  endBuyerName  String?
+  assignmentFee Decimal? @db.Decimal(12, 2)
+  assignmentDate DateTime?
+  externalUrl   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deal          Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+}
+
+model TitleMetadata {
+  id              String    @id @default(cuid())
+  dealId          String    @unique
+  titleCompany    String?
+  escrowOfficer   String?
+  escrowNumber    String?
+  expectedCloseDate DateTime?
+  externalUrl     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deal            Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+}
+
+model DealEvent {
+  id        String   @id @default(cuid())
+  dealId    String
+  eventType String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, eventType])
+  @@index([dealId, createdAt])
+}
+
+model JurisdictionProfile {
+  id             String   @id @default(cuid())
+  state          String
+  county         String?
+  profileVersion String   @default("1.0")
+  requiredFields Json
+  timingRules    Json?
+  featureFlags   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([state, county, profileVersion])
+  @@index([state])
+}
+
+model LegalAcknowledgement {
+  id            String       @id @default(cuid())
+  userId        String
+  orgId         String
+  ackType       String
+  acknowledgedAt DateTime     @default(now())
+  user          User         @relation(fields: [userId], references: [id])
+  org           Organization @relation(fields: [orgId], references: [id])
+
+  @@unique([userId, orgId, ackType])
+}
+
+enum LeadType {
+  sfr
+  land
+  multi
+  other
+}
+
+enum LegalStage {
+  PRE_CONTRACT
+  UNDER_CONTRACT
+  ASSIGNMENT_IN_PROGRESS
+  ASSIGNED
+  TITLE_CLEARING
+  CLEARED_TO_CLOSE
+  CLOSED
+  DEAD
+}
+
+model LegalCondition {
+  id            String                    @id @default(cuid())
+  dealId        String
+  category      LegalConditionCategory
+  severity      LegalConditionSeverity
+  status        LegalConditionStatus
+  summary       String
+  details       String?
+  discoveredAt  DateTime                  @default(now())
+  resolvedAt    DateTime?
+  source        LegalConditionSource?
+  externalRef   String?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  deal          Deal                      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, status])
+  @@index([dealId, severity])
+}
+
+enum LegalConditionCategory {
+  TITLE
+  PROBATE
+  LIEN
+  HOA
+  JUDGMENT
+  HEIRSHIP
+  MUNICIPAL
+  CONTRACTUAL
+  OTHER
+}
+
+enum LegalConditionSeverity {
+  INFORMATIONAL
+  RISKY
+  BLOCKING
+}
+
+enum LegalConditionStatus {
+  OPEN
+  RESOLVED
+}
+
+enum LegalConditionSource {
+  TITLE_COMPANY
+  ATTORNEY
+  WHOLESALER
+  BUYER
+  SELLER
+  OTHER
+}

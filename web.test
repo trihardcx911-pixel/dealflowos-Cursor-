@@ -1,0 +1,7 @@
+web/
+  src/
+    App.tsx
+    Leads.tsx
+    Login.tsx
+    components/
+

@@ -1,0 +1,559 @@
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
+const DASHBOARD_SRC = "/dashboard-screenshot.png";
+
+export default function LandingPage() {
+  const [imgOk, setImgOk] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Hash scroll support
+  useEffect(() => {
+    if (location.hash) {
+      const hash = location.hash.substring(1);
+      const element = document.getElementById(hash);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
+    }
+  }, [location.hash]);
+
+  const handleNavClick = (path: string) => {
+    setMobileMenuOpen(false);
+    if (path.startsWith('#')) {
+      const hash = path.substring(1);
+      if (location.pathname === '/') {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      } else {
+        navigate({ pathname: '/', hash: hash });
+      }
+    } else {
+      navigate(path);
+    }
+  };
+
+  // Determine active states for pills
+  const isPricingActive = location.pathname === '/pricing';
+  const isFaqsActive = location.hash === '#faqs';
+  const isWhyActive = location.hash === '#why';
+
+  return (
+    <div className="min-h-screen w-full text-[#F5F7FA] font-sans bg-gradient-to-b from-[#12141A] to-[#0B0D10] relative">
+      {/* Global Background Texture Layer */}
+      <div 
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          background: `
+            radial-gradient(900px circle at 50% 0%, rgba(255,255,255,0.06), transparent 60%),
+            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
+          `,
+          backgroundSize: '100% 100%, 48px 48px, 48px 48px'
+        }}
+      />
+      
+      {/* Content Wrapper */}
+      <div className="relative z-10">
+      {/* NAV */}
+      <header className="sticky top-0 z-50 px-6 sm:px-8 pt-5 bg-transparent">
+        <nav className="mx-auto max-w-6xl rounded-2xl border border-white/10 bg-white/6 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] px-4 sm:px-5 py-3 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 hover:text-white/80 transition-colors">
+            <span className="px-3 py-1.5 rounded-xl bg-white/6 border border-white/10 backdrop-blur-md text-[#F5F7FA] font-semibold tracking-tight flex items-center gap-2">
+              <span>DealflowOS</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+            </span>
+          </Link>
+          
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Pill Group */}
+            <div className="rounded-full border border-white/10 bg-black/20 px-1 py-1 flex gap-1">
+              <button
+                onClick={() => handleNavClick('/pricing')}
+                className={`px-3 py-1.5 rounded-full text-sm transition ${
+                  isPricingActive
+                    ? 'bg-white/8 text-[#F5F7FA]'
+                    : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                }`}
+              >
+                Pricing
+              </button>
+              <button
+                onClick={() => handleNavClick('#faqs')}
+                className={`px-3 py-1.5 rounded-full text-sm transition ${
+                  isFaqsActive
+                    ? 'bg-white/8 text-[#F5F7FA]'
+                    : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                }`}
+              >
+                FAQs
+              </button>
+              <button
+                onClick={() => handleNavClick('#why')}
+                className={`px-3 py-1.5 rounded-full text-sm transition ${
+                  isWhyActive
+                    ? 'bg-white/8 text-[#F5F7FA]'
+                    : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                }`}
+              >
+                Why this exists
+              </button>
+            </div>
+            
+            {/* Start Button */}
+            <Link
+              to="/signup"
+              className="h-9 px-4 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-400 transition-colors shadow-[0_10px_30px_rgba(239,68,68,0.18)] flex items-center justify-center"
+            >
+              Start
+            </Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden h-9 px-3 rounded-xl border border-white/12 bg-black/20 text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </nav>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute right-6 sm:right-8 top-20 mt-2 w-48 rounded-2xl border border-white/12 bg-white/8 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden">
+            <div className="py-2">
+              <button
+                onClick={() => handleNavClick('/pricing')}
+                className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
+                style={{ color: isPricingActive ? '#F5F7FA' : '#A8AFB8' }}
+              >
+                Pricing
+              </button>
+              <button
+                onClick={() => handleNavClick('#faqs')}
+                className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
+                style={{ color: isFaqsActive ? '#F5F7FA' : '#A8AFB8' }}
+              >
+                FAQs
+              </button>
+              <button
+                onClick={() => handleNavClick('#why')}
+                className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
+                style={{ color: isWhyActive ? '#F5F7FA' : '#A8AFB8' }}
+              >
+                Why this exists
+              </button>
+              <Link
+                to="/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors"
+                style={{ color: '#EF4444' }}
+              >
+                Start
+              </Link>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* HERO */}
+      <section className="min-h-[80vh] flex items-center justify-center px-8">
+        <div className="relative w-full max-w-[720px]">
+          {/* Halo behind HERO */}
+          <div className="pointer-events-none absolute -inset-10 bg-[radial-gradient(closest-side,rgba(239,68,68,0.10),transparent_70%)] blur-3xl opacity-20 z-0" />
+          <div className="relative z-10 rounded-2xl bg-white/3 border border-white/5 px-8 py-10 text-center">
+            <h1 className="text-[44px] font-semibold leading-[1.15] text-[#F5F7FA] mb-6">
+              Wholesaling shouldn't feel this complicated.
+            </h1>
+            <div className="flex flex-col items-center gap-3 mt-8">
+              <p className="text-[13px] text-[#7C828A] mb-2">
+                Takes 2 minutes. No setup maze. Add your first deal and you're running.
+              </p>
+              <Link
+                to="/signup"
+                className="h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors"
+              >
+                Start with one deal
+              </Link>
+              <p className="text-[13px] text-[#7C828A]">
+                No credit card required.
+              </p>
+              <p className="text-[13px] text-[#7C828A] mt-1">
+                You can stop anytime.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section Divider */}
+      <div className="mx-auto my-16 h-px w-full max-w-5xl bg-white/5" />
+
+      {/* AUDIENCE QUALIFIER */}
+      <section className="py-20 px-8 flex justify-center">
+        <div className="max-w-[720px] text-center">
+          <p className="text-[18px] leading-relaxed text-[#A8AFB8]">
+            Built for solo wholesalers and early-stage operators who need less noise, not more features.
+          </p>
+        </div>
+      </section>
+
+      {/* PROBLEM → RELIEF */}
+      <section className="px-8 py-32 flex justify-center">
+        <div className="max-w-[720px] mx-auto bg-white/5 border border-white/5 rounded-2xl px-6 py-10 md:px-10 md:py-12 text-center">
+          <p className="text-[16px] leading-relaxed text-[#A8AFB8]">
+            You're juggling a deal on a spreadsheet, follow-ups in your calendar, contracts in email, and you just missed calling a motivated seller back because you forgot they existed. This shouldn't be your day.
+          </p>
+          <p className="text-[16px] leading-relaxed text-[#A8AFB8] mt-6">
+            DealflowOS keeps everything in one place without making you learn a new system.
+          </p>
+        </div>
+      </section>
+
+      {/* SEE WHAT IT LOOKS LIKE */}
+      <section id="preview" className="pt-32 pb-32 px-8 flex justify-center">
+        <div className="max-w-[1000px] w-full text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-4" style={{ color: '#F5F7FA' }}>
+            See what it looks like
+          </h2>
+          <p className="text-[16px] leading-relaxed mb-12 max-w-xl mx-auto" style={{ color: '#A8AFB8' }}>
+            A quiet dashboard: what needs attention, your pipeline, and today's next actions.
+          </p>
+          
+          <div className="relative rounded-2xl bg-white/12 border border-white/12 shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden">
+            {/* Halo behind Screenshot */}
+            <div className="pointer-events-none absolute -inset-10 bg-[radial-gradient(closest-side,rgba(239,68,68,0.10),transparent_70%)] blur-3xl opacity-20 z-0" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/6 to-transparent pointer-events-none rounded-2xl z-0"></div>
+            <div className="relative z-10 w-full aspect-[4/3] sm:aspect-[16/9] overflow-hidden bg-white/5">
+              {imgOk ? (
+                <img 
+                  src={DASHBOARD_SRC} 
+                  alt="DealflowOS dashboard showing deals, follow-ups, and next actions"
+                  className="w-full h-full object-cover sm:object-contain"
+                  onError={() => setImgOk(false)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center px-8">
+                    <p className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
+                      Dashboard preview
+                    </p>
+                    <p className="text-[14px] mt-2" style={{ color: '#7C828A' }}>
+                      Add dashboard-screenshot.png to /public folder
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <p className="text-[14px] leading-relaxed mt-6" style={{ color: '#7C828A' }}>
+            One screen. Deals, follow-ups, and the next step—without noise.
+          </p>
+        </div>
+      </section>
+
+      {/* GROUNDING ARTIFACT */}
+      <section className="px-8 py-20 flex justify-center">
+        <div className="w-full max-w-[680px]">
+          <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-6 md:px-8 md:py-8">
+            <div className="flex items-center justify-between py-3 border-b border-white/5">
+              <span className="text-[13px] text-[#7C828A]">Lead</span>
+              <span className="text-[13px] text-[#A8AFB8]">123 Maple St</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-white/5">
+              <span className="text-[13px] text-[#7C828A]">Follow-up</span>
+              <span className="text-[13px] text-[#A8AFB8]">Call seller</span>
+            </div>
+            <div className="flex items-center justify-between py-3">
+              <span className="text-[13px] text-[#7C828A]">Next step</span>
+              <span className="text-[13px] text-[#A8AFB8]">Send agreement</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHAT HAPPENS WHEN YOU START */}
+      <section className="pt-40 pb-32 px-8 flex justify-center">
+        <div className="max-w-3xl w-full text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-6" style={{ color: '#F5F7FA' }}>
+            What happens when you start?
+          </h2>
+          <p className="text-base md:text-lg max-w-xl mx-auto mb-16" style={{ color: '#A8AFB8' }}>
+            You get a clean workspace with just the essentials.
+            No setup maze. No pressure to do everything.
+            Just enough structure to move your first deal forward.
+          </p>
+
+          <div className="relative rounded-2xl bg-white/16 border border-white/12 shadow-[0_20px_60px_rgba(0,0,0,0.45)] px-8 pt-6 pb-8 md:px-10 md:pt-8 md:pb-10 space-y-8 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/6 to-transparent pointer-events-none rounded-2xl"></div>
+            <div className="relative space-y-8">
+              <div>
+                <svg className="w-6 h-6 text-red-400 opacity-90 mb-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="4" width="18" height="16" rx="4" />
+                </svg>
+                <div className="text-xs tracking-widest mb-2" style={{ color: '#7C828A' }}>STEP 1</div>
+                <div className="text-lg font-medium mb-1" style={{ color: '#F5F7FA' }}>
+                  You land in a quiet workspace
+                </div>
+                <div className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
+                  Nothing flashing. No dashboards yelling for attention.
+                </div>
+              </div>
+
+              <div>
+                <svg className="w-6 h-6 text-red-400 opacity-90 mb-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="4" y="2" width="16" height="4" rx="1" />
+                  <rect x="4" y="10" width="16" height="4" rx="1" />
+                  <rect x="4" y="18" width="16" height="4" rx="1" />
+                </svg>
+                <div className="text-xs tracking-widest mb-2" style={{ color: '#7C828A' }}>STEP 2</div>
+                <div className="text-lg font-medium mb-1" style={{ color: '#F5F7FA' }}>
+                  You add one deal
+                </div>
+                <div className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
+                  Not ten. Just one. The system stays out of your way.
+                </div>
+              </div>
+
+              <div>
+                <svg className="w-6 h-6 text-red-400 opacity-90 mb-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="6" cy="12" r="2" />
+                  <path d="M10 12h8" />
+                  <path d="M16 10l2 2-2 2" />
+                </svg>
+                <div className="text-xs tracking-widest mb-2" style={{ color: '#7C828A' }}>STEP 3</div>
+                <div className="text-lg font-medium mb-1" style={{ color: '#F5F7FA' }}>
+                  You know what to do next
+                </div>
+                <div className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
+                  No guessing. No clutter. Just the next real action.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-16">
+            <p className="text-sm text-white/50 mb-6">
+              If wholesaling feels harder than it should, this is a good place to start.
+            </p>
+            <Link
+              to="/signup"
+              className="inline-block h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors"
+            >
+              Start with one deal
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURE CONFIDENCE */}
+      <section className="pt-40 pb-32 px-8 flex justify-center">
+        <div className="max-w-[720px] mx-auto bg-white/5 border border-white/5 rounded-2xl px-6 py-10 md:px-10 md:py-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold text-white mb-6">
+            What you actually need is here
+          </h2>
+          <p className="text-[16px] leading-relaxed text-[#A8AFB8]">
+            Track every lead and deal without hunting through tabs. Set follow-ups and see what needs your attention today. Manage contracts and documents in one place. Know your numbers without staring at dashboards.
+          </p>
+          <p className="text-[16px] leading-relaxed text-[#A8AFB8] mt-6">
+            This is a real CRM. It just doesn't make you feel like you're flying a plane.
+          </p>
+        </div>
+      </section>
+
+      {/* QUIET CREDIBILITY */}
+      <section id="why" className="pt-32 pb-24 px-8 flex justify-center">
+        <div className="max-w-[640px] text-center space-y-4">
+          <p className="text-[15px] leading-relaxed text-[#7C828A]">
+            Built slowly, on purpose
+          </p>
+          <p className="text-[15px] leading-relaxed text-[#7C828A]">
+            Currently in private use by wholesalers who were tired of fighting their CRM
+          </p>
+          <p className="text-[15px] leading-relaxed text-[#7C828A]">
+            Not venture-backed. Not trying to be everything.
+          </p>
+        </div>
+      </section>
+
+      {/* Section Divider */}
+      <div className="mx-auto my-16 h-px w-full max-w-5xl bg-white/5" />
+
+      {/* CLOSURE CARD */}
+      <section className="pt-36 pb-32 px-6 sm:px-8 flex justify-center">
+        <div className="max-w-[720px] w-full">
+          <div className="rounded-2xl bg-white/12 border border-white/12 shadow-[0_20px_60px_rgba(0,0,0,0.45)] px-6 py-10 md:px-10 md:py-12 text-center">
+            <h2 className="text-3xl md:text-4xl font-semibold mb-6" style={{ color: '#F5F7FA' }}>
+              A calm place to run your first deal.
+            </h2>
+            <div className="space-y-3 mb-10">
+              <p className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
+                No setup maze.
+              </p>
+              <p className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
+                Everything tied to the deal: follow-ups, documents, next step.
+              </p>
+              <p className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
+                Start with one deal. Expand when you're ready.
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-4">
+              <Link
+                to="/signup"
+                className="inline-block h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors"
+              >
+                Start with one deal
+              </Link>
+              <Link
+                to="#preview"
+                className="inline-block h-12 px-7 rounded-xl border border-white/20 text-white/70 font-medium hover:border-white/30 hover:text-white/90 transition-colors"
+              >
+                See what it looks like first
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faqs" className="pt-32 pb-32 px-6 sm:px-8 flex justify-center">
+        <div className="max-w-[720px] w-full text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-4" style={{ color: '#F5F7FA' }}>
+            FAQs
+          </h2>
+          <p className="text-[16px] leading-relaxed mb-12 max-w-xl mx-auto" style={{ color: '#A8AFB8' }}>
+            Short answers to the questions people ask before they start.
+          </p>
+          <div className="space-y-4 text-left">
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                Is this for beginners or experienced wholesalers?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                Both. It's simple enough for your first deal and stays useful as you scale. No learning curve that gets in the way.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                Do I need to set anything up before using it?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                No setup maze. Add your first deal and you're running. Everything else is optional.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                What exactly can I do in DealflowOS right now?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                Track leads and deals, set follow-ups and see what needs your attention today, manage contracts and documents in one place, know your basic numbers, and see the next clear action.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                Can I use this on my phone?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                Yes, it's responsive. Best experience on desktop, but mobile works well for check-ins and quick updates.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                Will I outgrow it?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                Designed to stay usable as you scale. It avoids noise and handles more deals without becoming chaotic.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                Is there a free plan / do I need a credit card?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                Start free during early access. No credit card required. Pricing will be simple when it's finalized.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                Can I export my data?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                Export is planned. We won't trap your data. Basic CSV export will be available.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                Does this replace my calendar / email?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                It keeps deal context in one place so you reduce tab switching. You can still use your existing tools.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                Is my data private and secure?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                Encryption in transit, standard authentication. We don't sell data and this isn't ad-driven.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+              <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                How do I get help if I'm stuck?
+              </summary>
+              <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                Email questions@dealflowos.com. We keep support expectations minimal and respond directly.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      {/* Section Divider */}
+      <div className="mx-auto my-16 h-px w-full max-w-5xl bg-white/5" />
+
+      {/* FOOTER */}
+      <footer className="py-12 px-6 sm:px-8 border-t border-white/5">
+        <div className="max-w-[640px] mx-auto text-center">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 text-[13px] mb-4" style={{ color: '#7C828A' }}>
+            <a href="mailto:questions@dealflowos.com" className="hover:text-white/80 transition-colors">
+              Questions? questions@dealflowos.com
+            </a>
+            <span className="hidden md:inline">|</span>
+            <a href="#" className="hover:text-white/80 transition-colors">
+              Why this exists
+            </a>
+          </div>
+          <p className="text-[13px]" style={{ color: '#7C828A' }}>
+            © {new Date().getFullYear()} DealflowOS
+          </p>
+        </div>
+      </footer>
+      </div>
+    </div>
+  );
+}

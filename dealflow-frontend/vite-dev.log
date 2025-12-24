@@ -1,0 +1,10 @@
+
+> dealflow-frontend@0.0.0 dev
+> vite --port 3000
+
+
+  VITE v5.4.21  ready in 2007 ms
+
+  Γ₧£  Local:   http://localhost:3000/
+  Γ₧£  Network: http://172.20.10.4:3000/
+  Γ₧£  Network: http://172.17.144.1:3000/

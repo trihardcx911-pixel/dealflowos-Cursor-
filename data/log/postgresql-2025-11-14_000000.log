@@ -1,0 +1,42 @@
+2025-11-14 17:17:49 EST LOG:  checkpoint starting: time
+2025-11-14 17:17:49 EST LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.135 s, sync=0.035 s, total=0.208 s; sync files=2, longest=0.034 s, average=0.018 s; distance=1 kB, estimate=1879 kB; lsn=0/30B52F0, redo lsn=0/30B5298
+2025-11-14 17:22:49 EST LOG:  checkpoint starting: time
+2025-11-14 17:22:49 EST LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.103 s, sync=0.006 s, total=0.165 s; sync files=2, longest=0.004 s, average=0.003 s; distance=1 kB, estimate=1691 kB; lsn=0/30B5AC8, redo lsn=0/30B5A70
+2025-11-14 17:32:49 EST LOG:  checkpoint starting: time
+2025-11-14 17:32:49 EST LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.106 s, sync=0.003 s, total=0.113 s; sync files=2, longest=0.002 s, average=0.002 s; distance=2 kB, estimate=1523 kB; lsn=0/30B6638, redo lsn=0/30B65E0
+2025-11-14 17:37:49 EST LOG:  checkpoint starting: time
+2025-11-14 17:37:50 EST LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.109 s, sync=0.003 s, total=0.118 s; sync files=2, longest=0.002 s, average=0.002 s; distance=3 kB, estimate=1371 kB; lsn=0/30B7470, redo lsn=0/30B7418
+2025-11-14 17:52:49 EST LOG:  checkpoint starting: time
+2025-11-14 17:52:49 EST LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.106 s, sync=0.002 s, total=0.133 s; sync files=1, longest=0.002 s, average=0.002 s; distance=3 kB, estimate=1234 kB; lsn=0/30B8298, redo lsn=0/30B8240
+2025-11-14 17:52:51 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 17:52:51 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 17:52:55 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 17:57:49 EST LOG:  checkpoint starting: time
+2025-11-14 17:57:50 EST LOG:  checkpoint complete: wrote 8 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.871 s, sync=0.003 s, total=0.888 s; sync files=8, longest=0.001 s, average=0.001 s; distance=4 kB, estimate=1111 kB; lsn=0/30B9530, redo lsn=0/30B94D8
+2025-11-14 18:02:49 EST LOG:  checkpoint starting: time
+2025-11-14 18:02:49 EST LOG:  checkpoint complete: wrote 2 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.216 s, sync=0.003 s, total=0.225 s; sync files=3, longest=0.003 s, average=0.001 s; distance=4 kB, estimate=1000 kB; lsn=0/30BA5C8, redo lsn=0/30BA570
+2025-11-15 00:08:26 EST LOG:  checkpoint starting: time
+2025-11-15 00:08:26 EST LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.441 s, sync=0.008 s, total=0.468 s; sync files=5, longest=0.005 s, average=0.002 s; distance=4 kB, estimate=901 kB; lsn=0/30BB760, redo lsn=0/30BB708
+2025-11-15 00:24:21 EST LOG:  checkpoint starting: time
+2025-11-15 00:24:21 EST LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.431 s, sync=0.002 s, total=0.440 s; sync files=5, longest=0.001 s, average=0.001 s; distance=4 kB, estimate=811 kB; lsn=0/30BCA88, redo lsn=0/30BCA30
+2025-11-15 15:05:42 EST LOG:  checkpoint starting: time
+2025-11-15 15:05:43 EST LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.434 s, sync=0.006 s, total=0.454 s; sync files=5, longest=0.004 s, average=0.002 s; distance=4 kB, estimate=730 kB; lsn=0/30BDD00, redo lsn=0/30BDCA8
+2025-11-15 15:25:42 EST LOG:  checkpoint starting: time
+2025-11-15 15:25:42 EST LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.105 s, sync=0.002 s, total=0.115 s; sync files=2, longest=0.001 s, average=0.001 s; distance=4 kB, estimate=658 kB; lsn=0/30BEE88, redo lsn=0/30BEE30
+2025-11-15 15:26:27 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-15 15:26:28 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-15 15:26:30 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-15 15:26:31 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-15 15:26:51 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-15 15:26:52 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-15 15:26:55 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	

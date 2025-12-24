@@ -1,0 +1,331 @@
+2025-11-13 16:04:03 EST LOG:  database system was shut down at 2025-11-13 16:04:00 EST
+2025-11-13 16:09:03 EST LOG:  checkpoint starting: time
+2025-11-13 16:09:03 EST LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.004 s, total=0.022 s; sync files=2, longest=0.002 s, average=0.002 s; distance=0 kB, estimate=0 kB; lsn=0/1845820, redo lsn=0/18457C8
+2025-11-13 16:11:33 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:11:33 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:11:33 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:11:33 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:42:11 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:42:11 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:45 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:45 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:45 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:45 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:45 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:45 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:54 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:54 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:54 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:54 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:55 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:45:55 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:01 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:01 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:02 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:02 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:05 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:05 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:06 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:06 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:06 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:06 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:52 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:52 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:53 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:53 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:53 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:46:53 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:18 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:18 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:18 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:18 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:18 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:18 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:19 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:19 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:19 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:19 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:19 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:50:19 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:51:23 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:51:23 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:51:23 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:51:23 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:51:23 EST FATAL:  database "dealflow" does not exist
+2025-11-13 16:51:23 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:15 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:15 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:15 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:15 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:15 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:15 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:27 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:27 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:27 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:27 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:27 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:05:27 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:06:37 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:06:37 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:06:38 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:06:38 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:06:38 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:06:38 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:07:38 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:07:38 EST FATAL:  database "dealflow" does not exist
+2025-11-13 17:15:11 EST LOG:  checkpoint starting: time
+2025-11-13 17:16:59 EST LOG:  checkpoint complete: wrote 994 buffers (6.1%), wrote 1 SLRU buffers; 1 WAL file(s) added, 0 removed, 0 recycled; write=107.868 s, sync=0.056 s, total=107.986 s; sync files=302, longest=0.003 s, average=0.001 s; distance=4672 kB, estimate=4672 kB; lsn=0/1CD5BE0, redo lsn=0/1CD5B50
+2025-11-13 17:28:01 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 17:28:20 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 17:28:42 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 17:30:00 EST ERROR:  database "dealflow" already exists
+2025-11-13 17:30:00 EST STATEMENT:  CREATE DATABASE dealflow;
+2025-11-13 17:33:06 EST ERROR:  relation "_prisma_migrations" does not exist at character 126
+2025-11-13 17:33:06 EST STATEMENT:  SELECT "id", "checksum", "finished_at", "migration_name", "logs", "rolled_back_at", "started_at", "applied_steps_count" FROM "_prisma_migrations" ORDER BY "started_at" ASC
+2025-11-13 17:33:06 EST LOG:  checkpoint starting: immediate force wait
+2025-11-13 17:33:06 EST LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 1 recycled; write=0.002 s, sync=0.001 s, total=0.009 s; sync files=4, longest=0.001 s, average=0.001 s; distance=4673 kB, estimate=4673 kB; lsn=0/21661B8, redo lsn=0/2166160
+2025-11-13 17:33:07 EST ERROR:  relation "User" does not exist
+2025-11-13 17:33:07 EST CONTEXT:  SQL statement "ALTER TABLE "User" ADD COLUMN "billing_status" TEXT"
+	PL/pgSQL function inline_code_block line 4 at SQL statement
+2025-11-13 17:33:07 EST STATEMENT:  -- Reconciliation migration to sync schema with database
+	-- This migration adds missing tables and columns that exist in the database
+	-- but are not in the migration history
+	
+	-- Add missing User columns (if they don't exist)
+	DO $$ 
+	BEGIN
+	    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'billing_status') THEN
+	        ALTER TABLE "User" ADD COLUMN "billing_status" TEXT;
+	    END IF;
+	    
+	    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'paypalPayerId') THEN
+	        ALTER TABLE "User" ADD COLUMN "paypalPayerId" TEXT;
+	    END IF;
+	    
+	    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'stripeCustomerId') THEN
+	        ALTER TABLE "User" ADD COLUMN "stripeCustomerId" TEXT;
+	    END IF;
+	    
+	    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'updatedAt') THEN
+	        ALTER TABLE "User" ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+	    END IF;
+	END $$;
+	
+	-- Create Subscription table if it doesn't exist
+	CREATE TABLE IF NOT EXISTS "Subscription" (
+	    "id" SERIAL NOT NULL,
+	    "userId" INTEGER NOT NULL,
+	    "provider" TEXT NOT NULL,
+	    "externalId" TEXT NOT NULL,
+	    "status" TEXT NOT NULL,
+	    "currentPeriodEnd" TIMESTAMP(3) NOT NULL,
+	    "priceId" TEXT,
+	    "product" TEXT,
+	    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	    CONSTRAINT "Subscription_pkey" PRIMARY KEY ("id")
+	);
+	
+	-- Create indexes for Subscription if they don't exist
+	CREATE UNIQUE INDEX IF NOT EXISTS "Subscription_externalId_key" ON "Subscription"("externalId");
+	CREATE INDEX IF NOT EXISTS "Subscription_provider_externalId_idx" ON "Subscription"("provider", "externalId");
+	CREATE INDEX IF NOT EXISTS "Subscription_userId_idx" ON "Subscription"("userId");
+	
+	-- Add foreign key for Subscription if it doesn't exist
+	DO $$ 
+	BEGIN
+	    IF NOT EXISTS (
+	        SELECT 1 FROM information_schema.table_constraints 
+	        WHERE constraint_name = 'Subscription_userId_fkey'
+	    ) THEN
+	        ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_userId_fkey" 
+	        FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+	    END IF;
+	END $$;
+	
+	-- Create PasswordResetCode table if it doesn't exist
+	CREATE TABLE IF NOT EXISTS "PasswordResetCode" (
+	    "id" SERIAL NOT NULL,
+	    "email" TEXT NOT NULL,
+	    "code" TEXT NOT NULL,
+	    "expiresAt" TIMESTAMP(3) NOT NULL,
+	    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	    CONSTRAINT "PasswordResetCode_pkey" PRIMARY KEY ("id")
+	);
+	
+	-- Create indexes for PasswordResetCode if they don't exist
+	CREATE INDEX IF NOT EXISTS "PasswordResetCode_email_idx" ON "PasswordResetCode"("email");
+	CREATE INDEX IF NOT EXISTS "PasswordResetCode_code_idx" ON "PasswordResetCode"("code");
+	
+	
+	
+	
+2025-11-13 17:33:07 EST LOG:  checkpoint starting: immediate force wait
+2025-11-13 17:33:07 EST LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.002 s, total=0.009 s; sync files=5, longest=0.001 s, average=0.001 s; distance=4711 kB, estimate=4711 kB; lsn=0/25FFEF8, redo lsn=0/25FFEA0
+2025-11-13 17:33:47 EST ERROR:  relation "User" does not exist
+2025-11-13 17:33:47 EST CONTEXT:  SQL statement "ALTER TABLE "User" ADD COLUMN "billing_status" TEXT"
+	PL/pgSQL function inline_code_block line 4 at SQL statement
+2025-11-13 17:33:47 EST STATEMENT:  -- Reconciliation migration to sync schema with database
+	-- This migration adds missing tables and columns that exist in the database
+	-- but are not in the migration history
+	
+	-- Add missing User columns (if they don't exist)
+	DO $$ 
+	BEGIN
+	    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'billing_status') THEN
+	        ALTER TABLE "User" ADD COLUMN "billing_status" TEXT;
+	    END IF;
+	    
+	    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'paypalPayerId') THEN
+	        ALTER TABLE "User" ADD COLUMN "paypalPayerId" TEXT;
+	    END IF;
+	    
+	    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'stripeCustomerId') THEN
+	        ALTER TABLE "User" ADD COLUMN "stripeCustomerId" TEXT;
+	    END IF;
+	    
+	    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'updatedAt') THEN
+	        ALTER TABLE "User" ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+	    END IF;
+	END $$;
+	
+	-- Create Subscription table if it doesn't exist
+	CREATE TABLE IF NOT EXISTS "Subscription" (
+	    "id" SERIAL NOT NULL,
+	    "userId" INTEGER NOT NULL,
+	    "provider" TEXT NOT NULL,
+	    "externalId" TEXT NOT NULL,
+	    "status" TEXT NOT NULL,
+	    "currentPeriodEnd" TIMESTAMP(3) NOT NULL,
+	    "priceId" TEXT,
+	    "product" TEXT,
+	    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	    CONSTRAINT "Subscription_pkey" PRIMARY KEY ("id")
+	);
+	
+	-- Create indexes for Subscription if they don't exist
+	CREATE UNIQUE INDEX IF NOT EXISTS "Subscription_externalId_key" ON "Subscription"("externalId");
+	CREATE INDEX IF NOT EXISTS "Subscription_provider_externalId_idx" ON "Subscription"("provider", "externalId");
+	CREATE INDEX IF NOT EXISTS "Subscription_userId_idx" ON "Subscription"("userId");
+	
+	-- Add foreign key for Subscription if it doesn't exist
+	DO $$ 
+	BEGIN
+	    IF NOT EXISTS (
+	        SELECT 1 FROM information_schema.table_constraints 
+	        WHERE constraint_name = 'Subscription_userId_fkey'
+	    ) THEN
+	        ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_userId_fkey" 
+	        FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+	    END IF;
+	END $$;
+	
+	-- Create PasswordResetCode table if it doesn't exist
+	CREATE TABLE IF NOT EXISTS "PasswordResetCode" (
+	    "id" SERIAL NOT NULL,
+	    "email" TEXT NOT NULL,
+	    "code" TEXT NOT NULL,
+	    "expiresAt" TIMESTAMP(3) NOT NULL,
+	    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	    CONSTRAINT "PasswordResetCode_pkey" PRIMARY KEY ("id")
+	);
+	
+	-- Create indexes for PasswordResetCode if they don't exist
+	CREATE INDEX IF NOT EXISTS "PasswordResetCode_email_idx" ON "PasswordResetCode"("email");
+	CREATE INDEX IF NOT EXISTS "PasswordResetCode_code_idx" ON "PasswordResetCode"("code");
+	
+	
+	
+	
+2025-11-13 17:38:07 EST LOG:  checkpoint starting: time
+2025-11-13 17:38:17 EST LOG:  checkpoint complete: wrote 92 buffers (0.6%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=9.924 s, sync=0.024 s, total=9.954 s; sync files=79, longest=0.004 s, average=0.001 s; distance=488 kB, estimate=4288 kB; lsn=0/2679FD8, redo lsn=0/2679F48
+2025-11-13 17:40:34 EST LOG:  checkpoint starting: immediate force wait
+2025-11-13 17:40:34 EST LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.002 s, total=0.008 s; sync files=5, longest=0.001 s, average=0.001 s; distance=4676 kB, estimate=4676 kB; lsn=0/2B0B128, redo lsn=0/2B0B0D0
+2025-11-13 17:40:35 EST LOG:  checkpoint starting: immediate force wait
+2025-11-13 17:40:35 EST LOG:  checkpoint complete: wrote 13 buffers (0.1%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.004 s, total=0.012 s; sync files=12, longest=0.001 s, average=0.001 s; distance=4722 kB, estimate=4722 kB; lsn=0/2FA7B88, redo lsn=0/2FA7B30
+2025-11-13 17:43:35 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 17:44:28 EST ERROR:  table "_prisma_migrations" does not exist
+2025-11-13 17:44:28 EST STATEMENT:  DROP TABLE _prisma_migrations
+2025-11-13 17:45:35 EST LOG:  checkpoint starting: time
+2025-11-13 17:45:44 EST LOG:  checkpoint complete: wrote 87 buffers (0.5%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 1 recycled; write=9.437 s, sync=0.013 s, total=9.464 s; sync files=50, longest=0.003 s, average=0.001 s; distance=534 kB, estimate=4303 kB; lsn=0/302D5A0, redo lsn=0/302D510
+2025-11-13 17:48:13 EST ERROR:  relation "public.User" does not exist at character 500
+2025-11-13 17:48:13 EST STATEMENT:  SELECT "public"."User"."id", "public"."User"."name", "public"."User"."email", "public"."User"."password", "public"."User"."phone", "public"."User"."experience", "public"."User"."plan", "public"."User"."language", "public"."User"."themeMode", "public"."User"."trialEndsAt", "public"."User"."trial_active", "public"."User"."billing_status", "public"."User"."stripeCustomerId", "public"."User"."paypalPayerId", "public"."User"."onboarded", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE ("public"."User"."email" = $1 AND 1=1) LIMIT $2 OFFSET $3
+2025-11-13 17:48:16 EST ERROR:  relation "public.User" does not exist at character 500
+2025-11-13 17:48:16 EST STATEMENT:  SELECT "public"."User"."id", "public"."User"."name", "public"."User"."email", "public"."User"."password", "public"."User"."phone", "public"."User"."experience", "public"."User"."plan", "public"."User"."language", "public"."User"."themeMode", "public"."User"."trialEndsAt", "public"."User"."trial_active", "public"."User"."billing_status", "public"."User"."stripeCustomerId", "public"."User"."paypalPayerId", "public"."User"."onboarded", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE ("public"."User"."email" = $1 AND 1=1) LIMIT $2 OFFSET $3
+2025-11-13 17:49:15 EST ERROR:  relation "public.User" does not exist at character 500
+2025-11-13 17:49:15 EST STATEMENT:  SELECT "public"."User"."id", "public"."User"."name", "public"."User"."email", "public"."User"."password", "public"."User"."phone", "public"."User"."experience", "public"."User"."plan", "public"."User"."language", "public"."User"."themeMode", "public"."User"."trialEndsAt", "public"."User"."trial_active", "public"."User"."billing_status", "public"."User"."stripeCustomerId", "public"."User"."paypalPayerId", "public"."User"."onboarded", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE ("public"."User"."email" = $1 AND 1=1) LIMIT $2 OFFSET $3
+2025-11-13 17:55:28 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 17:55:41 EST ERROR:  relation "public.User" does not exist at character 500
+2025-11-13 17:55:41 EST STATEMENT:  SELECT "public"."User"."id", "public"."User"."name", "public"."User"."email", "public"."User"."password", "public"."User"."phone", "public"."User"."experience", "public"."User"."plan", "public"."User"."language", "public"."User"."themeMode", "public"."User"."trialEndsAt", "public"."User"."trial_active", "public"."User"."billing_status", "public"."User"."stripeCustomerId", "public"."User"."paypalPayerId", "public"."User"."onboarded", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE ("public"."User"."email" = $1 AND 1=1) LIMIT $2 OFFSET $3
+2025-11-13 17:58:04 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:03:24 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:03:26 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:04:48 EST ERROR:  relation "public.User" does not exist at character 500
+2025-11-13 18:04:48 EST STATEMENT:  SELECT "public"."User"."id", "public"."User"."name", "public"."User"."email", "public"."User"."password", "public"."User"."phone", "public"."User"."experience", "public"."User"."plan", "public"."User"."language", "public"."User"."themeMode", "public"."User"."trialEndsAt", "public"."User"."trial_active", "public"."User"."billing_status", "public"."User"."stripeCustomerId", "public"."User"."paypalPayerId", "public"."User"."onboarded", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE ("public"."User"."email" = $1 AND 1=1) LIMIT $2 OFFSET $3
+2025-11-13 18:06:44 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:10:35 EST LOG:  checkpoint starting: time
+2025-11-13 18:10:43 EST LOG:  checkpoint complete: wrote 73 buffers (0.4%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=7.800 s, sync=0.018 s, total=7.824 s; sync files=70, longest=0.005 s, average=0.001 s; distance=452 kB, estimate=3918 kB; lsn=0/309E740, redo lsn=0/309E6B0
+2025-11-13 18:15:35 EST LOG:  checkpoint starting: time
+2025-11-13 18:15:35 EST LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.112 s, sync=0.004 s, total=0.124 s; sync files=1, longest=0.004 s, average=0.004 s; distance=4 kB, estimate=3527 kB; lsn=0/309F830, redo lsn=0/309F7D8
+2025-11-13 18:36:32 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:36:34 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:36:36 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:36:43 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:36:48 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:36:48 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-13 18:40:01 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:28:19 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:30:51 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:32:34 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:32:48 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:32:49 EST LOG:  checkpoint starting: time
+2025-11-14 15:32:51 EST LOG:  checkpoint complete: wrote 18 buffers (0.1%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=1.938 s, sync=0.011 s, total=1.962 s; sync files=9, longest=0.003 s, average=0.001 s; distance=80 kB, estimate=3182 kB; lsn=0/30B39E0, redo lsn=0/30B3950
+2025-11-14 15:41:20 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:41:21 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:41:27 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:41:30 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:41:33 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:41:37 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:42:24 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 15:42:30 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-11-14 16:02:49 EST LOG:  checkpoint starting: time
+2025-11-14 16:02:50 EST LOG:  checkpoint complete: wrote 10 buffers (0.1%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=1.066 s, sync=0.006 s, total=1.077 s; sync files=8, longest=0.003 s, average=0.001 s; distance=1 kB, estimate=2864 kB; lsn=0/30B3F98, redo lsn=0/30B3F40
+2025-11-14 16:42:49 EST LOG:  checkpoint starting: time
+2025-11-14 16:42:49 EST LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.112 s, sync=0.004 s, total=0.177 s; sync files=2, longest=0.003 s, average=0.002 s; distance=0 kB, estimate=2578 kB; lsn=0/30B4330, redo lsn=0/30B42D8
+2025-11-14 16:52:49 EST LOG:  checkpoint starting: time
+2025-11-14 16:52:49 EST LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.105 s, sync=0.004 s, total=0.117 s; sync files=1, longest=0.004 s, average=0.004 s; distance=0 kB, estimate=2320 kB; lsn=0/30B4708, redo lsn=0/30B46B0
+2025-11-14 17:07:49 EST LOG:  checkpoint starting: time
+2025-11-14 17:07:50 EST LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.458 s, sync=0.009 s, total=0.524 s; sync files=5, longest=0.004 s, average=0.002 s; distance=1 kB, estimate=2088 kB; lsn=0/30B4CB8, redo lsn=0/30B4C60

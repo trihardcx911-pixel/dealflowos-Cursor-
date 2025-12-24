@@ -1,0 +1,15 @@
+2025-11-23 10:59:06 EST LOG:  database system was shut down at 2025-11-23 10:52:07 EST
+2025-11-23 11:04:06 EST LOG:  checkpoint starting: time
+2025-11-23 11:04:06 EST LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.002 s, total=0.017 s; sync files=2, longest=0.002 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/30DB3E0, redo lsn=0/30DB388
+2025-11-23 11:48:36 EST ERROR:  relation "_prisma_migrations" does not exist at character 126
+2025-11-23 11:48:36 EST STATEMENT:  SELECT "id", "checksum", "finished_at", "migration_name", "logs", "rolled_back_at", "started_at", "applied_steps_count" FROM "_prisma_migrations" ORDER BY "started_at" ASC
+2025-11-23 11:48:36 EST LOG:  checkpoint starting: immediate force wait
+2025-11-23 11:48:36 EST LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.003 s, total=0.017 s; sync files=4, longest=0.002 s, average=0.001 s; distance=4674 kB, estimate=4674 kB; lsn=0/356BE20, redo lsn=0/356BDC8
+2025-11-23 11:48:37 EST LOG:  checkpoint starting: immediate force wait
+2025-11-23 11:48:37 EST LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.002 s, total=0.012 s; sync files=4, longest=0.001 s, average=0.001 s; distance=4674 kB, estimate=4674 kB; lsn=0/39FC988, redo lsn=0/39FC930
+2025-11-23 11:53:37 EST LOG:  checkpoint starting: time
+2025-11-23 11:53:46 EST LOG:  checkpoint complete: wrote 83 buffers (0.5%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=9.244 s, sync=0.038 s, total=9.308 s; sync files=73, longest=0.006 s, average=0.001 s; distance=404 kB, estimate=4247 kB; lsn=0/3A61BB8, redo lsn=0/3A61B28
+2025-11-23 12:03:37 EST LOG:  checkpoint starting: time
+2025-11-23 12:03:39 EST LOG:  checkpoint complete: wrote 15 buffers (0.1%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=1.649 s, sync=0.008 s, total=1.676 s; sync files=12, longest=0.002 s, average=0.001 s; distance=36 kB, estimate=3826 kB; lsn=0/3A6AE98, redo lsn=0/3A6AE40
+2025-11-23 19:01:21 EST LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	

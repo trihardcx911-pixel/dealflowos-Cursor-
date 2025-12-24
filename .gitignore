@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# env
+.env
+.env.local
+
+# builds
+dist/
+build/
+.next/
+
+# uploads / runtime
+uploads/
+
+# OS / installers
+*.msi
+.DS_Store
+
+# local db / configs
+postgresql.conf

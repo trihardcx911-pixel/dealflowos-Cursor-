@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+enum LeadType {
+  sfr
+  land
+  multi
+  other
+}
+model Organization {
+  id            String   @id @default(cuid())
+  name          String   @default("Demo Org")
+  timezone      String   @default("America/New_York")
+  marketProfile String   @default("metro_sfr") // metro_sfr | land | hybrid
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  leads         Lead[]
+  documents     LegalDocument[]
+}
+
+model Lead {
+  id           String   @id @default(cuid())
+  orgId        String
+  type         LeadType @default(sfr)
+  address      String
+  city         String
+  state        String
+  zip          String
+  addressHash  String
+  notes        String?
+  ruralFlag    Boolean  @default(false)
+  populationOk Boolean  @default(true)
+  landSignals  Json?
+  legalFlag    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  org          Organization @relation(fields: [orgId], references: [id])
+  contacts     LeadContact[]
+  documents    LegalDocument[]
+
+  @@index([orgId, type, ruralFlag])
+  @@unique([orgId, addressHash], name: "orgId_addressHash")
+}
+
+model LeadContact {
+  id           String   @id @default(cuid())
+  leadId       String
+  type         String   // "phone" | "email"
+  value        String
+  source       String?
+  verifiedAt   DateTime?
+  dncStatus    String?
+  dncCheckedAt DateTime?
+
+  lead         Lead     @relation(fields: [leadId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([leadId, type])
+}
+
+model CalendarEvent {
+  id        Int      @id @default(autoincrement())
+  title     String
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+  notes     String?
+  urgency   String   // low / medium / critical
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+
+  @@index([userId, date])
+  @@index([date])
+}
+
+model User {
+  id        String           @id @default(cuid())
+  documents LegalDocument[]
+}
+
+model Deal {
+  id        String           @id @default(cuid())
+  documents LegalDocument[]
+}
+
+model LegalDocument {
+  id        String           @id @default(cuid())
+  orgId     String
+  userId    String
+  leadId    String?
+  dealId    String?
+  fileName  String
+  filePath  String
+  mimeType  String
+  fileSize  Int
+  category  DocumentCategory
+  type      DocumentType?
+  createdAt DateTime         @default(now())
+  deal      Deal?            @relation(fields: [dealId], references: [id])
+  lead      Lead?            @relation(fields: [leadId], references: [id])
+  org       Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id])
+
+  @@index([orgId, category])
+}
+
+enum DocumentCategory {
+  CONTRACTS
+  COMPLIANCE
+  AGREEMENTS
+  OTHER
+}
+
+enum DocumentType {
+  PURCHASE_AGREEMENT
+  ASSIGNMENT_CONTRACT
+  OTHER
+}
+
+

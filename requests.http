@@ -1,0 +1,67 @@
+### Beta access
+GET http://localhost:3010/beta?token=demo-beta-token
+@baseUrl = http://localhost:3010
+@email = test{{$timestamp}}@example.com
+@password = testpass123
+@token = {{login.response.body.token}}
+
+### Health
+GET {{baseUrl}}/healthz
+
+### Ready
+GET {{baseUrl}}/readyz
+
+### Version
+GET {{baseUrl}}/version
+
+### Root
+GET {{baseUrl}}/
+
+### Signup
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Me
+GET {{baseUrl}}/me
+Authorization: Bearer {{token}}
+
+### Create Lead
+POST {{baseUrl}}/leads
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "type": "single_family",
+  "address": "123 Main St",
+  "city": "Austin",
+  "state": "TX",
+  "zip": "78701"
+}
+
+### List Leads
+GET {{baseUrl}}/leads
+Authorization: Bearer {{token}}
+
+### Metrics (protected)
+GET {{baseUrl}}/metrics
+Authorization: Bearer {{token}}
+
+### Cron stale (secret required)
+GET {{baseUrl}}/admin/cron/stale
+x-cron-secret: devcron### Version
+GET http://localhost:3010/version

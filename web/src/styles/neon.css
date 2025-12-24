@@ -1,0 +1,1511 @@
+﻿/* ======================= */
+/* FLAT DARK BACKGROUND    */
+/* ======================= */
+/* Note: CSS variables are now defined in theme.css */
+html {
+  background-color: var(--bg-base);
+  width: 100%;
+  overflow-x: hidden;
+}
+
+html {
+  font-family: var(--font-base) !important;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  font-family: inherit !important;
+  letter-spacing: 0.3px;
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Frosted blur for Light Mode background */
+html:not(.dark) body {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+#root {
+  background-color: transparent;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* ======================= */
+/* LIQUID GLASS CARDS      */
+/* ======================= */
+.dashboard-card,
+.df-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+  min-height: 280px;
+  line-height: 1.4;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  z-index: 1;
+  box-shadow:
+    0 0 14px var(--neon-red-dim),
+    inset 0 0 8px var(--glass-glow-inner);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s ease;
+  animation: cardNeonPulse 4s ease-in-out infinite;
+}
+
+.dashboard-card::before,
+.df-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top left, var(--neon-red-accent), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+  animation: cardGlowPulse 3s ease-in-out infinite;
+}
+
+.dashboard-card::after,
+.df-card::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: transparent;
+  border: 1px solid var(--neon-red-soft);
+  border-radius: inherit;
+  opacity: 0;
+  z-index: -1;
+  animation: cardBorderGlow 3.5s ease-in-out infinite;
+  pointer-events: none;
+  box-shadow: 0 0 8px var(--neon-red-dim);
+}
+
+.dashboard-card > *,
+.df-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-card:hover,
+.df-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 12px var(--neon-red-dim),
+    0 0 20px var(--neon-red-soft);
+  border-color: var(--neon-red-soft);
+  z-index: 10;
+}
+
+.dashboard-card:hover::after,
+.df-card:hover::after {
+  opacity: 0.5;
+  animation: cardBorderGlowHover 2s ease-in-out infinite;
+}
+
+.dashboard-card-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex: 1;
+}
+
+/* ======================= */
+/* NEON GLASS SYSTEM       */
+/* ======================= */
+.neon-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 0 12px var(--neon-red-dim),
+    inset 0 0 6px var(--glass-glow-inner);
+  border-radius: var(--card-radius);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.neon-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top left, var(--neon-red-accent), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.neon-glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sidebar-specific variant without overflow-hidden */
+.neon-glass-sidebar {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 0 12px var(--neon-red-dim),
+    inset 0 0 6px var(--glass-glow-inner);
+  border-radius: var(--card-radius);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow-y: auto;
+  overflow-x: visible;
+  isolation: isolate;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.neon-glass-sidebar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.neon-glass-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top left, var(--neon-red-accent), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.neon-glass-sidebar > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Nav item styling - ensure text is always visible */
+.neon-nav-item {
+  position: relative;
+  z-index: 10;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.neon-nav-item:hover {
+  background: var(--glass-glow-inner);
+  border-color: var(--neon-red-soft);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 0 12px var(--neon-red-dim),
+    0 0 24px var(--neon-red-soft),
+    inset 0 0 8px var(--neon-red-accent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transform: translateX(2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Neon red hover glass animation */
+.neon-nav-item:hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, var(--neon-red-soft), transparent 70%);
+  opacity: 0.6;
+  animation: neonPulse 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.neon-nav-item:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--neon-red-accent) 0%, transparent 50%);
+  opacity: 0.4;
+  animation: neonGlow 1.5s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.neon-nav-item > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Keyframe animations for neon effect */
+@keyframes neonPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes neonGlow {
+  0% {
+    opacity: 0.3;
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 0.6;
+    filter: blur(8px);
+  }
+}
+
+/* Dashboard card neon pulsing animations */
+@keyframes cardNeonPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 10px var(--neon-red-dim),
+      inset 0 0 4px var(--glass-glow-inner);
+  }
+  50% {
+    box-shadow:
+      0 0 14px var(--neon-red-soft),
+      0 0 20px var(--neon-red-dim),
+      inset 0 0 6px var(--glass-glow-inner);
+  }
+}
+
+@keyframes cardGlowPulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.01);
+  }
+}
+
+@keyframes cardBorderGlow {
+  0%, 100% {
+    opacity: 0.3;
+    box-shadow: 0 0 6px var(--neon-red-dim);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 12px var(--neon-red-soft);
+  }
+}
+
+@keyframes cardBorderGlowHover {
+  0%, 100% {
+    opacity: 0.6;
+    box-shadow: 0 0 10px var(--neon-red-dim);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 16px var(--neon-red-soft);
+  }
+}
+
+.neon-nav-item.active-nav {
+  background: var(--neon-red-accent);
+  border: 1px solid var(--neon-red-edge);
+  box-shadow: 0 0 12px var(--neon-red-dim);
+}
+
+.neon-glass:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 16px var(--neon-red-soft),
+    inset 0 0 8px var(--neon-red-edge);
+  border-color: var(--glass-border-hover);
+}
+
+.neon-glass:active {
+  transform: scale(0.99);
+}
+
+/* ======================= */
+/* GLASS LAYER VARIANTS    */
+/* ======================= */
+.glass-layer-light {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius);
+  min-height: 280px;
+  line-height: 1.4;
+  isolation: isolate;
+  z-index: 1;
+  box-shadow:
+    0 0 12px var(--neon-red-dim),
+    inset 0 0 6px var(--glass-glow-inner);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-layer-light::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top left, var(--neon-red-accent), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.glass-layer-light > * {
+  position: relative;
+  z-index: 1;
+}
+
+.glass-layer-light:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 16px var(--neon-red-soft),
+    inset 0 0 8px var(--neon-red-edge);
+  border-color: var(--glass-border-hover);
+  z-index: 10;
+}
+
+.glass-layer-dark {
+  background: var(--glass-bg-dark);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius);
+  isolation: isolate;
+  z-index: 1;
+  box-shadow:
+    0 0 12px var(--neon-red-dim),
+    inset 0 0 6px var(--glass-glow-inner);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-layer-dark::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top left, var(--neon-red-accent), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.glass-layer-dark > * {
+  position: relative;
+  z-index: 1;
+}
+
+.glass-layer-dark:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 16px var(--neon-red-soft),
+    inset 0 0 8px var(--neon-red-edge);
+  border-color: var(--glass-border-hover);
+  z-index: 10;
+}
+
+/* ======================= */
+/* DASHBOARD GRID          */
+/* ======================= */
+.dashboard-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-auto-rows: minmax(280px, auto);
+  gap: var(--grid-gap);
+  padding: 2rem 1rem;
+  align-items: stretch;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .dashboard-grid-container {
+    padding: 2rem 3rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .dashboard-grid-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dashboard-grid-container > * {
+  min-height: 280px;
+}
+
+/* ======================= */
+/* TOP NAVIGATION          */
+/* ======================= */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--neon-red-dim);
+  box-shadow: 0 0 20px var(--neon-red-soft);
+}
+
+.topnav-link {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.topnav-link:hover {
+  color: var(--neon-red);
+  background: var(--neon-red-accent);
+}
+
+.topnav-link.active {
+  color: var(--neon-red);
+  font-weight: 600;
+  text-shadow: 0 0 10px var(--neon-red);
+}
+
+/* ======================= */
+/* TYPOGRAPHY SYSTEM       */
+/* ======================= */
+.neon-section-label {
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+  font-weight: 500;
+}
+
+.neon-card-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+  .neon-card-title {
+    font-size: 1.25rem;
+  }
+}
+
+.neon-metric-number {
+  font-size: 42px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.1;
+  position: relative;
+}
+
+.neon-metric-number::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--neon-red-soft), transparent);
+  border-radius: 1px;
+}
+
+.neon-meta-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.6px;
+  margin-bottom: 24px;
+  padding-left: 1.5rem;
+}
+
+/* ======================= */
+/* KPI SPECIFIC STYLES     */
+/* ======================= */
+.kpi-tile {
+  min-height: 280px;
+  padding: var(--card-padding);
+  position: relative;
+  overflow: hidden;
+  animation: cardNeonPulse 4s ease-in-out infinite;
+}
+
+.kpi-tile::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: transparent;
+  border: 1px solid var(--neon-red-soft);
+  border-radius: inherit;
+  opacity: 0;
+  z-index: -1;
+  animation: cardBorderGlow 3.5s ease-in-out infinite;
+  pointer-events: none;
+  box-shadow: 0 0 8px var(--neon-red-dim);
+}
+
+.kpi-tile:hover::after {
+  opacity: 0.6;
+  animation: cardBorderGlowHover 2s ease-in-out infinite;
+}
+
+.kpi-tile .kpi-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.kpi-tile .kpi-number {
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.kpi-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-auto-rows: minmax(280px, auto);
+  gap: var(--grid-gap);
+  padding: 1rem 2rem;
+  align-items: stretch;
+}
+
+.kpi-charts-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--grid-gap);
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .kpi-charts-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.kpi-chart-card {
+  min-height: 340px;
+}
+
+.kpi-hero-tile {
+  min-height: 340px;
+  position: relative;
+}
+
+/* ======================= */
+/* UTILITY CLASSES         */
+/* ======================= */
+.neon-border {
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 0 12px var(--neon-red-dim),
+    inset 0 0 6px var(--glass-glow-inner);
+}
+
+.neon-hover {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neon-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 16px var(--neon-red-soft),
+    inset 0 0 8px var(--neon-red-edge);
+}
+
+.glass-tile {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  position: relative;
+}
+
+.glass-hover {
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-hover:hover {
+  background: var(--glass-glow-inner);
+  border-color: var(--glass-border-hover);
+}
+
+.neon-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-base), 0 0 8px var(--neon-red-dim);
+  border-color: var(--neon-red);
+}
+
+.neon-focus-ring:focus {
+  outline: none;
+}
+
+.neon-ring-hover:hover {
+  box-shadow: 0 0 0 1px var(--glass-border-hover), 0 0 10px var(--neon-red-dim);
+}
+
+.neon-card-premium {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius);
+  padding: 28px 32px;
+  box-shadow:
+    0 0 12px var(--neon-red-dim),
+    inset 0 0 6px var(--glass-glow-inner),
+    0 16px 32px var(--bg-overlay);
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.neon-card-premium:hover {
+  transform: translateY(-2px);
+  border-color: var(--glass-border-hover);
+  box-shadow:
+    0 0 16px var(--neon-red-soft),
+    inset 0 0 8px var(--neon-red-edge),
+    0 20px 40px var(--bg-overlay);
+}
+
+.neon-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ======================= */
+/* SCROLLBAR UTILITIES     */
+/* ======================= */
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* ======================= */
+/* GLOBAL OVERRIDE - FLAT  */
+/* ======================= */
+html, body, #root {
+  background: var(--bg-base) !important;
+  background-color: var(--bg-base) !important;
+  width: 100% !important;
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+
+/* ======================= */
+/* LIGHT MODE TEXT OVERRIDES */
+/* ======================= */
+html:not(.dark) .kpi-tile,
+html:not(.dark) .neon-card-title,
+html:not(.dark) .neon-metric-number,
+html:not(.dark) .section-title {
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) .neon-meta-text {
+  color: var(--text-secondary) !important;
+}
+
+html:not(.dark) .calendar-day {
+  color: var(--text-primary) !important;
+}
+
+/* ======================= */
+/* DASHBOARD CARD TEXT OVERRIDES FOR LIGHT MODE */
+/* ======================= */
+
+/* Override all text-white classes inside dashboard cards in light mode */
+/* Target elements with text-white class but exclude those with red backgrounds */
+html:not(.dark) .dashboard-card [class*="text-white"]:not([class*="bg-red"]):not([class*="bg-\[#ff"]):not([class*="bg-red-"]),
+html:not(.dark) .dashboard-card h2[class*="text-white"],
+html:not(.dark) .dashboard-card h3[class*="text-white"],
+html:not(.dark) .dashboard-card p[class*="text-white"],
+html:not(.dark) .dashboard-card span[class*="text-white"]:not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-yellow"]),
+html:not(.dark) .dashboard-card div[class*="text-white"],
+html:not(.dark) .dashboard-card a[class*="text-white"],
+html:not(.dark) .dashboard-card button[class*="text-white"]:not([class*="bg-red"]):not([class*="bg-\[#ff"]) {
+  color: var(--text-primary) !important;
+}
+
+/* Override text-white with opacity classes (text-white/60, text-white/70, etc.) */
+html:not(.dark) .dashboard-card [class*="text-white/60"],
+html:not(.dark) .dashboard-card [class*="text-white/70"],
+html:not(.dark) .dashboard-card [class*="text-white/50"],
+html:not(.dark) .dashboard-card [class*="text-white/80"] {
+  color: var(--text-secondary) !important;
+}
+
+/* Override hover states for text-white/60 -> text-white */
+html:not(.dark) .dashboard-card [class*="text-white/60"]:hover,
+html:not(.dark) .dashboard-card [class*="hover:text-white"]:hover {
+  color: var(--text-primary) !important;
+}
+
+/* Ensure section labels are visible */
+html:not(.dark) .dashboard-card .neon-section-label {
+  color: var(--text-secondary) !important;
+}
+
+/* Ensure card titles are visible - override any text-white on h2 */
+html:not(.dark) .dashboard-card h2,
+html:not(.dark) .dashboard-card h2[class*="text-white"] {
+  color: var(--text-primary) !important;
+}
+
+/* Numbers and metrics keep their red accent color but ensure visibility */
+html:not(.dark) .dashboard-card [class*="text-\[#ff0a45\]"],
+html:not(.dark) .dashboard-card [class*="text-[#ff0a45]"] {
+  color: #ff0033 !important; /* Use theme red color */
+}
+
+/* Fix white/light colored backgrounds in light mode for better visibility */
+html:not(.dark) .dashboard-card [class*="bg-white/35"] {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ======================= */
+/* APPLE DASHBOARD LIGHT MODE CARD OVERRIDES */
+/* ======================= */
+
+/* Remove backdrop filter for solid white cards in Light Mode */
+html:not(.dark) .dashboard-card,
+html:not(.dark) .df-card,
+html:not(.dark) .neon-glass,
+html:not(.dark) .neon-glass-sidebar,
+html:not(.dark) .glass-layer-light,
+html:not(.dark) .glass-layer-dark,
+html:not(.dark) .neon-card-premium,
+html:not(.dark) .glass-tile {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Dashboard Cards - Apple Style */
+html:not(.dark) .dashboard-card,
+html:not(.dark) .df-card {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+  color: var(--text-primary) !important;
+  animation: cardNeonPulseLight 4s ease-in-out infinite !important;
+}
+
+/* Light Mode card pulse animation - subtle neon red glow */
+@keyframes cardNeonPulseLight {
+  0%, 100% {
+    box-shadow: 0 2px 6px var(--glass-glow-outer);
+    border-color: var(--glass-border);
+  }
+  50% {
+    box-shadow: 
+      0 2px 8px var(--glass-glow-outer),
+      0 0 12px var(--neon-red-dim);
+    border-color: var(--neon-red-soft);
+  }
+}
+
+html:not(.dark) .dashboard-card::before,
+html:not(.dark) .df-card::before {
+  display: none !important;
+}
+
+html:not(.dark) .dashboard-card:hover,
+html:not(.dark) .df-card:hover {
+  box-shadow: 
+    0 4px 12px var(--glass-glow-outer),
+    0 0 12px var(--neon-red-dim) !important;
+  border-color: var(--neon-red-soft) !important;
+}
+
+/* Neon Glass Cards */
+html:not(.dark) .neon-glass {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) .neon-glass::before {
+  display: none !important;
+}
+
+html:not(.dark) .neon-glass:hover {
+  box-shadow: 0 4px 12px var(--glass-glow-outer) !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* Neon Glass Sidebar */
+html:not(.dark) .neon-glass-sidebar {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+}
+
+html:not(.dark) .neon-glass-sidebar::before {
+  display: none !important;
+}
+
+/* Glass Layer Variants */
+html:not(.dark) .glass-layer-light {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+}
+
+html:not(.dark) .glass-layer-light::before {
+  display: none !important;
+}
+
+html:not(.dark) .glass-layer-light:hover {
+  box-shadow: 0 4px 12px var(--glass-glow-outer) !important;
+  border-color: var(--glass-border) !important;
+}
+
+html:not(.dark) .glass-layer-dark {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+}
+
+html:not(.dark) .glass-layer-dark::before {
+  display: none !important;
+}
+
+html:not(.dark) .glass-layer-dark:hover {
+  box-shadow: 0 4px 12px var(--glass-glow-outer) !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* KPI Tile */
+html:not(.dark) .kpi-tile {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+}
+
+/* Neon Card Premium */
+html:not(.dark) .neon-card-premium {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+}
+
+html:not(.dark) .neon-card-premium::before {
+  display: none !important;
+}
+
+html:not(.dark) .neon-card-premium:hover {
+  box-shadow: 0 4px 12px var(--glass-glow-outer) !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* Glass Tile */
+html:not(.dark) .glass-tile {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+}
+
+/* Chart Cards */
+html:not(.dark) .chart-card,
+html:not(.dark) .neon-line-card {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+}
+
+/* ======================= */
+/* CALENDAR LIGHT MODE OVERRIDES */
+/* ======================= */
+
+/* MonthGrid calendar cells - Target Tailwind classes */
+html:not(.dark) [class*="rounded-2xl"][class*="bg-\[#070512"],
+html:not(.dark) [class*="rounded-2xl"][class*="bg-[#070512"] {
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) [class*="rounded-2xl"][class*="bg-\[#0b071c"],
+html:not(.dark) [class*="rounded-2xl"][class*="bg-[#0b071c"] {
+  background: #ffe6eb !important;
+  border-color: var(--neon-red) !important;
+  color: #1a1a1a !important;
+}
+
+/* Calendar day text - target text-white in calendar context */
+html:not(.dark) [class*="rounded-2xl"] [class*="text-white"][class*="font-semibold"] {
+  color: #1a1a1a !important;
+}
+
+/* WeekTimeline and DayTimeline calendar backgrounds */
+html:not(.dark) [class*="rounded-2xl"][class*="bg-\[#070512"] {
+  background: #ffffff !important;
+}
+
+html:not(.dark) [class*="rounded-2xl"] [class*="text-white"] {
+  color: #1a1a1a !important;
+}
+
+/* Calendar active/today states */
+html:not(.dark) [class*="border-\[#ff0a45]"][class*="bg-\[#0b071c"],
+html:not(.dark) [class*="border-[#ff0a45]"][class*="bg-[#0b071c"] {
+  background: #ffe6eb !important;
+  border-color: var(--neon-red) !important;
+  color: #1a1a1a !important;
+}
+
+/* ======================= */
+/* TOPNAV LIGHT MODE OVERRIDES */
+/* ======================= */
+
+html:not(.dark) .topnav {
+  background: var(--sidebar-bg) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+}
+
+/* ======================= */
+/* SIDEBAR NAVIGATION LIGHT MODE OVERRIDES */
+/* ======================= */
+
+/* Sidebar navigation text - make all text dark and readable */
+html:not(.dark) .neon-glass-sidebar nav,
+html:not(.dark) .neon-glass-sidebar [class*="text-white"],
+html:not(.dark) .neon-glass-sidebar nav[class*="text-white"],
+html:not(.dark) .neon-glass-sidebar a[class*="text-white"],
+html:not(.dark) .neon-glass-sidebar li[class*="text-white"],
+html:not(.dark) .neon-glass-sidebar span[class*="text-white"],
+html:not(.dark) .neon-glass-sidebar ul [class*="text-white"] {
+  color: var(--text-primary) !important;
+}
+
+/* Sidebar navigation text with opacity - use secondary color */
+html:not(.dark) .neon-glass-sidebar [class*="text-white/70"],
+html:not(.dark) .neon-glass-sidebar [class*="text-white/60"],
+html:not(.dark) .neon-glass-sidebar [class*="text-white/50"],
+html:not(.dark) .neon-glass-sidebar [class*="text-white/80"] {
+  color: var(--text-secondary) !important;
+}
+
+/* Sidebar nav items - inactive state */
+html:not(.dark) .neon-glass-sidebar .neon-nav-item:not(.active-nav) {
+  color: var(--text-secondary) !important;
+}
+
+html:not(.dark) .neon-glass-sidebar .neon-nav-item:not(.active-nav) [class*="text-white/70"],
+html:not(.dark) .neon-glass-sidebar .neon-nav-item:not(.active-nav) [class*="text-white/60"] {
+  color: var(--text-secondary) !important;
+}
+
+/* Sidebar nav items - hover state */
+html:not(.dark) .neon-glass-sidebar .neon-nav-item:hover:not(.active-nav),
+html:not(.dark) .neon-glass-sidebar .neon-nav-item:hover:not(.active-nav) [class*="text-white"],
+html:not(.dark) .neon-glass-sidebar .neon-nav-item[class*="hover:text-white"]:hover {
+  color: var(--text-primary) !important;
+}
+
+/* Sidebar nav items - active state */
+html:not(.dark) .neon-glass-sidebar .neon-nav-item.active-nav,
+html:not(.dark) .neon-glass-sidebar .neon-nav-item.active-nav [class*="text-white"] {
+  color: var(--neon-red) !important;
+  font-weight: 600 !important;
+}
+
+/* Sidebar nav item indicator dot */
+html:not(.dark) .neon-glass-sidebar .neon-nav-item.active-nav span[style*="background"] {
+  background: var(--neon-red) !important;
+  box-shadow: 0 0 4px var(--neon-red-soft) !important;
+}
+
+html:not(.dark) .neon-glass-sidebar .neon-nav-item:not(.active-nav) span[style*="background"] {
+  background: var(--text-secondary) !important;
+  opacity: 0.4 !important;
+}
+
+/* Sidebar nav item hover background */
+html:not(.dark) .neon-glass-sidebar .neon-nav-item[class*="hover:bg-white/5"]:hover {
+  background: rgba(255, 0, 51, 0.08) !important;
+}
+
+/* Light Mode neon hover effects - ensure visibility */
+html:not(.dark) .neon-glass-sidebar .neon-nav-item:hover {
+  box-shadow: 
+    0 0 12px var(--neon-red-dim),
+    0 0 24px var(--neon-red-soft),
+    inset 0 0 8px var(--neon-red-accent) !important;
+  border-color: var(--neon-red-soft) !important;
+  background: rgba(255, 0, 51, 0.08) !important;
+}
+
+html:not(.dark) .neon-glass-sidebar .neon-nav-item:hover::before {
+  background: radial-gradient(circle at center, var(--neon-red-soft), transparent 70%) !important;
+  opacity: 0.5 !important;
+}
+
+html:not(.dark) .neon-glass-sidebar .neon-nav-item:hover::after {
+  background: linear-gradient(135deg, var(--neon-red-accent) 0%, transparent 50%) !important;
+  opacity: 0.3 !important;
+}
+
+/* ======================= */
+/* LEGAL DOCUMENTS PAGE LIGHT MODE OVERRIDES */
+/* ======================= */
+
+/* Document Category Cards - make white in Light Mode */
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"][class*="border-red-500/20"] {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"][class*="border-red-500/20"]:hover {
+  box-shadow: 0 4px 12px var(--glass-glow-outer) !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* Text in document category cards */
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] h3[class*="text-white"],
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] p[class*="text-white/70"] {
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] p[class*="text-white/70"] {
+  color: var(--text-secondary) !important;
+}
+
+/* Buttons in document category cards */
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] button[class*="bg-white/5"],
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] button[class*="bg-white/10"] {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] button[class*="bg-white/5"]:hover,
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] button[class*="bg-white/10"]:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border-color: var(--glass-border-hover) !important;
+}
+
+/* Red upload buttons - keep red but ensure visibility */
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] button[class*="bg-red-500"] {
+  background: var(--neon-red) !important;
+  color: #ffffff !important; /* Keep white text on red buttons */
+}
+
+/* Icon containers in document cards */
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] [class*="bg-red-500/10"] {
+  background: rgba(255, 0, 51, 0.08) !important;
+  border-color: var(--neon-red-soft) !important;
+}
+
+html:not(.dark) [class*="bg-black/40"][class*="backdrop-blur-xl"] [class*="text-red-400"] {
+  color: var(--neon-red) !important;
+}
+
+/* Input fields and text boxes - make white in Light Mode */
+html:not(.dark) input[class*="bg-black/30"],
+html:not(.dark) input[class*="bg-black/40"],
+html:not(.dark) textarea[class*="bg-black/30"],
+html:not(.dark) textarea[class*="bg-black/40"],
+html:not(.dark) select[class*="bg-black/30"],
+html:not(.dark) select[class*="bg-black/40"] {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) input[class*="bg-black/30"]::placeholder,
+html:not(.dark) input[class*="bg-black/40"]::placeholder,
+html:not(.dark) textarea[class*="bg-black/30"]::placeholder,
+html:not(.dark) textarea[class*="bg-black/40"]::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+html:not(.dark) input[class*="bg-black/30"]:focus,
+html:not(.dark) input[class*="bg-black/40"]:focus,
+html:not(.dark) textarea[class*="bg-black/30"]:focus,
+html:not(.dark) textarea[class*="bg-black/40"]:focus {
+  border-color: var(--neon-red) !important;
+  box-shadow: 0 0 0 2px var(--neon-red-soft) !important;
+}
+
+/* Other black backgrounds that should be white */
+html:not(.dark) [class*="bg-black/20"],
+html:not(.dark) [class*="bg-black/30"]:not(input):not(textarea):not(select),
+html:not(.dark) [class*="bg-black/40"]:not(input):not(textarea):not(select) {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+/* Legal Documents page header text */
+html:not(.dark) [class*="text-white/60"]:not([class*="bg-red"]):not([class*="bg-\[#ff"]) {
+  color: var(--text-secondary) !important;
+}
+
+html:not(.dark) h1[class*="text-white"],
+html:not(.dark) h2[class*="text-white"],
+html:not(.dark) h3[class*="text-white"] {
+  color: var(--text-primary) !important;
+}
+
+/* Legal Documents page specific header overrides */
+html:not(.dark) [class*="text-red-300/80"] {
+  color: var(--neon-red) !important;
+  opacity: 0.8 !important;
+}
+
+html:not(.dark) button[class*="text-white/60"][class*="hover:text-white"] {
+  color: var(--text-secondary) !important;
+}
+
+html:not(.dark) button[class*="text-white/60"][class*="hover:text-white"]:hover {
+  color: var(--text-primary) !important;
+}
+
+/* ======================= */
+/* SETTINGS PAGE LIGHT MODE OVERRIDES */
+/* ======================= */
+
+/* Settings page cards - make white */
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"][class*="border"][class*="backdrop-blur-xl"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"][class*="border"][class*="p-6"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"][class*="border"][class*="p-8"] {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 2px 6px var(--glass-glow-outer) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Settings page text - make readable */
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] h2[class*="text-white"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] h3[class*="text-white"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] label[class*="text-white"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] span[class*="text-white"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] p[class*="text-white"] {
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] [class*="text-neutral-400"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] [class*="text-neutral-500"] {
+  color: var(--text-secondary) !important;
+}
+
+/* Settings page input fields - already covered by general input rules, but ensure specificity */
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] input[class*="bg-black/30"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] select[class*="bg-black/40"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] select[class*="bg-black/30"] {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] input[class*="bg-black/30"]::placeholder,
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] input[class*="bg-black/30"]::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] input[class*="bg-black/30"]:focus,
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] select[class*="bg-black/40"]:focus {
+  border-color: var(--neon-red) !important;
+  box-shadow: 0 0 0 2px var(--neon-red-soft) !important;
+}
+
+/* Settings page select dropdown options */
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] select[class*="bg-black/40"] option,
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] select[class*="bg-black/40"],
+html:not(.dark) select[class*="bg-black/40"] {
+  background: var(--glass-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) select[class*="bg-black/40"] option {
+  background: var(--glass-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Settings page theme toggle buttons */
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] button[class*="bg-black/30"]:not([class*="bg-\[#ff0a45\]/20"]) {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] button[class*="bg-black/30"]:not([class*="bg-\[#ff0a45\]/20"]):hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border-color: var(--neon-red-soft) !important;
+}
+
+/* Settings page active theme button */
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] button[class*="bg-\[#ff0a45\]/20"] {
+  background: rgba(255, 0, 51, 0.1) !important;
+  border-color: var(--neon-red-soft) !important;
+  color: var(--neon-red) !important;
+}
+
+/* Settings page borders */
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] [class*="border-white/10"],
+html:not(.dark) [class*="bg-\[#0a0a0c\]/60"] [class*="border-t"][class*="border-white/10"] {
+  border-color: var(--glass-border) !important;
+}
+
+/* Settings page header text */
+html:not(.dark) h1[class*="text-white"][class*="text-3xl"],
+html:not(.dark) p[class*="text-neutral-400"][class*="text-sm"] {
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) p[class*="text-neutral-400"]:not([class*="bg-red"]):not([class*="bg-\[#ff"]) {
+  color: var(--text-secondary) !important;
+}
+
+/* ======================= */
+/* MODAL LIGHT MODE OVERRIDES */
+/* ======================= */
+
+/* Modal overlay background in Light Mode */
+html:not(.dark) [class*="bg-black/60"],
+html:not(.dark) [class*="bg-black/40"],
+html:not(.dark) [class*="bg-black/50"] {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Text inside neon-glass modals - override text-white */
+html:not(.dark) .neon-glass [class*="text-white"]:not([class*="bg-red"]):not([class*="bg-[var(--neon-red)"]),
+html:not(.dark) .neon-glass h2[class*="text-white"],
+html:not(.dark) .neon-glass h3[class*="text-white"],
+html:not(.dark) .neon-glass p[class*="text-white"],
+html:not(.dark) .neon-glass span[class*="text-white"],
+html:not(.dark) .neon-glass div[class*="text-white"] {
+  color: var(--text-primary) !important;
+}
+
+/* Text with opacity in modals */
+html:not(.dark) .neon-glass [class*="text-white/70"],
+html:not(.dark) .neon-glass [class*="text-white/60"],
+html:not(.dark) .neon-glass [class*="text-white/80"] {
+  color: var(--text-secondary) !important;
+}
+
+/* Buttons inside neon-glass modals - exclude red buttons */
+html:not(.dark) .neon-glass button[class*="text-white"]:not([class*="bg-red"]):not([class*="bg-[var(--neon-red)"]),
+html:not(.dark) .neon-glass [class*="text-white"][class*="rounded"]:not([class*="bg-red"]) {
+  color: var(--text-primary) !important;
+}
+
+/* Button backgrounds in Light Mode modals */
+html:not(.dark) .neon-glass button[class*="bg-black/40"],
+html:not(.dark) .neon-glass button[class*="bg-black/30"] {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+html:not(.dark) .neon-glass button[class*="bg-black/40"]:hover,
+html:not(.dark) .neon-glass button[class*="bg-black/30"]:hover {
+  background: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Button borders in Light Mode */
+html:not(.dark) .neon-glass button[class*="border-white/20"],
+html:not(.dark) .neon-glass button[class*="border-white/10"] {
+  border-color: var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) .neon-glass button[class*="border-white/20"]:hover,
+html:not(.dark) .neon-glass button[class*="border-white/10"]:hover {
+  border-color: var(--glass-border-hover) !important;
+}
+
+/* Selected/active button states in Light Mode */
+html:not(.dark) .neon-glass button[class*="border-red-500"][class*="text-white"] {
+  border-color: var(--neon-red) !important;
+  background: rgba(255, 0, 51, 0.1) !important;
+  color: var(--neon-red) !important;
+}
+
+/* Red buttons (Confirm, etc.) - keep red but ensure text is visible */
+html:not(.dark) .neon-glass button[class*="bg-red-500"][class*="text-white"],
+html:not(.dark) .neon-glass button[class*="bg-red-600"][class*="text-white"] {
+  background: var(--neon-red) !important;
+  color: #ffffff !important; /* Keep white text on red buttons */
+}
+
+html:not(.dark) .neon-glass button[class*="bg-red-500"][class*="text-white"]:disabled,
+html:not(.dark) .neon-glass button[class*="bg-red-600"][class*="text-white"]:disabled {
+  background: rgba(255, 0, 51, 0.4) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ============================= */
+/* Light Mode – Upload UI tweaks */
+/* ============================= */
+
+/* 1) Floating Upload Button
+   - Only affects the button that uses Tailwind bg-[#0d0d0d]
+   - Light Mode only (html:not(.dark))
+*/
+html:not(.dark) button.bg-\[\#0d0d0d\] {
+  background-color: #ffffff !important;   /* white chip in light mode */
+  color: #ff0a45 !important;              /* icon/text matches neon red */
+}
+
+/* 2) Upload Modal Container
+   - Only affects the div using Tailwind bg-[#0f0f14]/70
+   - Light Mode only
+*/
+html:not(.dark) .bg-\[\#0f0f14\]\/70 {
+  background-color: #ffffff !important;   /* white glass card */
+  color: #1a1a1a !important;              /* default text color */
+}
+
+/* Ensure inner text in the modal is readable on white */
+html:not(.dark) .bg-\[\#0f0f14\]\/70 h3,
+html:not(.dark) .bg-\[\#0f0f14\]\/70 p,
+html:not(.dark) .bg-\[\#0f0f14\]\/70 span {
+  color: #1a1a1a !important;
+}
+
+/* ======================= */
+/* CYBERPUNK TYPOGRAPHY SYSTEM */
+/* ======================= */
+
+/* Cyberpunk Heading Font */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading) !important;
+  letter-spacing: 0.5px;
+}
+
+/* KPI Data Font */
+.kpi-value,
+.kpi-number,
+.kpi-percentage,
+.neon-metric-number,
+[data-kpi="true"] {
+  font-family: var(--font-heading) !important;
+}
+
+/* ======================= */
+/* CALENDAR VIEW SWITCHER LIGHT MODE OVERRIDES */
+/* ======================= */
+
+/* Calendar View Switcher Container - make white in Light Mode */
+html:not(.dark) .bg-\[\#080712\]\/80 {
+  background-color: var(--glass-bg) !important;
+  border-color: var(--neon-red-soft) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Calendar View Switcher buttons - make text readable in Light Mode */
+html:not(.dark) .bg-\[\#080712\]\/80 button[class*="text-neutral-400"] {
+  color: var(--text-secondary) !important;
+}
+
+html:not(.dark) .bg-\[\#080712\]\/80 button[class*="text-neutral-400"]:hover {
+  color: var(--neon-red) !important;
+  background: rgba(255, 0, 51, 0.08) !important;
+}
+
+/* Active button state - keep red accent but ensure readability */
+html:not(.dark) .bg-\[\#080712\]\/80 button[class*="bg-\[#ff0a45\]/20"] {
+  background: rgba(255, 0, 51, 0.1) !important;
+  color: var(--neon-red) !important;
+  border-color: var(--neon-red-soft) !important;
+}
+
+/* ======================= */
+/* KPI CHART TEXT ALIGNMENT */
+/* ======================= */
+
+/* Align Lead Sources chart header with graph */
+.chart-card.neon-glass .chart-header {
+  text-align: center;
+  padding-bottom: 0.5rem;
+}
+
+.chart-card.neon-glass .chart-header h4 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}

@@ -1,0 +1,35 @@
+NODE.JS/NVM PATH DIAGNOSTIC REPORT
+Generated: 11/29/2025 15:29:25
+
+CURRENT NODE STATE:
+- Node version: v18.20.4
+- Node path: C:\Users\triha\AppData\Local\nvm\v18.20.4\node.exe
+- NPM version: 10.7.0
+- NPM path: C:\Users\triha\AppData\Local\nvm\v18.20.4\npm.cmd
+
+NODE-RELATED PATH ENTRIES:
+
+Index Path                                                               T
+                                                                         a
+                                                                         g
+                                                                         s
+----- ----                                                               -
+    1 C:\Users\triha\AppData\Local\nvm                                   N
+    2 C:\Users\triha\AppData\Local\nvm\v18.20.4                          N
+   15 C:\Program Files\cursor\resources\app\bin                          C
+   17 C:\Users\triha\AppData\Local\nvm                                   N
+   18 C:\nvm4w\nodejs                                                    N
+   19 c:\Users\triha\AppData\Local\Programs\cursor\resources\app\codeBin C
+   21 C:\Users\triha\AppData\Local\nvm                                   N
+   22 C:\Users\triha\AppData\Local\nvm\v18.20.4                          N
+   35 C:\Program Files\cursor\resources\app\bin                          C
+   37 C:\Users\triha\AppData\Local\nvm                                   N
+   38 C:\nvm4w\nodejs                                                    N
+   52 C:\Users\triha\AppData\Local\Programs\cursor\resources\app\bin     C
+   53 C:\Users\triha\AppData\Local\Programs\Microsoft VS Code\bin        V
+
+
+
+COMMON LOCATIONS CHECKED:
+- C:\Program Files\nodejs - C:\Program Files (x86)\nodejs - C:\Users\triha\AppData\Local\nvm - C:\nvm4w - C:\nvm4w\nodejs - C:\nvm - C:\nodejs - C:\Users\triha\AppData\Roaming\npm - C:\Users\triha\AppData\Roaming\nvm - C:\Users\triha\AppData\Local\nvm - C:\Users\triha\AppData\Local\nodejs
+

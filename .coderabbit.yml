@@ -1,0 +1,15 @@
+version: 1
+reviews:
+  auto_review: true
+  path_filters:
+    - "**/*.ts"
+    - "package.json"
+    - "tsconfig.json"
+    - ".env*"
+  rules:
+    - name: TypeScript build passes
+      description: Ensure tsc compiles without errors
+    - name: Lint basics
+      description: Check for obvious issues and unused imports
+    - name: Tests or scripts updated
+      description: Ensure affected areas include basic tests or runnable scripts
