@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from 'react'
 import { t as translate, setLanguage, getLanguage } from "../i18n/i18n";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom'
 
 import BackToDashboard from '../components/BackToDashboard'
 import { SettingsUsage } from '../components/SettingsUsage'
 import { AccountPanel } from '../components/AccountPanel'
-import { get } from '../api'
-import { Edit2 } from 'lucide-react'
+import { get, patch } from '../api'
+import { Edit2, LogOut } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { useAccessibility } from '../hooks/useAccessibility'
 
+// API response type for /api/user/me
+type ApiUserMe = {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+  photoUrl: string | null;
+  activeOrgId: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+// Legacy UserData type (for AccountPanel compatibility)
 interface UserData {
   name?: string;
   email?: string;
@@ -19,10 +33,10 @@ interface UserData {
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState({ organization: 'Wholesale CRM', timezone: 'America/Chicago' })
-  const [userData, setUserData] = useState<UserData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [isAccountPanelOpen, setIsAccountPanelOpen] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
   const { fontMode, setDyslexic, isDyslexic } = useAccessibility()
 
@@ -30,22 +44,30 @@ export default function SettingsPage() {
     setProfile({ ...profile, [key]: value })
   }
 
-  // Fetch user data from /me endpoint
-  useEffect(() => {
-    (async () => {
-      try {
-        setIsLoading(true)
-        const data = await get<UserData>('/me')
-        setUserData(data)
-        setError(null)
-      } catch (e: any) {
-        setError(e?.error?.message || e?.message || 'Unable to load profile')
-        setUserData(null)
-      } finally {
-        setIsLoading(false)
-      }
-    })()
-  }, [])
+  // Fetch user profile from /api/user/me using React Query
+  const { data: apiResponse, isLoading, isError, error: queryError } = useQuery({
+    queryKey: ['user-me'],
+    queryFn: () => get<{ ok: boolean; user: ApiUserMe }>('/user/me'),
+  });
+
+  // Derive user data from API response
+  const user = apiResponse?.ok ? apiResponse.user : null;
+  
+  // Map API fields to UI-friendly values
+  const displayName = user?.displayName ?? '';
+  const email = user?.email ?? '';
+
+  // Legacy UserData object for AccountPanel compatibility (read-only mapping)
+  const userData: UserData | null = user ? {
+    name: user.displayName || undefined,
+    email: user.email || undefined,
+    phone: undefined, // Phone not supported yet
+    userId: user.id,
+    orgId: user.activeOrgId || undefined,
+  } : null;
+
+  // Extract error message for UI
+  const error = isError ? (queryError as any)?.error?.message || (queryError as any)?.message || 'Unable to load profile' : null;
 
   // Re-render on language change
   useEffect(() => {
@@ -56,19 +78,38 @@ export default function SettingsPage() {
 
   const handleAccountSave = async (data: {
     name: string;
-    email: string;
-    phone: string;
-    password?: string;
   }) => {
-    // TODO: Implement PUT /me endpoint call
-    console.log('Saving account data:', data)
-    // For now, just update local state
-    setUserData({
-      ...userData,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-    })
+    try {
+      setSaveError(null)
+
+      // Build payload with ONLY supported fields (displayName)
+      // Do NOT send email, phone, or password - backend will reject them
+      const payload: { displayName?: string | null } = {
+        displayName: data.name?.trim() || null,
+      }
+
+      // Call PATCH /api/user/me
+      await patch<{ ok: boolean; user: ApiUserMe }>('/user/me', payload)
+
+      // On success: invalidate React Query cache to refresh UI
+      await queryClient.invalidateQueries({ queryKey: ['user-me'] })
+
+      // Close modal
+      setIsAccountPanelOpen(false)
+    } catch (error: any) {
+      // Extract backend error message
+      // ApiError from api.ts throws with: { status, message, body }
+      // Backend returns: { ok: false, code: "...", error: "..." }
+      const errorMessage = 
+        error?.body?.error ||  // Backend error message
+        error?.message ||      // ApiError.message (which extracts data?.error)
+        'Failed to update profile'
+      
+      setSaveError(errorMessage)
+      
+      // Log error for debugging (but don't expose stack traces to user)
+      console.error('[USER PROFILE] Save error:', errorMessage)
+    }
   }
 
   // Get user initials for avatar
@@ -84,6 +125,24 @@ export default function SettingsPage() {
       return email.substring(0, 2).toUpperCase()
     }
     return 'U'
+  }
+
+  const handleLogout = () => {
+    // Clear auth token
+    localStorage.removeItem('token')
+    
+    // Clear dev identity override
+    localStorage.removeItem('DFOS_FORCE_DEV_IDENTITY')
+    
+    // Clear dev headers (optional, but safe)
+    localStorage.removeItem('DFOS_DEV_ORG_ID')
+    localStorage.removeItem('DFOS_DEV_USER_ID')
+    
+    // Clear React Query cache
+    queryClient.clear()
+    
+    // Redirect to landing page
+    navigate('/', { replace: true })
   }
 
 
@@ -112,7 +171,10 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-white">{translate("settings.account")}</h2>
             <button
-              onClick={() => setIsAccountPanelOpen(true)}
+              onClick={() => {
+                setSaveError(null)
+                setIsAccountPanelOpen(true)
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#ff0a45]/40 bg-[#ff0a45]/10 text-[#ff0a45] hover:bg-[#ff0a45]/20 hover:shadow-[0_0_8px_rgba(255,10,69,0.5)] transition-all text-sm font-medium"
             >
               <Edit2 className="w-4 h-4" />
@@ -120,26 +182,32 @@ export default function SettingsPage() {
             </button>
           </div>
 
+          {saveError && (
+            <div className="mb-4 p-3 rounded-lg bg-red-900/20 border border-red-500/40 text-red-400 text-sm">
+              {saveError}
+            </div>
+          )}
+
           {isLoading ? (
             <div className="text-center py-8 text-neutral-400">Loading...</div>
-          ) : error ? (
+          ) : isError || error ? (
             <div className="text-center py-8">
               <p className="text-red-400 mb-2">{error}</p>
-              <p className="text-sm text-neutral-500">No profile data found</p>
+              <p className="text-sm text-neutral-500">Unable to load profile data</p>
             </div>
-          ) : userData ? (
+          ) : user ? (
             <div className="space-y-4">
               {/* Avatar and Name */}
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-[#ff0a45]/20 border-2 border-[#ff0a45]/40 flex items-center justify-center text-[#ff0a45] font-bold text-xl shadow-[0_0_12px_rgba(255,10,69,0.4)]">
-                  {getInitials(userData.name, userData.email)}
+                  {getInitials(displayName, email)}
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-white">
-                    {userData.name || 'No name set'}
+                    {displayName || 'No name set'}
                   </h3>
-                  {userData.email && (
-                    <p className="text-sm text-neutral-400">{userData.email}</p>
+                  {email && (
+                    <p className="text-sm text-neutral-400">{email}</p>
                   )}
                 </div>
               </div>
@@ -149,23 +217,35 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-neutral-400">Email</span>
                   <span className="text-sm text-white font-medium">
-                    {userData.email || 'Not set'}
+                    {email || '—'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-neutral-400">Phone</span>
                   <span className="text-sm text-white font-medium">
-                    {userData.phone || 'Not set'}
+                    —
                   </span>
                 </div>
-                {userData.userId && (
+                {user?.id && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-neutral-400">User ID</span>
                     <span className="text-sm text-neutral-500 font-mono">
-                      {userData.userId}
+                      {user.id}
                     </span>
                   </div>
                 )}
+              </div>
+
+              {/* Log out button */}
+              <div className="pt-4 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full h-10 px-4 rounded-xl neon-glass border border-[#ff0a45]/30 text-[#ff0a45] hover:bg-white/5 hover:border-[#ff0a45]/50 hover:shadow-[0_0_8px_rgba(255,10,69,0.3)] transition-all flex items-center justify-center gap-2 text-sm font-medium"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Log out
+                </button>
               </div>
             </div>
           ) : (
@@ -261,25 +341,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Accessibility Section */}
-          <div className="rounded-[24px] bg-[#0a0a0c]/60 border border-[#ff0a45]/20 p-6 mb-6">
-            <h2 className="text-xl font-semibold text-white">Accessibility</h2>
-            <p className="text-sm text-neutral-400 mt-1">Customize font settings for better readability</p>
-
-            <div className="mt-4">
-              <button
-                onClick={() => setDyslexic(isDyslexic ? 'normal' : 'dyslexic')}
-                className={`w-full px-4 py-3 rounded-xl border transition-all text-sm font-medium ${
-                  isDyslexic
-                    ? 'bg-[#ff0a45]/20 border-[#ff0a45]/40 text-[#ff0a45] shadow-[0_0_8px_rgba(255,10,69,0.5)]'
-                    : 'bg-black/30 border-white/10 text-white hover:border-[#ff0a45]/40'
-                }`}
-              >
-                {isDyslexic ? '✓ Use Dyslexia-Friendly Font' : 'Use Dyslexia-Friendly Font'}
-              </button>
-            </div>
-          </div>
-
           {/* Usage & Billing Section */}
           <SettingsUsage />
       </div>
@@ -292,7 +353,6 @@ export default function SettingsPage() {
         initialData={{
           name: userData?.name,
           email: userData?.email,
-          phone: userData?.phone,
         }}
       />
     </div>

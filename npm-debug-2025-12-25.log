@@ -1,0 +1,41 @@
+0 verbose cli /Users/imceobitch/.nvm/versions/node/v18.20.8/bin/node /Users/imceobitch/.nvm/versions/node/v18.20.8/bin/npm
+1 info using npm@10.8.2
+2 info using node@v18.20.8
+3 silly config load:file:/Users/imceobitch/.nvm/versions/node/v18.20.8/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/imceobitch/dev/dealflowos-Cursor-/.npmrc
+5 silly config load:file:/Users/imceobitch/.npmrc
+6 silly config load:file:/Users/imceobitch/.nvm/versions/node/v18.20.8/etc/npmrc
+7 verbose title npm run audit
+8 verbose argv "run" "audit"
+9 verbose logfile logs-max:10 dir:/Users/imceobitch/.npm/_logs/2025-12-25T00_52_15_473Z-
+10 verbose logfile /Users/imceobitch/.npm/_logs/2025-12-25T00_52_15_473Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose stack Error: Missing script: "audit"
+12 verbose stack
+12 verbose stack To see a list of scripts, run:
+12 verbose stack   npm run
+12 verbose stack     at #run (/Users/imceobitch/.nvm/versions/node/v18.20.8/lib/node_modules/npm/lib/commands/run-script.js:110:13)
+12 verbose stack     at async RunScript.exec (/Users/imceobitch/.nvm/versions/node/v18.20.8/lib/node_modules/npm/lib/commands/run-script.js:39:7)
+12 verbose stack     at async Npm.exec (/Users/imceobitch/.nvm/versions/node/v18.20.8/lib/node_modules/npm/lib/npm.js:207:9)
+12 verbose stack     at async module.exports (/Users/imceobitch/.nvm/versions/node/v18.20.8/lib/node_modules/npm/lib/cli/entry.js:74:5)
+13 error Missing script: "audit"
+13 error
+13 error To see a list of scripts, run:
+13 error   npm run
+14 verbose cwd /Users/imceobitch/dev/dealflowos-Cursor-
+15 verbose os Darwin 24.6.0
+16 verbose node v18.20.8
+17 verbose npm  v10.8.2
+18 verbose exit 1
+19 verbose code 1
+20 error A complete log of this run can be found in: /Users/imceobitch/.npm/_logs/2025-12-25T00_52_15_473Z-debug-0.log
+
+
+
+
+
+
+
+
+
+

@@ -83,12 +83,12 @@ export const MonthGrid: React.FC<MonthGridProps> = ({
                       e.stopPropagation();
                       onEventClick?.(event);
                     }}
-                    className="w-full truncate rounded-xl bg-[#ff0a45]/15 border border-[#ff0a45]/40 px-2 py-1 text-[0.7rem] text-neutral-100 text-left hover:bg-[#ff0a45]/25 hover:shadow-[0_0_12px_rgba(255,10,69,0.6)] transition"
+                    className="w-full truncate rounded-xl bg-[#ff0a45]/15 border border-[#ff0a45]/40 px-2 py-1 text-[0.7rem] text-left hover:bg-[#ff0a45]/25 hover:shadow-[0_0_12px_rgba(255,10,69,0.6)] transition"
                   >
                     <div>
-                      <div className="font-medium truncate">{event.title}</div>
+                      <div className="font-medium truncate text-red-800 dark:text-neutral-100">{event.title}</div>
 
-                      {(window as any)?.dfos_auto_translate !== false && (
+                      {import.meta.env.DEV && import.meta.env.VITE_TRANSLATION_DEBUG === 'true' && (
                         <button
                           className="mt-0.5 text-[0.65rem] text-[#ff0a45]/70 hover:text-[#ff0a45] underline"
                           onClick={(e) => {

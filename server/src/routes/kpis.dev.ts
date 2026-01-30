@@ -1,20 +1,17 @@
 import express from "express";
-
-// We import the same in-memory leads list from leads.dev.ts.
-// Cursor will adjust this import automatically when you run the patch.
-// If not, we will fix the path afterwards.
-import { leads } from "./leads.dev.js";
+import { getOrgLeads } from "../dev/leadsStore.js";
 
 export const kpisDevRouter = express.Router();
 
 // ------------------------------------
 // Build Leads-Over-Time dataset
 // ------------------------------------
-function buildLeadTimeseries() {
+function buildLeadTimeseries(orgId: string) {
+  const leads = getOrgLeads(orgId);
   const grouped: Record<string, number> = {};
 
   for (const lead of leads) {
-    const date = lead.createdAt?.slice(0, 10); // YYYY-MM-DD
+    const date = (lead as any).createdAt?.slice(0, 10); // YYYY-MM-DD
     if (!date) continue;
     grouped[date] = (grouped[date] || 0) + 1;
   }
@@ -27,7 +24,8 @@ function buildLeadTimeseries() {
 /**
  * Simple KPI calculator for DEV MODE
  */
-export function calculateKpis() {
+export function calculateKpis(orgId: string) {
+  const leads = getOrgLeads(orgId);
   const totalLeads = leads.length;
 
   // Example metrics (you can expand later)
@@ -42,12 +40,14 @@ export function calculateKpis() {
 /**
  * GET /api/kpis — returns KPI summary
  */
-kpisDevRouter.get("/", (_req, res) => {
+kpisDevRouter.get("/", (req, res) => {
+  const orgId = (req as any).orgId || req.user?.orgId || req.user?.id || "org_dev";
+  const leads = getOrgLeads(orgId);
   const total = leads.length;
   const latest = [...leads]
-    .sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1))
+    .sort((a: any, b: any) => (b.createdAt > a.createdAt ? 1 : -1))
     .slice(0, 5);
-  const timeseries = buildLeadTimeseries();
+  const timeseries = buildLeadTimeseries(orgId);
 
   res.json({
     total,
@@ -60,7 +60,9 @@ kpisDevRouter.get("/", (_req, res) => {
 /**
  * GET /api/kpis/summary — returns KPI summary tiles data
  */
-kpisDevRouter.get("/summary", (_req, res) => {
+kpisDevRouter.get("/summary", (req, res) => {
+  const orgId = (req as any).orgId || req.user?.orgId || req.user?.id || "org_dev";
+  const leads = getOrgLeads(orgId);
   const totalLeads = leads.length;
   const activeLeads = leads.length; // In dev mode, all leads are considered active
   const conversionRate = 5; // Placeholder
@@ -82,3 +84,29 @@ kpisDevRouter.get("/summary", (_req, res) => {
   });
 });
 
+/**
+ * GET /api/kpis/lead-sources — returns lead count grouped by source
+ */
+kpisDevRouter.get("/lead-sources", (req, res) => {
+  const orgId = (req as any).orgId || req.user?.orgId || req.user?.id || "org_dev";
+  const leads = getOrgLeads(orgId);
+
+  // Group by source, excluding null/undefined
+  const sourceMap: Record<string, number> = {};
+  
+  for (const lead of leads) {
+    const source = (lead as any).source;
+    if (source && typeof source === "string" && source.trim()) {
+      const key = source.trim();
+      sourceMap[key] = (sourceMap[key] || 0) + 1;
+    }
+  }
+
+  // Convert to array format expected by frontend
+  const result = Object.entries(sourceMap).map(([source, count]) => ({
+    source,
+    count,
+  }));
+
+  res.json(result);
+});

@@ -24,7 +24,7 @@ export default function LeadImport() {
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch('/api/leads/import', {
+      const res = await fetch('/api/leads-import', {
         method: "POST",
         body: form
       });
@@ -42,7 +42,7 @@ export default function LeadImport() {
     if (!hasRows) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/leads/commit', {
+      const res = await fetch('/api/leads-import/commit', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ leads: rows })

@@ -213,7 +213,7 @@ export function SystemDiagnostics() {
 
       <style>{`
         .system-diagnostics {
-          padding: 2rem;
+          padding: var(--dfos-space-8);
           max-width: 1400px;
           margin: 0 auto;
         }
@@ -249,18 +249,18 @@ export function SystemDiagnostics() {
         .metrics-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          gap: 1rem;
+          gap: var(--dfos-space-4);
         }
         
         .metric-card {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          gap: var(--dfos-space-4);
           background: white;
-          border-radius: 12px;
-          padding: 1.25rem;
+          border-radius: var(--dfos-radius-lg);
+          padding: var(--dfos-space-5);
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          border-left: 4px solid #e5e7eb;
+          border-left: var(--dfos-border-lg) solid #e5e7eb;
         }
         
         .metric-card.healthy { border-left-color: #22c55e; }
@@ -313,7 +313,7 @@ export function SystemDiagnostics() {
         
         .workers-summary {
           display: flex;
-          gap: 1.5rem;
+          gap: var(--dfos-space-6);
           margin-bottom: 1rem;
           font-size: 0.875rem;
         }
@@ -324,15 +324,15 @@ export function SystemDiagnostics() {
         .workers-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: 1rem;
+          gap: var(--dfos-space-4);
         }
         
         .worker-card {
           background: white;
-          border-radius: 12px;
-          padding: 1.25rem;
+          border-radius: var(--dfos-radius-lg);
+          padding: var(--dfos-space-5);
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          border: 2px solid transparent;
+          border: var(--dfos-border-md) solid transparent;
         }
         
         .worker-card.running {
@@ -357,7 +357,7 @@ export function SystemDiagnostics() {
         
         .worker-status {
           padding: 0.25rem 0.5rem;
-          border-radius: 4px;
+          border-radius: var(--dfos-radius-sm);
           font-size: 0.75rem;
           font-weight: 600;
         }
@@ -368,7 +368,7 @@ export function SystemDiagnostics() {
         .worker-details {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 0.5rem;
+          gap: var(--dfos-space-2);
           margin-bottom: 1rem;
         }
         
@@ -397,7 +397,7 @@ export function SystemDiagnostics() {
           background: #fee2e2;
           color: #991b1b;
           padding: 0.5rem;
-          border-radius: 4px;
+          border-radius: var(--dfos-radius-sm);
           font-size: 0.75rem;
           margin-bottom: 1rem;
         }
@@ -408,7 +408,7 @@ export function SystemDiagnostics() {
           background: #3b82f6;
           color: white;
           border: none;
-          border-radius: 6px;
+          border-radius: var(--dfos-radius-md);
           font-weight: 500;
           cursor: pointer;
           transition: background 0.2s;

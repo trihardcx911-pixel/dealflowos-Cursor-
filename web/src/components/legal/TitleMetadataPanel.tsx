@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Edit2, Save, X, ExternalLink } from 'lucide-react'
-import { api } from '../../api/client'
+import { patch } from '../../api'
 import { useToast } from '../../useToast'
 
 interface TitleMetadataPanelProps {
@@ -24,7 +24,7 @@ export function TitleMetadataPanel({ dealId, metadata, onUpdate }: TitleMetadata
   const handleSave = async () => {
     try {
       setSaving(true)
-      await api.put(`/deals/${dealId}/legal/title`, {
+      await patch(`/deals/${dealId}/legal/title`, {
         titleCompany: formData.titleCompany || undefined,
         escrowOfficer: formData.escrowOfficer || undefined,
         escrowNumber: formData.escrowNumber || undefined,

@@ -6,14 +6,18 @@
   "scripts": {
     "dev": "vite --config vite.config.ts",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:api-client": "echo 'Checking for api/client imports...' && (grep -r \"from.*api/client\" src --include='*.ts' --include='*.tsx' 2>/dev/null | grep -v 'api/client.ts' | grep -v 'api/index.ts' | grep -v 'api/hooks.ts' && (echo 'ERROR: api/client imports found (use web/src/api.ts instead)' && exit 1) || echo '✓ No api/client imports found') || echo 'Note: grep not available, run manually: grep -r \"from.*api/client\" src'"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.12",
+    "@types/react-window": "^1.8.8",
+    "firebase": "^12.7.0",
     "lucide-react": "^0.554.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0",
+    "react-window": "^2.2.3",
     "recharts": "^3.4.1"
   },
   "devDependencies": {

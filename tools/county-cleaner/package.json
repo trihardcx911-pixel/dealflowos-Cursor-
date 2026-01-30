@@ -1,0 +1,19 @@
+{
+  "name": "county-cleaner",
+  "version": "1.0.0",
+  "description": "CLI tool to clean messy county lists into DFOS-importable CSV",
+  "type": "module",
+  "scripts": {
+    "clean": "tsx src/cli.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}

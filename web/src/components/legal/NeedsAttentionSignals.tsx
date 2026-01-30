@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Info } from 'lucide-react'
-import { api } from '../../api/client'
+import { get } from '../../api'
 
 interface NeedsAttentionSignal {
   dealId: string
@@ -21,7 +21,7 @@ export function NeedsAttentionSignals({ dealId }: NeedsAttentionSignalsProps) {
     const loadSignals = async () => {
       try {
         setLoading(true)
-        const response = await api.get<{ signals: NeedsAttentionSignal[] }>(
+        const response = await get<{ signals: NeedsAttentionSignal[] }>(
           '/deals/needs-attention'
         )
         // Filter to only signals for this deal

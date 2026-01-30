@@ -12,6 +12,7 @@ model User {
   email               String                @unique
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
+  stripeCustomerId    String?               @unique // Stripe customer ID for billing isolation
   deals               Deal[]
   memberships         UserOrgMembership[]
   settings            UserSettings?
@@ -167,6 +168,24 @@ model UserSettings {
   user                    User     @relation(fields: [userId], references: [id])
 }
 
+model Task {
+  id          String    @id @default(cuid())
+  orgId       String
+  userId      String
+  title       String
+  description String?
+  status      String    @default("pending")
+  urgency     String    @default("medium")
+  dueAt       DateTime? @db.Timestamptz
+  leadId      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([orgId, userId, status])
+  @@index([userId, dueAt])
+  @@index([orgId, dueAt])
+}
+
 model CalendarEvent {
   id        Int      @id @default(autoincrement())
   title     String
@@ -177,10 +196,29 @@ model CalendarEvent {
   urgency   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    Int
+  userId    String  // Changed from Int to String to match User.id (cuid)
 
   @@index([userId, date])
   @@index([date])
+}
+
+model SecurityEvent {
+  id          String   @id @default(uuid())
+  eventType   String   @map("event_type")
+  userId      String?  @map("user_id")
+  firebaseUid String?  @map("firebase_uid")
+  ip          String?
+  userAgent   String?  @map("user_agent")
+  requestId   String?  @map("request_id")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([eventType])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([requestId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("SecurityEvent")
 }
 
 model KpiSnapshot {

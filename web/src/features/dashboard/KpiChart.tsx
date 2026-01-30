@@ -9,11 +9,7 @@ import { get } from "../../api";
 import NeonPieChart from "./NeonPieChart";
 import NeonLineChart from "./NeonLineChart";
 import NeonVelocityGauge from "./NeonVelocityGauge";
-
-interface LeadSource {
-  source: string;
-  count: number;
-}
+import { normalizeLeadSources, toPieData } from "./kpis/leadSources";
 
 interface KpiDevData {
   total: number;
@@ -145,11 +141,12 @@ export function KpiChart() {
   });
 
   // Fetch lead sources data from backend - MUST be called before any early returns
-  const { data: leadSourcesData } = useQuery<LeadSource[]>({
+  const leadSourcesQuery = useQuery<unknown>({
     queryKey: ["lead-sources"],
-    queryFn: () => get<LeadSource[]>("/kpis/lead-sources"),
+    queryFn: () => get<unknown>("/kpis/lead-sources"),
     retry: 1,
     staleTime: 30000,
+    refetchOnMount: "always",
   });
 
   // Early returns AFTER all hooks are called
@@ -312,33 +309,9 @@ export function KpiChart() {
   // Clamp to sane range
   const safeVelocity = Math.max(0, Math.min(100, velocityScore));
 
-  // Transform backend data into pie chart format
-  const leadSources = leadSourcesData || [];
-  const totalLeadSources = leadSources.reduce((sum, s) => sum + s.count, 0);
-  
-  // Map source IDs to display names
-  const sourceNameMap: Record<string, string> = {
-    cold_call: "Cold Call",
-    sms: "SMS",
-    ppc: "PPC",
-    driving_for_dollars: "Driving for Dollars",
-    referral: "Referral",
-    other: "Other",
-  };
-
-  // Compute pie data with accurate percentages
-  const pieData = leadSources.map((s) => {
-    const count = s.count;
-    const percent = totalLeadSources > 0
-      ? Math.round((count / totalLeadSources) * 100)
-      : 0;
-    
-    return {
-      name: sourceNameMap[s.source] || s.source,
-      value: count, // Use count as value for Recharts
-      percent: percent, // Pre-computed percentage for display
-    };
-  });
+  // Transform backend data into pie chart format using normalization module
+  const rows = normalizeLeadSources(leadSourcesQuery.data);
+  const pieData = toPieData(rows, { topN: 5 });
 
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(value);
@@ -363,9 +336,31 @@ export function KpiChart() {
           <div className="chart-header">
             <h4>Lead Sources</h4>
           </div>
-          <NeonPieChart
-            data={pieData}
-          />
+          {leadSourcesQuery.isLoading ? (
+            <div className="h-[300px] w-full flex items-center justify-center">
+              <div className="h-[200px] w-full rounded-xl bg-white/10 animate-pulse" />
+            </div>
+          ) : leadSourcesQuery.isError ? (
+            <div className="h-[300px] flex items-center justify-center text-center px-4">
+              <p className="text-slate-700 dark:text-white/70 text-sm">
+                Failed to load lead sources. Make sure backend is running and try again.
+              </p>
+            </div>
+          ) : pieData.length === 0 ? (
+            <div className="h-[300px] flex flex-col items-center justify-center text-center px-4">
+              <p className="text-slate-700 dark:text-white/70 text-sm mb-2">
+                No lead sources yet.
+              </p>
+              <p className="text-slate-600 dark:text-white/55 text-xs mb-3">
+                Create a lead and select a source to see it here.
+              </p>
+              <p className="text-slate-500 dark:text-white/45 text-xs italic">
+                Lead sources are computed from leads with a non-empty source.
+              </p>
+            </div>
+          ) : (
+            <NeonPieChart data={pieData} />
+          )}
         </div>
 
         {/* Column 3 — Deal Velocity Gauge */}

@@ -18,10 +18,17 @@ import ResourcesPage from './pages/ResourcesPage'
 import DealPage from './pages/DealPage'
 import LoginPage from './pages/auth/LoginPage'
 import SignupPage from './pages/auth/SignupPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import LandingPage from './components/LandingPage'
 import PricingPage from './pages/PricingPage'
+import TermsOfService from './pages/TermsOfService'
 import NotFoundPage from './pages/NotFoundPage'
+import BillingRedirectPage from './pages/billing/BillingRedirectPage'
+import BillingSuccessPage from './pages/billing/BillingSuccessPage'
+import BillingCancelPage from './pages/billing/BillingCancelPage'
 import { ToastProvider } from './useToast'
+import { completeEmailLinkSignIn } from './auth/firebaseAuth'
 
 // 🆕 React Query imports
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -29,9 +36,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // 🆕 Create global QueryClient instance
 const queryClient = new QueryClient();
 
+// Complete email link sign-in if link is detected
+completeEmailLinkSignIn().catch(err => {
+  console.error('Email link sign-in completion error:', err)
+})
+
 const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
   { path: '/pricing', element: <PricingPage /> },
+  { path: '/terms', element: <TermsOfService /> },
   {
     element: <App />,
     children: [
@@ -54,6 +67,11 @@ const router = createBrowserRouter([
   },
   { path: '/login', element: <LoginPage /> },
   { path: '/signup', element: <SignupPage /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
+  { path: '/billing/redirect', element: <BillingRedirectPage /> },
+  { path: '/billing/success', element: <BillingSuccessPage /> },
+  { path: '/billing/cancel', element: <BillingCancelPage /> },
   { path: '*', element: <NotFoundPage /> },
 ])
 

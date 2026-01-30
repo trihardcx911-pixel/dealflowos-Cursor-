@@ -1,14 +1,29 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { prisma } from "../db/prisma";
+import { logSecurityEvent, getClientIp, getUserAgent } from "../security/securityEvents.js";
+import { detectResourceProbing } from "../security/anomalyDetector.js";
+import {
+  createOrUpdateReminderForCalendarEvent,
+  cancelRemindersForCalendarEvent
+} from "../reminders/reminderService.js";
+import * as calendarStore from "../dev/calendarStore.js";
+import { getOrgTimezone, computeStartEndUtc, utcDateToHHmm } from "../utils/time.js";
 
 const router = Router();
 
-// Get userId - hardcode to 1 for MVP
-function getUserId(req: Request): number {
-  const userId = 1;
-  console.log(`[getUserId] Using hardcoded userId: ${userId} (MVP patch)`);
-  return userId;
+// Check if database is available
+const hasDatabase = Boolean(process.env.DATABASE_URL);
+
+// Get authenticated user ID from request
+// This is the ONLY trusted user identifier (from JWT via requireAuth middleware)
+// CalendarEvent.userId is now String (matches User.id) - direct equality enforced
+function getUserId(req: Request): string {
+  if (!req.user?.id) {
+    throw new Error('User not authenticated');
+  }
+  // Direct string equality - no conversions, no helpers, no exceptions
+  return req.user.id;
 }
 
 // Validation schemas - matching Prisma CalendarEvent model exactly
@@ -21,6 +36,10 @@ const createEventSchema = z.object({
   urgency: z.enum(["low", "medium", "critical"], {
     errorMap: () => ({ message: "urgency must be 'low', 'medium', or 'critical'" })
   }).default("medium"),
+  // Phase 2: Optional reminder fields
+  enableReminder: z.boolean().optional().default(true),
+  reminderOffset: z.number().optional().default(-60),
+  reminderChannel: z.string().optional().default('in_app'),
 });
 
 const updateEventSchema = createEventSchema.partial();
@@ -109,6 +128,38 @@ router.post("/create", async (req: Request, res: Response, next: NextFunction) =
       });
     }
 
+    // Compute canonical UTC timestamps (startAt/endAt)
+    // Precondition: DB table "CalendarEvent" already has startAt/endAt columns (nullable)
+    const orgId = (req as any).orgId || req.user?.orgId || null;
+    const userTz = await getOrgTimezone(orgId);
+    
+    let canonicalTimes: { startAt: Date; endAt: Date } | null = null;
+    try {
+      canonicalTimes = computeStartEndUtc({
+        dateStr: data.date,
+        startStr: data.startTime,
+        endStr: data.endTime,
+        tz: userTz,
+      });
+      
+      // Dev-only safe logging (no values)
+      const isDev = process.env.NODE_ENV !== 'production';
+      if (isDev) {
+        console.log("[CALENDAR CREATE] Canonical times computed:", {
+          tzUsed: userTz,
+          hasDate: !!data.date,
+          hasStart: !!data.startTime,
+          hasEnd: !!data.endTime,
+        });
+      }
+    } catch (timeError: any) {
+      console.error("[CALENDAR CREATE] ✗ Time conversion error:", timeError.message);
+      return res.status(400).json({
+        error: "validation_failed",
+        detail: timeError.message,
+      });
+    }
+
     // Assemble Prisma data
     const prismaData = {
       title: data.title,
@@ -117,8 +168,25 @@ router.post("/create", async (req: Request, res: Response, next: NextFunction) =
       endTime: endDateTime,
       notes: data.notes || null,
       urgency: data.urgency || "medium",
-      userId: userId,
+      userId: userId, // String - direct equality with req.user.id
+      status: 'scheduled', // Explicit status for needs-attention filtering
+      // Canonical UTC timestamps
+      startAt: canonicalTimes.startAt,
+      endAt: canonicalTimes.endAt,
     };
+
+    // Dev-only diagnostic logging (safe - no secrets)
+    const isDev = process.env.NODE_ENV !== 'production';
+    if (isDev) {
+      console.log("[CALENDAR CREATE] Diagnostic:", {
+        userId,
+        orgIdPresent: !!orgId,
+        tzUsed: userTz,
+        startAtSet: !!canonicalTimes.startAt,
+        endAtSet: !!canonicalTimes.endAt,
+        status: prismaData.status,
+      });
+    }
 
     console.log("[CALENDAR CREATE] Parsed dates OK");
     console.log("[CALENDAR CREATE] Prisma payload OK:", {
@@ -129,23 +197,65 @@ router.post("/create", async (req: Request, res: Response, next: NextFunction) =
       notes: prismaData.notes,
       urgency: prismaData.urgency,
       userId: prismaData.userId,
+      status: prismaData.status,
     });
 
     try {
-      console.log("[CALENDAR CREATE] Attempting Prisma create with final data:", JSON.stringify(prismaData, (key, value) => {
-        if (value instanceof Date) return value.toISOString();
-        return value;
-      }, 2));
+      let event;
 
-      const event = await prisma.calendarEvent.create({
-        data: prismaData,
-      });
+      if (hasDatabase) {
+        console.log("[CALENDAR CREATE] Attempting Prisma create with final data:", JSON.stringify(prismaData, (key, value) => {
+          if (value instanceof Date) return value.toISOString();
+          return value;
+        }, 2));
+
+        event = await prisma.calendarEvent.create({
+          data: prismaData,
+        });
+        
+        // Dev-only: Verify created event has required fields
+        if (isDev) {
+          console.log("[CALENDAR CREATE] Created event verification:", {
+            id: event.id,
+            userId: event.userId,
+            status: event.status,
+            startAtSet: !!event.startAt,
+            endAtSet: !!event.endAt,
+          });
+        }
+      } else {
+        console.log("[CALENDAR CREATE] Using in-memory store (dev mode)");
+        event = calendarStore.createEvent(prismaData);
+      }
 
       console.log("[CALENDAR CREATE] ✓ Event created successfully");
       console.log("[CALENDAR CREATE] Event created:", JSON.stringify(event, (key, value) => {
         if (value instanceof Date) return value.toISOString();
         return value;
       }, 2));
+      
+      // Phase 2: Create reminder if enabled
+      if (data.enableReminder) {
+        try {
+          // Extract timezone from header (preferred) or default to UTC
+          const timezone = req.headers['x-timezone'] as string || null;
+          const orgId = (req as any).orgId || req.user?.orgId || userId;
+          
+          await createOrUpdateReminderForCalendarEvent({
+            orgId,
+            userId,
+            eventId: event.id,
+            eventStartTimeUtc: startDateTime,
+            reminderOffset: data.reminderOffset,
+            timezone
+          });
+          console.log("[CALENDAR CREATE] ✓ Reminder created for event");
+        } catch (reminderError: any) {
+          console.error("[CALENDAR CREATE] ⚠ Failed to create reminder:", reminderError.message);
+          // Don't fail the event creation if reminder fails
+        }
+      }
+      
       console.log("========================================");
       res.status(201).json(event);
     } catch (prismaError: any) {
@@ -214,26 +324,32 @@ router.get("/month", async (req: Request, res: Response, next: NextFunction) => 
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
     }
 
-    const events = await prisma.calendarEvent.findMany({
-      where: {
-        userId,
-        AND: [
-          {
-            date: {
-              gte: startDate,
+    let events;
+
+    if (hasDatabase) {
+      events = await prisma.calendarEvent.findMany({
+        where: {
+          userId,
+          AND: [
+            {
+              date: {
+                gte: startDate,
+              },
             },
-          },
-          {
-            date: {
-              lte: endDate,
+            {
+              date: {
+                lte: endDate,
+              },
             },
-          },
-        ],
-      },
-      orderBy: {
-        startTime: "asc",
-      },
-    });
+          ],
+        },
+        orderBy: {
+          startTime: "asc",
+        },
+      });
+    } else {
+      events = calendarStore.getEventsByDateRange(userId, startDate, endDate);
+    }
 
     res.json({ events });
   } catch (err) {
@@ -261,18 +377,24 @@ router.get("/day", async (req: Request, res: Response, next: NextFunction) => {
     const endOfDay = new Date(targetDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const events = await prisma.calendarEvent.findMany({
-      where: {
-        userId,
-        date: {
-          gte: startOfDay,
-          lte: endOfDay,
+    let events;
+
+    if (hasDatabase) {
+      events = await prisma.calendarEvent.findMany({
+        where: {
+          userId,
+          date: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
         },
-      },
-      orderBy: {
-        startTime: "asc",
-      },
-    });
+        orderBy: {
+          startTime: "asc",
+        },
+      });
+    } else {
+      events = calendarStore.getEventsByDateRange(userId, startOfDay, endOfDay);
+    }
 
     res.json({ events });
   } catch (err) {
@@ -290,18 +412,64 @@ router.delete("/:id", async (req: Request, res: Response, next: NextFunction) =>
       return res.status(400).json({ error: "Invalid event ID" });
     }
 
-    // Check if event exists and belongs to user
-    const event = await prisma.calendarEvent.findFirst({
-      where: { id: eventId, userId },
-    });
+    // Check if event exists and belongs to user (BOLA prevention)
+    let event;
 
-    if (!event) {
-      return res.status(404).json({ error: "Event not found" });
+    if (hasDatabase) {
+      event = await prisma.calendarEvent.findFirst({
+        where: { id: eventId, userId },
+      });
+    } else {
+      event = calendarStore.getEventById(eventId, userId);
     }
 
-    await prisma.calendarEvent.delete({
-      where: { id: eventId },
-    });
+    if (!event) {
+      // Return 403 instead of 404 to prevent information leakage
+      // (Don't reveal whether resource exists if it doesn't belong to user)
+      // Log BOLA violation
+      logSecurityEvent({
+        event_type: "bola_forbidden",
+        user_id: userId,
+        ip: getClientIp(req),
+        user_agent: getUserAgent(req),
+        path: req.path,
+        method: req.method,
+        status_code: 403,
+        reason: "ownership_mismatch",
+        meta: {
+          resource_type: "calendar_event",
+          resource_id: String(eventId),
+        },
+      }).catch(() => {}); // Ignore errors
+      (req as any)._securityLogged = true; // Prevent double-logging
+
+      // Anomaly detection (log-only, non-blocking)
+      detectResourceProbing(userId).catch(() => {});
+
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    // Phase 2: Cancel reminders before deleting event
+    try {
+      const orgId = (req as any).orgId || req.user?.orgId || userId;
+      await cancelRemindersForCalendarEvent({
+        orgId,
+        userId,
+        eventId
+      });
+    } catch (reminderError: any) {
+      console.error("[CALENDAR DELETE] ⚠ Failed to cancel reminders:", reminderError.message);
+      // Don't fail the deletion if reminder cancellation fails
+    }
+
+    // Delete is safe because we verified ownership above
+    if (hasDatabase) {
+      await prisma.calendarEvent.delete({
+        where: { id: eventId },
+      });
+    } else {
+      calendarStore.deleteEvent(eventId, userId);
+    }
 
     res.json({ success: true });
   } catch (err) {
@@ -312,20 +480,48 @@ router.delete("/:id", async (req: Request, res: Response, next: NextFunction) =>
 // PATCH /calendar/update/:id
 router.patch("/update/:id", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = getUserId(req);
+    const userId = getUserId(req); // String
     const eventId = parseInt(req.params.id, 10);
 
     if (isNaN(eventId)) {
       return res.status(400).json({ error: "Invalid event ID" });
     }
 
-    // Check if event exists and belongs to user
-    const existingEvent = await prisma.calendarEvent.findFirst({
-      where: { id: eventId, userId },
-    });
+    // Check if event exists and belongs to user (BOLA prevention)
+    let existingEvent;
+
+    if (hasDatabase) {
+      existingEvent = await prisma.calendarEvent.findFirst({
+        where: { id: eventId, userId },
+      });
+    } else {
+      existingEvent = calendarStore.getEventById(eventId, userId);
+    }
 
     if (!existingEvent) {
-      return res.status(404).json({ error: "Event not found" });
+      // Return 403 instead of 404 to prevent information leakage
+      // (Don't reveal whether resource exists if it doesn't belong to user)
+      // Log BOLA violation
+      logSecurityEvent({
+        event_type: "bola_forbidden",
+        user_id: userId,
+        ip: getClientIp(req),
+        user_agent: getUserAgent(req),
+        path: req.path,
+        method: req.method,
+        status_code: 403,
+        reason: "ownership_mismatch",
+        meta: {
+          resource_type: "calendar_event",
+          resource_id: String(eventId),
+        },
+      }).catch(() => {}); // Ignore errors
+      (req as any)._securityLogged = true; // Prevent double-logging
+
+      // Anomaly detection (log-only, non-blocking)
+      detectResourceProbing(userId).catch(() => {});
+
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const data = updateEventSchema.parse(req.body);
@@ -338,8 +534,9 @@ router.patch("/update/:id", async (req: Request, res: Response, next: NextFuncti
     }
     
     // Handle startTime and endTime
-    if (data.startTime !== undefined || data.endTime !== undefined) {
+    if (data.startTime !== undefined || data.endTime !== undefined || data.date !== undefined) {
       const targetDate = data.date ? parseDateTime(data.date) : existingEvent.date;
+      const targetDateStr = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD
       
       if (data.startTime !== undefined) {
         const [startHours, startMins] = String(data.startTime).split(':').map(Number);
@@ -354,17 +551,313 @@ router.patch("/update/:id", async (req: Request, res: Response, next: NextFuncti
         endDateTime.setHours(endHours || 0, endMins || 0, 0, 0);
         updateData.endTime = endDateTime;
       }
+      
+      // Compute canonical UTC timestamps when date/time changes
+      // Precondition: DB table "CalendarEvent" already has startAt/endAt columns (nullable)
+      const orgId = (req as any).orgId || req.user?.orgId || null;
+      const userTz = await getOrgTimezone(orgId);
+      
+      // Use updated values if provided, otherwise extract from existing canonical times
+      let startTimeStr: string;
+      if (data.startTime !== undefined) {
+        startTimeStr = String(data.startTime);
+      } else {
+        // Prefer existing startAt (canonical UTC) and convert to org timezone to extract HH:mm
+        if (existingEvent.startAt) {
+          startTimeStr = utcDateToHHmm(new Date(existingEvent.startAt), userTz);
+        } else {
+          // Fallback: extract from startTime DateTime (less accurate due to UTC shifts)
+          const existingStart = new Date(existingEvent.startTime);
+          startTimeStr = `${String(existingStart.getHours()).padStart(2, '0')}:${String(existingStart.getMinutes()).padStart(2, '0')}`;
+        }
+      }
+      
+      let endTimeStr: string;
+      if (data.endTime !== undefined) {
+        endTimeStr = String(data.endTime);
+      } else {
+        // Prefer existing endAt (canonical UTC) and convert to org timezone to extract HH:mm
+        if (existingEvent.endAt) {
+          endTimeStr = utcDateToHHmm(new Date(existingEvent.endAt), userTz);
+        } else {
+          // Fallback: extract from endTime DateTime (less accurate due to UTC shifts)
+          const existingEnd = new Date(existingEvent.endTime);
+          endTimeStr = `${String(existingEnd.getHours()).padStart(2, '0')}:${String(existingEnd.getMinutes()).padStart(2, '0')}`;
+        }
+      }
+      
+      try {
+        const canonicalTimes = computeStartEndUtc({
+          dateStr: targetDateStr,
+          startStr: startTimeStr,
+          endStr: endTimeStr,
+          tz: userTz,
+        });
+        
+        updateData.startAt = canonicalTimes.startAt;
+        updateData.endAt = canonicalTimes.endAt;
+        
+        // Dev-only safe logging (no values)
+        const isDev = process.env.NODE_ENV !== 'production';
+        if (isDev) {
+          console.log("[CALENDAR UPDATE] Canonical times computed:", {
+            tzUsed: userTz,
+            hasDate: !!data.date,
+            hasStart: data.startTime !== undefined,
+            hasEnd: data.endTime !== undefined,
+          });
+        }
+      } catch (timeError: any) {
+        console.error("[CALENDAR UPDATE] ✗ Time conversion error:", timeError.message);
+        return res.status(400).json({
+          error: "validation_failed",
+          detail: timeError.message,
+        });
+      }
     }
     
     if (data.notes !== undefined) updateData.notes = data.notes || null;
     if (data.urgency !== undefined) updateData.urgency = data.urgency;
 
-    const updated = await prisma.calendarEvent.update({
-      where: { id: eventId },
-      data: updateData,
-    });
+    // Update is safe because we verified ownership above
+    let updated;
+
+    if (hasDatabase) {
+      updated = await prisma.calendarEvent.update({
+        where: { 
+          id: eventId,
+          // Additional safety: ensure userId matches (defense-in-depth)
+          // Note: Prisma doesn't support multiple fields in where for update,
+          // but we already verified ownership above, so this is safe
+        },
+        data: updateData,
+      });
+    } else {
+      updated = calendarStore.updateEvent(eventId, userId, updateData);
+      
+      if (!updated) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    }
+
+    // Phase 2: Handle reminders on update
+    const orgId = (req as any).orgId || req.user?.orgId || userId;
+    
+    if (data.enableReminder === false) {
+      // Cancel reminders
+      try {
+        await cancelRemindersForCalendarEvent({
+          orgId,
+          userId,
+          eventId
+        });
+        console.log("[CALENDAR UPDATE] ✓ Reminders cancelled for event");
+      } catch (reminderError: any) {
+        console.error("[CALENDAR UPDATE] ⚠ Failed to cancel reminders:", reminderError.message);
+      }
+    } else if ((data.enableReminder === true || data.enableReminder === undefined) && (data.startTime !== undefined || data.date !== undefined || data.reminderOffset !== undefined)) {
+      // Create or update reminder (time or offset changed, or explicitly enabled)
+      try {
+        // Extract timezone from header (preferred) or default to UTC
+        const timezone = req.headers['x-timezone'] as string || null;
+        // Use updated startTime if available, otherwise existing
+        const startTimeToUse = updateData.startTime || existingEvent.startTime;
+        const offsetToUse = data.reminderOffset !== undefined ? data.reminderOffset : -60;
+        
+        await createOrUpdateReminderForCalendarEvent({
+          orgId,
+          userId,
+          eventId,
+          eventStartTimeUtc: startTimeToUse,
+          reminderOffset: offsetToUse,
+          timezone
+        });
+        console.log("[CALENDAR UPDATE] ✓ Reminder updated for event");
+      } catch (reminderError: any) {
+        console.error("[CALENDAR UPDATE] ⚠ Failed to update reminder:", reminderError.message);
+      }
+    }
 
     res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /calendar/:id/status
+router.patch("/:id/status", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getUserId(req);
+    const eventId = parseInt(req.params.id, 10);
+
+    if (isNaN(eventId)) {
+      return res.status(400).json({ error: "Invalid event ID" });
+    }
+
+    const { status } = z.object({
+      status: z.enum(["completed", "cancelled", "scheduled"]),
+    }).parse(req.body);
+
+    // Verify ownership
+    let existingEvent;
+    if (hasDatabase) {
+      existingEvent = await prisma.calendarEvent.findFirst({
+        where: { id: eventId, userId },
+      });
+    } else {
+      existingEvent = calendarStore.getEventById(eventId, userId);
+    }
+
+    if (!existingEvent) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    // Build update data
+    const updateData: any = { status };
+    const now = new Date();
+
+    if (status === "completed") {
+      updateData.completedAt = now;
+      updateData.missedAt = null;
+      updateData.cancelledAt = null;
+    } else if (status === "cancelled") {
+      updateData.cancelledAt = now;
+      updateData.completedAt = null;
+      updateData.missedAt = null;
+    } else if (status === "scheduled") {
+      updateData.completedAt = null;
+      updateData.cancelledAt = null;
+      updateData.missedAt = null;
+    }
+
+    // Update event
+    let updated;
+    if (hasDatabase) {
+      updated = await prisma.calendarEvent.update({
+        where: { id: eventId },
+        data: updateData,
+      });
+    } else {
+      updated = calendarStore.updateEvent(eventId, userId, updateData);
+      if (!updated) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    }
+
+    res.json(updated);
+  } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({
+        error: "validation_failed",
+        detail: err.message,
+        issues: err.errors,
+      });
+    }
+    next(err);
+  }
+});
+
+// GET /calendar/needs-attention
+router.get("/needs-attention", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getUserId(req);
+    const withinMinutes = parseInt(req.query.withinMinutes as string) || 480; // Default 8 hours
+    const now = new Date();
+    const leadCutoff = new Date(now.getTime() + withinMinutes * 60 * 1000);
+
+    // Dev-only diagnostic logging
+    const isDev = process.env.NODE_ENV !== 'production';
+    if (isDev) {
+      console.log("[CALENDAR NEEDS-ATTENTION] Query:", {
+        userId,
+        withinMinutes,
+        now: now.toISOString(),
+        leadCutoff: leadCutoff.toISOString(),
+      });
+    }
+
+    let events;
+    if (hasDatabase) {
+      // Query: upcoming (scheduled with startAt within lead window) OR missed
+      // Exclude events without canonical times (startAt/endAt NULL)
+      events = await prisma.calendarEvent.findMany({
+        where: {
+          userId,
+          startAt: { not: null }, // Require canonical times
+          OR: [
+            {
+              // Upcoming: scheduled with startAt within lead window
+              status: 'scheduled',
+              startAt: {
+                gte: now,
+                lte: leadCutoff,
+              },
+            },
+            {
+              // Missed: status is missed
+              status: 'missed',
+            },
+          ],
+        },
+        orderBy: [
+          // Missed first (by missedAt desc, then endAt desc)
+          { missedAt: 'desc' },
+          { endAt: 'desc' },
+          // Then upcoming by startAt asc
+          { startAt: 'asc' },
+        ],
+        take: 50,
+      });
+      
+      // Dev-only: Log query results
+      if (isDev) {
+        console.log("[CALENDAR NEEDS-ATTENTION] Found events:", {
+          count: events.length,
+          upcoming: events.filter(e => e.status === 'scheduled').length,
+          missed: events.filter(e => e.status === 'missed').length,
+        });
+      }
+    } else {
+      // Dev mode: filter in-memory events
+      const allEvents = calendarStore.getEventsByUserId(userId);
+      events = allEvents.filter(e => {
+        if (!e.startAt) return false; // Exclude events without canonical times
+        
+        const start = new Date(e.startAt);
+        const isUpcoming = e.status === 'scheduled' && start >= now && start <= leadCutoff;
+        const isMissed = e.status === 'missed';
+        
+        return isUpcoming || isMissed;
+      }).sort((a, b) => {
+        // Missed first
+        if (a.status === 'missed' && b.status !== 'missed') return -1;
+        if (a.status !== 'missed' && b.status === 'missed') return 1;
+        if (a.status === 'missed' && b.status === 'missed') {
+          // Sort by missedAt desc or endAt desc
+          const aMissed = a.missedAt ? new Date(a.missedAt).getTime() : (a.endAt ? new Date(a.endAt).getTime() : 0);
+          const bMissed = b.missedAt ? new Date(b.missedAt).getTime() : (b.endAt ? new Date(b.endAt).getTime() : 0);
+          return bMissed - aMissed;
+        }
+        // Then upcoming by startAt asc
+        const aStart = a.startAt ? new Date(a.startAt).getTime() : 0;
+        const bStart = b.startAt ? new Date(b.startAt).getTime() : 0;
+        return aStart - bStart;
+      }).slice(0, 50);
+    }
+
+    // Transform for frontend
+    const result = events.map(e => ({
+      id: e.id,
+      title: e.title,
+      startAt: e.startAt ? new Date(e.startAt).toISOString() : null,
+      endAt: e.endAt ? new Date(e.endAt).toISOString() : null,
+      status: e.status,
+      urgency: e.urgency,
+      // Compute type: "missed" if status is missed, otherwise "upcoming"
+      type: e.status === 'missed' ? 'missed' : 'upcoming',
+    }));
+
+    res.json({ events: result });
   } catch (err) {
     next(err);
   }

@@ -34,6 +34,10 @@ export const EventModal: React.FC<EventModalProps> = ({
   const [date, setDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
   const [urgency, setUrgency] = useState<'low' | 'medium' | 'critical'>('medium');
+  
+  // Phase 2: Reminder state
+  const [enableReminder, setEnableReminder] = useState(true);
+  const [reminderOffset, setReminderOffset] = useState(-60); // Default: 1 hour before
 
   // Internal state for time pickers - hybrid-controlled to prevent scroll resets
   const [internalStart, setInternalStart] = useState('09:00');
@@ -51,10 +55,16 @@ export const EventModal: React.FC<EventModalProps> = ({
       setInternalEnd(existingEnd);
       setNotes(existingEvent.notes || '');
       setUrgency(existingEvent.urgency || 'medium');
+      // Phase 2: For edit mode, default to enabled
+      setEnableReminder(true);
+      setReminderOffset(-60);
     } else {
       setTitle('');
       setNotes('');
       setUrgency('medium');
+      // Phase 2: For new events, default to enabled
+      setEnableReminder(true);
+      setReminderOffset(-60);
       if (initialDate) {
         setDate(initialDate);
       }
@@ -111,6 +121,10 @@ export const EventModal: React.FC<EventModalProps> = ({
       endTime: internalEnd,
       notes: notes.trim() || null,
       urgency,
+      // Phase 2: Include reminder fields
+      enableReminder,
+      reminderOffset,
+      reminderChannel: 'in_app',
     };
 
     onSave(event);
@@ -355,6 +369,61 @@ export const EventModal: React.FC<EventModalProps> = ({
               }}
               placeholder="Additional notes..."
             />
+          </div>
+
+          {/* Phase 2: Reminder Section */}
+          <div>
+            <label className="block text-[0.65rem] uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
+              Reminder
+            </label>
+            
+            {/* Checkbox: Remind me */}
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="checkbox"
+                id="enableReminder"
+                checked={enableReminder}
+                onChange={(e) => setEnableReminder(e.target.checked)}
+                className="w-4 h-4 rounded cursor-pointer"
+                style={{
+                  accentColor: 'var(--neon-red)',
+                }}
+              />
+              <label 
+                htmlFor="enableReminder" 
+                className="text-xs cursor-pointer"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Remind me
+              </label>
+            </div>
+
+            {/* Dropdown: Reminder offset */}
+            {enableReminder && (
+              <select
+                value={reminderOffset}
+                onChange={(e) => setReminderOffset(Number(e.target.value))}
+                className="w-full rounded-xl px-3 py-2 text-xs transition-all cursor-pointer"
+                style={{
+                  background: 'var(--glass-bg-dark)',
+                  border: '1px solid var(--glass-border)',
+                  color: 'var(--text-primary)',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--neon-red-soft)';
+                  e.currentTarget.style.boxShadow = '0 0 10px var(--neon-red-dim)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--glass-border)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <option value={-1}>1 minute before (testing only)</option>
+                <option value={-15}>15 minutes before</option>
+                <option value={-60}>1 hour before</option>
+                <option value={-1440}>1 day before</option>
+              </select>
+            )}
           </div>
 
           {/* Actions */}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api } from '../../api/client'
+import { get } from '../../api'
 import { Clock } from 'lucide-react'
 
 interface DealEvent {
@@ -21,7 +21,7 @@ export function LegalEventsTimeline({ dealId }: LegalEventsTimelineProps) {
     const loadEvents = async () => {
       try {
         setLoading(true)
-        const response = await api.get<{ events: DealEvent[] }>(`/deals/${dealId}/legal/events`)
+        const response = await get<{ events: DealEvent[] }>(`/deals/${dealId}/legal/events`)
         setEvents(response.events)
       } catch (err) {
         console.error('Failed to load legal events:', err)

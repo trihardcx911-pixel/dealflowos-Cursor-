@@ -3,6 +3,7 @@ import { MonthGrid } from '../components/calendar/MonthGrid';
 import { DayTimeline } from '../components/calendar/DayTimeline';
 import { WeekTimeline } from '../components/calendar/WeekTimeline';
 import { EventModal } from '../components/calendar/EventModal';
+import { EventQuickViewPopover } from '../components/calendar/EventQuickViewPopover';
 import { CalendarViewSwitcher } from '../components/calendar/CalendarViewSwitcher';
 import BackToDashboard from '../components/BackToDashboard';
 import {
@@ -35,6 +36,9 @@ export const CalendarPage: React.FC = () => {
   const [eventModalMinutes, setEventModalMinutes] = useState<number | undefined>();
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [loading, setLoading] = useState(false);
+  const [quickViewEvent, setQuickViewEvent] = useState<CalendarEvent | null>(null);
+  const [quickViewAnchor, setQuickViewAnchor] = useState<DOMRect | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   // Load events for current month
   const loadEvents = async () => {
@@ -42,15 +46,36 @@ export const CalendarPage: React.FC = () => {
     try {
       const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
       const response = await get<{ events: any[] }>(`/calendar/month?date=${monthStr}`);
-      const formattedEvents = response.events.map((e: any) => ({
-        id: e.id,
-        title: e.title,
-        date: new Date(e.date).toISOString().split('T')[0],
-        startTime: new Date(e.startTime).toTimeString().slice(0, 5),
-        endTime: new Date(e.endTime).toTimeString().slice(0, 5),
-        notes: e.notes,
-        urgency: e.urgency || 'medium',
-      }));
+      const formattedEvents = response.events.map((e: any) => {
+        // Convert UTC ISO timestamp → local wall-clock time (HH:mm format)
+        // This is the ONLY place where timezone conversion happens
+        const convertUTCToLocalTime = (isoStr: string): string => {
+          // Create Date object from UTC ISO string - this converts to local timezone
+          const dateObj = new Date(isoStr);
+          
+          // Extract local hours and minutes using getHours()/getMinutes()
+          const localHours = dateObj.getHours();
+          const localMinutes = dateObj.getMinutes();
+          
+          // Format as HH:mm string
+          const localTimeStr = `${String(localHours).padStart(2, '0')}:${String(localMinutes).padStart(2, '0')}`;
+          
+          return localTimeStr;
+        };
+        
+        const startTime = convertUTCToLocalTime(e.startTime);
+        const endTime = convertUTCToLocalTime(e.endTime);
+        
+        return {
+          id: e.id,
+          title: e.title,
+          date: new Date(e.date).toISOString().split('T')[0],
+          startTime,
+          endTime,
+          notes: e.notes,
+          urgency: e.urgency || 'medium',
+        };
+      });
       setEvents(formattedEvents);
     } catch (error) {
       console.error('Failed to load events:', error);
@@ -106,7 +131,31 @@ export const CalendarPage: React.FC = () => {
     setIsEventModalOpen(true);
   };
 
-  const handleEventClick = (event: CalendarEvent) => {
+  const handleEventClick = (event: CalendarEvent, anchorElement?: HTMLElement) => {
+    // If anchorElement provided (from timeline click), open quick-view popover
+    if (anchorElement) {
+      const rect = anchorElement.getBoundingClientRect();
+      setQuickViewAnchor(rect);
+      setQuickViewEvent(event);
+      setIsQuickViewOpen(true);
+    } else {
+      // Fallback: open full modal (existing behavior for month view)
+      setEditingEvent(event);
+      setEventModalDate(event.date);
+      if (event.startTime) {
+        const [hours, mins] = event.startTime.split(':').map(Number);
+        setEventModalHour(hours);
+        setEventModalMinutes(mins || 0);
+      } else {
+        setEventModalHour(9);
+        setEventModalMinutes(0);
+      }
+      setIsEventModalOpen(true);
+    }
+  };
+
+  const handleQuickViewEdit = (event: CalendarEvent) => {
+    // Reuse existing edit flow: populate modal with event data
     setEditingEvent(event);
     setEventModalDate(event.date);
     if (event.startTime) {
@@ -118,6 +167,10 @@ export const CalendarPage: React.FC = () => {
       setEventModalMinutes(0);
     }
     setIsEventModalOpen(true);
+    // Close popover and clear state
+    setIsQuickViewOpen(false);
+    setQuickViewEvent(null);
+    setQuickViewAnchor(null);
   };
 
   const handleEventSave = async (event: CalendarEvent) => {
@@ -215,6 +268,12 @@ export const CalendarPage: React.FC = () => {
       await del(`/calendar/${eventId}`);
       setEvents(prev => prev.filter(e => String(e.id) !== String(eventId)));
       setEditingEvent(null);
+      // Close popover if it's open for this event
+      if (quickViewEvent && String(quickViewEvent.id) === String(eventId)) {
+        setIsQuickViewOpen(false);
+        setQuickViewEvent(null);
+        setQuickViewAnchor(null);
+      }
       await loadEvents();
     } catch (error) {
       console.error('Failed to delete event:', error);
@@ -436,6 +495,19 @@ export const CalendarPage: React.FC = () => {
         initialHour={eventModalHour}
         initialMinutes={eventModalMinutes}
         existingEvent={editingEvent}
+      />
+
+      <EventQuickViewPopover
+        event={quickViewEvent}
+        anchorRect={quickViewAnchor}
+        isOpen={isQuickViewOpen}
+        onClose={() => {
+          setIsQuickViewOpen(false);
+          setQuickViewEvent(null);
+          setQuickViewAnchor(null);
+        }}
+        onEdit={handleQuickViewEdit}
+        onDelete={handleEventDelete}
       />
     </div>
   );

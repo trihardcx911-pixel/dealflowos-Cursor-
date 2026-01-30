@@ -217,8 +217,8 @@ export function LeadInsights({ leadId }: LeadInsightsProps) {
       <style>{`
         .lead-insights {
           background: white;
-          border-radius: 16px;
-          padding: 1.5rem;
+          border-radius: var(--dfos-radius-xl);
+          padding: var(--dfos-space-6);
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
@@ -252,17 +252,17 @@ export function LeadInsights({ leadId }: LeadInsightsProps) {
         
         .scores-section {
           display: flex;
-          gap: 1.5rem;
+          gap: var(--dfos-space-6);
           margin-bottom: 1.5rem;
           padding-bottom: 1.5rem;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: var(--dfos-border-sm) solid #e5e7eb;
         }
         
         .score-gauge {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.5rem;
+          gap: var(--dfos-space-2);
         }
         
         .gauge-svg {
@@ -285,14 +285,14 @@ export function LeadInsights({ leadId }: LeadInsightsProps) {
           flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
+          gap: var(--dfos-space-3);
         }
         
         .breakdown-item {
           display: grid;
           grid-template-columns: 100px 1fr 40px;
           align-items: center;
-          gap: 0.5rem;
+          gap: var(--dfos-space-2);
         }
         
         .breakdown-label {
@@ -303,13 +303,13 @@ export function LeadInsights({ leadId }: LeadInsightsProps) {
         .breakdown-bar {
           height: 8px;
           background: #e5e7eb;
-          border-radius: 4px;
+          border-radius: var(--dfos-radius-sm);
           overflow: hidden;
         }
         
         .bar-fill {
           height: 100%;
-          border-radius: 4px;
+          border-radius: var(--dfos-radius-sm);
         }
         
         .breakdown-value {
@@ -332,7 +332,7 @@ export function LeadInsights({ leadId }: LeadInsightsProps) {
         .readiness-badge {
           display: inline-block;
           padding: 0.5rem 1rem;
-          border-radius: 8px;
+          border-radius: var(--dfos-radius-md);
           font-weight: 600;
         }
         
@@ -360,7 +360,7 @@ export function LeadInsights({ leadId }: LeadInsightsProps) {
         .engagement-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 1rem;
+          gap: var(--dfos-space-4);
         }
         
         .engagement-stat {
@@ -394,10 +394,10 @@ export function LeadInsights({ leadId }: LeadInsightsProps) {
         .recommendation-card.success {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: var(--dfos-space-2);
           padding: 0.75rem;
           background: #dcfce7;
-          border-radius: 8px;
+          border-radius: var(--dfos-radius-md);
           color: #166534;
         }
         
@@ -410,9 +410,9 @@ export function LeadInsights({ leadId }: LeadInsightsProps) {
         .timeline-item {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: var(--dfos-space-3);
           padding: 0.5rem 0;
-          border-bottom: 1px solid #f3f4f6;
+          border-bottom: var(--dfos-border-sm) solid #f3f4f6;
         }
         
         .timeline-item:last-child {

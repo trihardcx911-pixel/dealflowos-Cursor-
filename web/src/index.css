@@ -5,6 +5,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html { @apply font-sans; }
+}
+
 /* Ensure font variable applies globally, overriding Tailwind defaults */
 html {
   font-family: var(--font-base) !important;
@@ -69,8 +73,8 @@ html, body, #root {
 }
 
 .chart-card {
-  padding: 1.5rem;
-  border-radius: 18px;
+  padding: var(--dfos-space-6);
+  border-radius: var(--dfos-radius-2xl);
   background: var(--glass-bg);
   box-shadow: 0 0 18px var(--neon-red-dim), inset 0 0 25px var(--glass-glow-inner);
 }
@@ -82,8 +86,8 @@ html, body, #root {
 }
 
 .neon-line-card {
-  padding: 1.5rem;
-  border-radius: 18px;
+  padding: var(--dfos-space-6);
+  border-radius: var(--dfos-radius-2xl);
   background: var(--glass-bg);
   box-shadow: 0 0 18px var(--neon-red-dim), inset 0 0 25px var(--glass-glow-inner);
 }
@@ -104,7 +108,7 @@ html, body, #root {
 .tf-btn {
   background: transparent;
   border: none;
-  padding: 6px 14px;
+  padding: var(--dfos-space-2) var(--dfos-space-4);
   font-size: 0.8rem;
   letter-spacing: 1px;
   color: var(--text-secondary);
@@ -130,13 +134,13 @@ html, body, #root {
 .analytics-chart-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2rem; /* EXACT horizontal/vertical rhythm used by KPI cards */
+  gap: var(--dfos-space-8); /* EXACT horizontal/vertical rhythm used by KPI cards */
   margin-top: 2.5rem; /* Matches KPI -> Charts vertical spacing */
   width: 100%;
-  padding: 0 3rem; /* Match KPI grid padding */
-  max-width: 1600px; /* Match KPI grid max-width */
-  margin-left: auto;
-  margin-right: auto;
+  padding: 0;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 /* RESPONSIVE BEHAVIOR — mirrors KPI grid breakpoints */
@@ -149,16 +153,16 @@ html, body, #root {
 @media (max-width: 1100px) {
   .analytics-chart-grid {
     grid-template-columns: 1fr;
-    padding: 0 2rem;
+    padding: 0 var(--dfos-space-8);
   }
 }
 
 /* Ensure chart cards visually match KPI cards EXACTLY */
 .analytics-chart-grid .chart-card {
-  border-radius: 18px;
+  border-radius: var(--dfos-radius-2xl);
   background: var(--glass-bg);
   box-shadow: 0 0 18px var(--neon-red-dim), inset 0 0 25px var(--glass-glow-inner);
-  padding: 1.5rem;
+  padding: var(--dfos-space-6);
   height: auto; /* Prevent unwanted stretching */
   display: flex;
   flex-direction: column;

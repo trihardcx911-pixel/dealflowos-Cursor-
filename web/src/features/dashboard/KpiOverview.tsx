@@ -142,7 +142,7 @@ export function KpiOverview() {
 
       <style>{`
         .kpi-overview {
-          padding: 1.5rem;
+          padding: var(--dfos-space-6);
         }
         
         .section-title {
@@ -155,13 +155,13 @@ export function KpiOverview() {
         .kpi-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          gap: 1rem;
+          gap: var(--dfos-space-4);
         }
         
         .kpi-card {
           background: white;
-          border-radius: 12px;
-          padding: 1.25rem;
+          border-radius: var(--dfos-radius-lg);
+          padding: var(--dfos-space-5);
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           border-left: 4px solid;
           transition: transform 0.2s, box-shadow 0.2s;
@@ -175,7 +175,7 @@ export function KpiOverview() {
         .kpi-header {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: var(--dfos-space-2);
           margin-bottom: 0.5rem;
         }
         
@@ -219,7 +219,7 @@ export function KpiOverview() {
           background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
           background-size: 200% 100%;
           animation: shimmer 1.5s infinite;
-          border-radius: 12px;
+          border-radius: var(--dfos-radius-lg);
           height: 120px;
         }
         
@@ -231,12 +231,12 @@ export function KpiOverview() {
         .kpi-overview.loading .kpi-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          gap: 1rem;
+          gap: var(--dfos-space-4);
         }
         
         .kpi-overview.error {
           text-align: center;
-          padding: 2rem;
+          padding: var(--dfos-space-8);
           color: #ef4444;
         }
       `}</style>

@@ -26,6 +26,7 @@ export const SimpleTimeEditor: React.FC<SimpleTimeEditorProps> = ({
 
   const { hour12, minute, period } = parse24h(value);
   
+  // RAW string state for minutes while editing (prevents "30" → "03" collapse)
   const [hourInput, setHourInput] = useState(String(hour12));
   const [minuteInput, setMinuteInput] = useState(String(minute).padStart(2, "0"));
   const [selectedPeriod, setSelectedPeriod] = useState<"AM" | "PM">(period);
@@ -34,11 +35,19 @@ export const SimpleTimeEditor: React.FC<SimpleTimeEditorProps> = ({
   const minuteRef = useRef<HTMLInputElement>(null);
 
   // Sync with external value changes
+  // IMPORTANT: This should NOT run during active editing (when input is focused)
+  // Only sync when value changes from external source (e.g., initial load, programmatic update)
   useEffect(() => {
     const { hour12: h, minute: m, period: p } = parse24h(value);
-    setHourInput(String(h));
-    setMinuteInput(String(m).padStart(2, "0"));
-    setSelectedPeriod(p);
+    const newMinuteStr = String(m).padStart(2, "0");
+    
+    // Only update if input is not focused (prevents overwriting user's typing)
+    const isMinuteFocused = document.activeElement === minuteRef.current;
+    if (!isMinuteFocused) {
+      setHourInput(String(h));
+      setMinuteInput(newMinuteStr);
+      setSelectedPeriod(p);
+    }
   }, [value]);
 
   // Convert 12h to 24h and emit
@@ -79,23 +88,31 @@ export const SimpleTimeEditor: React.FC<SimpleTimeEditorProps> = ({
   };
 
   const handleMinuteChange = (val: string) => {
-    setMinuteInput(val);
+    // ROOT CAUSE FIX: Do NOT emit during typing to prevent useEffect interference
+    // 
+    // Previous bug flow:
+    // 1. User types "3" → handleMinuteChange("3") → emitTime(..., 3, ...) → formats to "03"
+    // 2. Parent updates value prop → useEffect runs → setMinuteInput("03") overwrites user's "3"
+    // 3. User types "0" → input value is now "03" not "3" → results in "00" or "030" → becomes "03"
+    //
+    // Fix: Keep raw string state during typing, only sanitize to digits, emit ONLY on blur
     
-    if (val === "") return;
+    // Sanitize: remove non-digits, limit to 2 characters
+    const sanitized = val.replace(/\D/g, '').slice(0, 2);
+    setMinuteInput(sanitized);
     
-    const num = parseInt(val, 10);
-    if (isNaN(num)) return;
-    
-    const clamped = Math.max(0, Math.min(59, num));
-    const h = parseInt(hourInput, 10) || 12;
-    emitTime(h, clamped, selectedPeriod);
+    // DO NOT emit here - wait for blur to prevent useEffect from overwriting user input
   };
 
   const handleMinuteBlur = () => {
+    // On blur: normalize to 2-digit format and emit final value
+    // If empty, default to "00" (or keep previous if that matches UX better)
     const num = parseInt(minuteInput, 10);
-    const padded = isNaN(num) ? "00" : String(Math.max(0, Math.min(59, num))).padStart(2, "0");
+    const clamped = isNaN(num) ? 0 : Math.max(0, Math.min(59, num));
+    const padded = String(clamped).padStart(2, "0");
+    
     setMinuteInput(padded);
-    emitTime(parseInt(hourInput, 10) || 12, parseInt(padded, 10), selectedPeriod);
+    emitTime(parseInt(hourInput, 10) || 12, clamped, selectedPeriod);
   };
 
   const handlePeriodChange = (newPeriod: "AM" | "PM") => {

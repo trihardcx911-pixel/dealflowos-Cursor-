@@ -1,0 +1,49 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "prompt",
+        "prompt": "Read these files now:\n1. CLAUDE.md (especially 'Project Boundaries' section)\n2. PROGRESS.md\n3. .claude/state/guardrails_last.txt (if exists)\n4. .claude/state/sanity_last.txt (if exists)\n\nThen output a 'Working State' summary (5-10 lines) covering:\n- Current task context\n- Key constraints from CLAUDE.md Project Boundaries\n- Any NEW guardrail violations (ignore baseline/legacy violations)\n- Tooling notes from sanity check\n- Your next 3 planned actions"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": ".claude/hooks/check-dfos.sh",
+        "tools": ["Write", "Edit"],
+        "timeout": 30000
+      },
+      {
+        "type": "command",
+        "command": ".claude/hooks/guardrails-scan.sh",
+        "tools": ["Write", "Edit"],
+        "timeout": 15000
+      },
+      {
+        "type": "command",
+        "command": ".claude/hooks/dfos-sanity.sh",
+        "tools": ["Write", "Edit"],
+        "timeout": 10000
+      }
+    ],
+    "PreCompact": [
+      {
+        "type": "command",
+        "command": ".claude/hooks/summarize-progress.sh",
+        "timeout": 10000
+      }
+    ],
+    "Stop": [
+      {
+        "type": "prompt",
+        "prompt": "Before stopping, you MUST check:\n\n1. Read .claude/state/guardrails_status.txt\n2. If it contains 'VIOLATIONS_NEW' (not just legacy violations):\n   - BLOCK STOP\n   - Read .claude/state/guardrails_last.txt and show NEW violations only\n   - Say: 'NEW guardrail violations found. Fix violations OR add to baseline and acknowledge in PROGRESS.md before stopping.'\n   - Do NOT stop until NEW violations are fixed or acknowledged\n\n3. If status is 'OK' (all violations are baseline/legacy), you may proceed.\n\n4. If git status shows uncommitted changes, write a final PROGRESS.md entry summarizing what was done.\n\n5. Only then may you stop."
+      }
+    ],
+    "SubagentStop": [
+      {
+        "type": "prompt",
+        "prompt": "Before stopping, you MUST check:\n\n1. Read .claude/state/guardrails_status.txt\n2. If it contains 'VIOLATIONS_NEW' (not just legacy violations):\n   - BLOCK STOP\n   - Read .claude/state/guardrails_last.txt and show NEW violations only\n   - Say: 'NEW guardrail violations found. Fix violations OR add to baseline and acknowledge in PROGRESS.md before stopping.'\n   - Do NOT stop until NEW violations are fixed or acknowledged\n\n3. If status is 'OK' (all violations are baseline/legacy), you may proceed.\n\n4. If git status shows uncommitted changes, write a final PROGRESS.md entry summarizing what was done.\n\n5. Only then may you stop."
+      }
+    ]
+  }
+}

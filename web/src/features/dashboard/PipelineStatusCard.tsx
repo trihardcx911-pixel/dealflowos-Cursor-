@@ -125,8 +125,8 @@ export function PipelineStatusCard() {
       <style>{`
         .pipeline-card {
           background: white;
-          border-radius: 16px;
-          padding: 1.5rem;
+          border-radius: var(--dfos-radius-xl);
+          padding: var(--dfos-space-6);
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
@@ -174,16 +174,16 @@ export function PipelineStatusCard() {
         .pipeline-stages {
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
+          gap: var(--dfos-space-3);
         }
         
         .stage-row {
           display: grid;
           grid-template-columns: 180px 50px 1fr;
           align-items: center;
-          gap: 0.75rem;
+          gap: var(--dfos-space-3);
           padding: 0.5rem;
-          border-radius: 8px;
+          border-radius: var(--dfos-radius-md);
           transition: background 0.2s;
         }
         
@@ -198,7 +198,7 @@ export function PipelineStatusCard() {
         .stage-info {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: var(--dfos-space-2);
         }
         
         .stage-dot {
@@ -217,7 +217,7 @@ export function PipelineStatusCard() {
           background: #fbbf24;
           color: #78350f;
           padding: 0.125rem 0.375rem;
-          border-radius: 4px;
+          border-radius: var(--dfos-radius-sm);
         }
         
         .stage-count {
@@ -230,24 +230,24 @@ export function PipelineStatusCard() {
         .stage-bar-container {
           height: 8px;
           background: #e5e7eb;
-          border-radius: 4px;
+          border-radius: var(--dfos-radius-sm);
           overflow: hidden;
         }
         
         .stage-bar {
           height: 100%;
-          border-radius: 4px;
+          border-radius: var(--dfos-radius-sm);
           transition: width 0.3s ease;
         }
         
         .bottleneck-alert {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: var(--dfos-space-2);
           margin-top: 1rem;
           padding: 0.75rem;
           background: #fef3c7;
-          border-radius: 8px;
+          border-radius: var(--dfos-radius-md);
           font-size: 0.875rem;
           color: #92400e;
         }
@@ -255,10 +255,10 @@ export function PipelineStatusCard() {
         .pipeline-metrics {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 1rem;
+          gap: var(--dfos-space-4);
           margin-top: 1.5rem;
           padding-top: 1rem;
-          border-top: 1px solid #e5e7eb;
+          border-top: var(--dfos-border-sm) solid #e5e7eb;
         }
         
         .metric {
@@ -291,7 +291,7 @@ export function PipelineStatusCard() {
           background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
           background-size: 200% 100%;
           animation: shimmer 1.5s infinite;
-          border-radius: 8px;
+          border-radius: var(--dfos-radius-md);
         }
       `}</style>
     </div>

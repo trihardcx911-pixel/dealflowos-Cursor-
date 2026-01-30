@@ -1,3 +1,7 @@
+// Load environment variables from .env before any other imports
+import * as dotenv from "dotenv";
+dotenv.config();
+console.log(">>> BOOT FINGERPRINT: leads-import-mount-v1");
 
 console.log(">>> SERVER BOOTED", new Date().toISOString());
 
@@ -14,6 +18,8 @@ import { leadsDevRouter } from "./routes/leads.dev";  // ✅ Add this
 import { pool } from "./db/pool";
 
 const app = express();
+app.use("/api/leads-import", leadsImportRouter);
+console.log(">>> DEV LEADS IMPORT router mounted at /api/leads-import");
 
 // Ensure uploads directory exists for multer disk storage
 try { 
@@ -29,6 +35,7 @@ app.use((req, res, next) => {
   console.log(`[SERVER] ${req.method} ${req.url}`);
   next();
 });
+
 
 // ===========================================
 // DEV AUTH ROUTES - NO DATABASE DEPENDENCY

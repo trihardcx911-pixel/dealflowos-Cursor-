@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { api } from '../../api/client'
+import { get } from '../../api'
 import { AttentionSignalList } from './AttentionSignalList'
 
 interface DealNeedsAttentionProps {
@@ -49,9 +49,9 @@ export function DealNeedsAttention({ dealId }: DealNeedsAttentionProps) {
 
         // Fetch data from existing endpoints
         const [blockersResult, eventsResult, legalStateResult] = await Promise.all([
-          api.get<BlockersResponse>(`/deals/${dealId}/legal/blockers`).catch(() => null),
-          api.get<{ events: DealEvent[] }>(`/deals/${dealId}/legal/events`).catch(() => null),
-          api.get<LegalState>(`/deals/${dealId}/legal`).catch(() => null),
+          get<BlockersResponse>(`/deals/${dealId}/legal/blockers`).catch(() => null),
+          get<{ events: DealEvent[] }>(`/deals/${dealId}/legal/events`).catch(() => null),
+          get<LegalState>(`/deals/${dealId}/legal`).catch(() => null),
         ])
 
         // Store data for expanded view

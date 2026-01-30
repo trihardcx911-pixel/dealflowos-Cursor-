@@ -6,6 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { api } from "./client";
+import { get } from "../api";
 
 // ============================================
 // Type Definitions
@@ -123,6 +124,45 @@ export interface DashboardDigest {
 // ============================================
 // KPI Hooks
 // ============================================
+
+export interface KpiSummary {
+  totalLeads: number;
+  activeLeads: number;
+  conversionRate: number;
+  assignments: number;
+  contractsInEscrow: number;
+  contactRate: number;
+  monthlyNewLeads: number;
+  monthlyProfit: number;
+  qualifiedLeads: number;
+  monthlyQualifiedLeads: number;
+  assignmentsMTD: number;
+  inEscrow: number;
+  // Previous period baselines (for semantic color tone computation)
+  prevActiveLeads: number | null;
+  prevConversionRate: number | null;
+  prevMonthlyNewLeads: number | null;
+  prevMonthlyProfit: number | null;
+}
+
+/**
+ * Canonical hook for KPI summary data
+ * Used by KpiCard and LeadsOverviewCard to ensure consistent data source
+ */
+export function useKpisSummary() {
+  return useQuery<KpiSummary>({
+    queryKey: ["kpis-summary"],
+    queryFn: async () => {
+      const data = await get<any>("/api/kpis");
+      // Normalize new fields with safe defaults
+      return {
+        ...data,
+        assignmentsMTD: Number(data.assignmentsMTD) || 0,
+        inEscrow: Number(data.inEscrow) || 0,
+      } as KpiSummary;
+    },
+  });
+}
 
 export const useKpis = () =>
   useQuery({

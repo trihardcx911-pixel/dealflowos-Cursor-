@@ -32,19 +32,33 @@ model Lead {
   state        String
   zip          String
   addressHash  String
-  notes        String?
-  ruralFlag    Boolean  @default(false)
+  source        String?
+  notes         String?
+  homeownerName String?
+  phoneNumber   String?
+  ruralFlag     Boolean  @default(false)
   populationOk Boolean  @default(true)
   landSignals  Json?
   legalFlag    Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Deal Milestones (Silver tier)
+  underContractAt  DateTime?
+  assignedAt       DateTime?
+  escrowOpenedAt   DateTime?
+  closedAt         DateTime?
+  cancelledAt      DateTime?
+  buyerName        String?
+  assignmentFee    Decimal?  @db.Decimal(12, 2)
+
   org          Organization @relation(fields: [orgId], references: [id])
   contacts     LeadContact[]
   documents    LegalDocument[]
 
   @@index([orgId, type, ruralFlag])
+  @@index([orgId, assignedAt])
+  @@index([orgId, escrowOpenedAt])
   @@unique([orgId, addressHash], name: "orgId_addressHash")
 }
 
@@ -75,15 +89,60 @@ model CalendarEvent {
   urgency   String   // low / medium / critical
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    Int
+  userId    String
+
+  // Status tracking
+  status              String    @default("scheduled") // scheduled | completed | missed | cancelled
+  completedAt         DateTime?
+  missedAt            DateTime?
+  cancelledAt         DateTime?
+  reminderLeadMinutes Int       @default(480) // 8 hours = 480 minutes
+  reminderSentAt      DateTime?
+
+  // Canonical UTC timestamps (nullable for backward compatibility)
+  startAt DateTime?
+  endAt   DateTime?
 
   @@index([userId, date])
   @@index([date])
+  @@index([userId, status, startAt])
+  @@index([userId, status, endAt])
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  orgId       String
+  userId      String
+  title       String
+  description String?
+  status      String    @default("pending") // 'pending' | 'completed' | 'cancelled'
+  urgency     String    @default("medium") // 'low' | 'medium' | 'critical'
+  dueAt       DateTime? @db.Timestamptz
+  leadId      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([orgId, userId, status])
+  @@index([userId, dueAt])
+  @@index([orgId, dueAt])
 }
 
 model User {
-  id        String           @id @default(cuid())
-  documents LegalDocument[]
+  id                      String           @id @default(cuid())
+  stripeCustomerId        String?          @unique
+  stripeSubscriptionId    String?          @unique
+  stripePriceId           String?
+  billingStatus           BillingStatus?
+  cancelAtPeriodEnd       Boolean?
+  currentPeriodEnd        DateTime?
+  subscriptionCancelledAt DateTime?
+  lastStripeEventId       String?
+  documents               LegalDocument[]
+
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+  @@index([billingStatus])
+  @@index([currentPeriodEnd])
 }
 
 model Deal {
@@ -123,6 +182,58 @@ enum DocumentType {
   PURCHASE_AGREEMENT
   ASSIGNMENT_CONTRACT
   OTHER
+}
+
+enum WaitlistTier {
+  silver
+  gold
+}
+
+enum BillingStatus {
+  trialing
+  active
+  past_due
+  canceled
+  incomplete
+  incomplete_expired
+  unpaid
+}
+
+model Reminder {
+  id             String    @id @default(cuid())
+  orgId          String
+  userId         String
+  targetType     String    // 'calendar_event' | 'task' | etc
+  targetId       String
+  remindAt       DateTime  @db.Timestamptz
+  reminderOffset Int       // minutes offset (e.g., -60 = 1 hour before)
+  channel        String    // 'in_app' | 'email' | 'sms' (MVP: in_app only)
+  timezone       String?   // IANA timezone string (e.g., "America/New_York")
+  status         String    // 'scheduled' | 'pending' | 'sent' | 'delivered' | 'missed' | 'failed' | 'cancelled'
+  idempotencyKey String    @unique
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  failedAt       DateTime?
+  errorMessage   String?
+  retryCount     Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([orgId, userId, status, remindAt])
+  @@index([status, remindAt])
+  @@unique([orgId, userId, targetType, targetId, reminderOffset, channel])
+}
+
+model WaitlistEntry {
+  id        String       @id @default(cuid())
+  email     String
+  tier      WaitlistTier
+  source    String?      // e.g. "pricing"
+  ipHash    String?      // future: hashed IP, optional
+  createdAt DateTime     @default(now())
+
+  @@unique([email, tier], name: "waitlist_email_tier_unique")
+  @@index([tier, createdAt], name: "waitlist_tier_createdAt_idx")
 }
 
 

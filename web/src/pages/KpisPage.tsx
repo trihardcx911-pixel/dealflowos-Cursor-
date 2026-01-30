@@ -31,65 +31,72 @@ export default function KpisPage() {
         </h1>
       </header>
 
-      <div className="dashboard-grid-container mb-10">
-        {isLoading && (
-          <div className="dashboard-card">
-            <p className="text-white/60">Loading...</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="dashboard-card">
-            <p className="text-[#ff0a45]">Failed to load KPI summary</p>
-          </div>
-        )}
-
-        {data && (
-          <>
-            <div className="dashboard-card kpi-tile">
-              <p className="kpi-label">TOTAL LEADS</p>
-              <p className="kpi-value">{data.totalLeads}</p>
+      <div className="max-w-6xl mx-auto px-6 md:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-dfos-4 mb-10">
+          {isLoading && (
+            <div className="dashboard-card">
+              <p className="text-white/60">Loading...</p>
             </div>
+          )}
 
-            <div className="dashboard-card kpi-tile">
-              <p className="kpi-label">ACTIVE LEADS</p>
-              <p className="kpi-value">{data.activeLeads}</p>
+          {error && (
+            <div className="dashboard-card">
+              <p className="text-[#ff0a45]">Failed to load KPI summary</p>
             </div>
+          )}
 
-            <div className="dashboard-card kpi-tile">
-              <p className="kpi-label">CONVERSION RATE</p>
-              <p className="kpi-value">{data.conversionRate}%</p>
-            </div>
+          {data && (
+            <>
+              <div className="dashboard-card kpi-tile h-[144px] min-h-[144px] flex flex-col">
+                <p className="kpi-label">TOTAL LEADS</p>
+                <p className="kpi-value mt-auto">{data?.totalLeads ?? 0}</p>
+              </div>
 
-            <div className="dashboard-card kpi-tile">
-              <p className="kpi-label">ASSIGNMENTS</p>
-              <p className="kpi-value">{data.assignments}</p>
-            </div>
+              <div className="dashboard-card kpi-tile h-[144px] min-h-[144px] flex flex-col">
+                <p className="kpi-label">ACTIVE LEADS</p>
+                <p className="kpi-value mt-auto">{data?.activeLeads ?? 0}</p>
+              </div>
 
-            <div className="dashboard-card kpi-tile">
-              <p className="kpi-label">IN ESCROW</p>
-              <p className="kpi-value">{data.contractsInEscrow}</p>
-            </div>
+              <div className="dashboard-card kpi-tile h-[144px] min-h-[144px] flex flex-col">
+                <p className="kpi-label">CONVERSION RATE</p>
+                <p className="kpi-value mt-auto">{data?.conversionRate ?? 0}%</p>
+              </div>
 
-            <div className="dashboard-card kpi-tile">
-              <p className="kpi-label">CONTACT RATE</p>
-              <p className="kpi-value">{data.contactRate}%</p>
-            </div>
+              <div className="dashboard-card kpi-tile h-[144px] min-h-[144px] flex flex-col">
+                <p className="kpi-label">ASSIGNMENTS</p>
+                <p className="kpi-value mt-auto">{data?.assignments ?? 0}</p>
+              </div>
 
-            <div className="dashboard-card kpi-tile">
-              <p className="kpi-label">QUALIFIED LEADS</p>
-              <p className="kpi-value">{(data as any).qualifiedLeads ?? 0}</p>
-            </div>
+              <div className="dashboard-card kpi-tile h-[144px] min-h-[144px] flex flex-col">
+                <p className="kpi-label">IN ESCROW</p>
+                <p className="kpi-value mt-auto">{data?.contractsInEscrow ?? 0}</p>
+              </div>
 
-            <div className="dashboard-card kpi-tile">
-              <p className="kpi-label">MONTHLY PROFIT</p>
-              <p className="kpi-value">${data.monthlyProfit}</p>
-            </div>
-          </>
-        )}
+              <div className="dashboard-card kpi-tile h-[144px] min-h-[144px] flex flex-col">
+                <p className="kpi-label">CONTACT RATE</p>
+                <p className="kpi-value mt-auto">{data?.contactRate ?? 0}%</p>
+              </div>
+
+              <div className="dashboard-card kpi-tile h-[144px] min-h-[144px] flex flex-col">
+                <p className="kpi-label">QUALIFIED LEADS</p>
+                <p className="kpi-value mt-auto">{(data as any)?.qualifiedLeads ?? 0}</p>
+              </div>
+
+              <div className="dashboard-card kpi-tile h-[144px] min-h-[144px] flex flex-col">
+                <p className="kpi-label">NEW LEADS (MTD)</p>
+                <p className="kpi-value mt-auto">{data?.monthlyNewLeads ?? 0}</p>
+              </div>
+
+              <div className="dashboard-card kpi-tile h-[144px] min-h-[144px] flex flex-col">
+                <p className="kpi-label">MONTHLY PROFIT</p>
+                <p className="kpi-value mt-auto">${data?.monthlyProfit ?? 0}</p>
+              </div>
+            </>
+          )}
+        </div>
+
+        <KpiChart />
       </div>
-
-      <KpiChart />
     </>
   );
 }

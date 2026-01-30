@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, Info } from 'lucide-react'
-import { api } from '../../api/client'
+import { get } from '../../api'
 
 interface LegalCondition {
   id: string
@@ -62,7 +62,7 @@ export function OpenIssuesPanel({ dealId }: OpenIssuesPanelProps) {
     const loadIssues = async () => {
       try {
         setLoading(true)
-        const response = await api.get<{
+        const response = await get<{
           openIssues: LegalCondition[]
           resolvedIssues: LegalCondition[]
         }>(`/deals/${dealId}/legal/issues`)

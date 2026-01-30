@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthLayout from '../../components/layout/AuthLayout'
 import { post, API_BASE } from '../../api'
 import { useToast } from '../../useToast'
@@ -10,6 +10,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const { notify } = useToast()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const plan = searchParams.get('plan')
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -17,7 +19,12 @@ export default function SignupPage() {
     try {
       await post(`${API_BASE}/auth/signup`, { email, password })
       notify('success', 'Signed up! Please login.')
-      navigate('/login')
+      // Preserve plan param through login flow
+      if (plan) {
+        navigate('/login', { state: { plan } })
+      } else {
+        navigate('/login')
+      }
     } catch (e: any) {
       notify('error', e?.error?.message || e?.message || 'Signup failed')
     } finally {

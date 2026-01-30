@@ -1,0 +1,4 @@
+Address,City,State,Zip,Owner Name,Phone,Notes,Source
+123 Main St,Austin,TX,78701,John Smith,5125551234,Good lead | Merged from row 4: Owner: Johnny Smith; Phone: 5125559999; Notes: Follow up needed,Test Import
+456 Oak Ave,Austin,TX,78702,Jane Doe,5125555678,Hot prospect,Test Import
+789 Pine Dr,Houston,TX,77001,Bob Jones,,No phone,Test Import

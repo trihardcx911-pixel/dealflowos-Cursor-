@@ -42,7 +42,7 @@ export default function ResourcesAdvanced() {
               <span className="font-semibold">{item.velocity} {item.trend}</span>
             </div>
           ))}
-          <p className="text-xs text-zinc-500 mt-2">Index measures average days-on-market for distressed properties. Lower = faster market.</p>
+          <p className="text-xs italic leading-5 text-slate-600 dark:text-zinc-500 mt-2">Index measures average days-on-market for distressed properties. Lower = faster market.</p>
         </div>
       </ResourceCard>
 

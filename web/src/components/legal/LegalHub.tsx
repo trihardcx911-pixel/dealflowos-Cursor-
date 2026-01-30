@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api } from '../../api/client'
+import { get, patch } from '../../api'
 import { LegalStageIndicator } from './LegalStageIndicator'
 import { OpenIssuesPanel } from './OpenIssuesPanel'
 import { NeedsAttentionSignals } from './NeedsAttentionSignals'
@@ -41,11 +41,11 @@ export function LegalHub({ dealId }: LegalHubProps) {
     try {
       setLoading(true)
       setError(null)
-      const state = await api.get<LegalState>(`/deals/${dealId}/legal`)
+      const state = await get<LegalState>(`/deals/${dealId}/legal`)
       setLegalState(state)
 
       // Load blockers
-      const blockersData = await api.get<BlockersResponse>(`/deals/${dealId}/legal/blockers`)
+      const blockersData = await get<BlockersResponse>(`/deals/${dealId}/legal/blockers`)
       setBlockers(blockersData)
     } catch (err: any) {
       const msg = err?.error || err?.message || 'Failed to load legal state'
@@ -62,7 +62,7 @@ export function LegalHub({ dealId }: LegalHubProps) {
 
   const handleStageAdvance = async (targetStage: string) => {
     try {
-      await api.patch(`/deals/${dealId}/legal/stage`, { stage: targetStage })
+      await patch(`/deals/${dealId}/legal/stage`, { stage: targetStage })
       notify('success', 'Legal stage advanced successfully')
       setIsTransitionModalOpen(false)
       await loadLegalState()

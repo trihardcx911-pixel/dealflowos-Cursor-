@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Edit2, Save, X, ExternalLink } from 'lucide-react'
-import { api } from '../../api/client'
+import { patch } from '../../api'
 import { useToast } from '../../useToast'
 
 interface ContractMetadataPanelProps {
@@ -24,7 +24,7 @@ export function ContractMetadataPanel({ dealId, metadata, onUpdate }: ContractMe
   const handleSave = async () => {
     try {
       setSaving(true)
-      await api.put(`/deals/${dealId}/legal/contract`, {
+      await patch(`/deals/${dealId}/legal/contract`, {
         sellerName: formData.sellerName || undefined,
         buyerName: formData.buyerName || undefined,
         contractPrice: formData.contractPrice ? parseFloat(formData.contractPrice) : undefined,

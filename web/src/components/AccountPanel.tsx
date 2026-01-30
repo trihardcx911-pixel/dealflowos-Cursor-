@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 interface AccountPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: {
     name: string;
-    email: string;
-    phone: string;
-    password?: string;
   }) => void;
   initialData?: {
     name?: string;
     email?: string;
-    phone?: string;
   };
 }
 
@@ -24,47 +21,27 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
   initialData,
 }) => {
   const [name, setName] = useState(initialData?.name || '');
-  const [email, setEmail] = useState(initialData?.email || '');
-  const [phone, setPhone] = useState(initialData?.phone || '');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   React.useEffect(() => {
     if (isOpen && initialData) {
       setName(initialData.name || '');
-      setEmail(initialData.email || '');
-      setPhone(initialData.phone || '');
     }
   }, [isOpen, initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (password && password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    if (password && password.length < 8) {
-      alert('Password must be at least 8 characters');
-      return;
-    }
-
+    // Only send name (displayName) - backend only supports this field
     onSave({
       name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      ...(password ? { password } : {}),
     });
     
-    setPassword('');
-    setConfirmPassword('');
     onClose();
   };
 
   const handleClose = () => {
-    setPassword('');
-    setConfirmPassword('');
     onClose();
   };
 
@@ -76,17 +53,27 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
       onClick={handleClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-6 bg-[#0a0a0c] border border-[#ff0a45]/40 shadow-[0_0_40px_rgba(255,10,69,0.3)] mx-4"
+        className={`w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-6 mx-4 border shadow-[0_0_40px_rgba(255,10,69,0.3)] ${
+          isLight
+            ? 'bg-white border-[#ff0a45]/40'
+            : 'bg-[#0a0a0c] border-[#ff0a45]/40'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className={`text-lg font-semibold ${
+            isLight ? 'text-[#1a1a1a]' : 'text-white'
+          }`}>
             Edit Account
           </h2>
           <button
             onClick={handleClose}
-            className="text-neutral-400 hover:text-[#ff0a45] transition-colors"
+            className={`transition-colors ${
+              isLight
+                ? 'text-neutral-600 hover:text-[#ff0a45]'
+                : 'text-neutral-400 hover:text-[#ff0a45]'
+            }`}
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -96,82 +83,46 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className={`block text-sm font-medium mb-2 ${
+              isLight ? 'text-[#1a1a1a]' : 'text-white'
+            }`}>
               Full Name
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-white placeholder-neutral-400 focus:border-[#ff0a45] focus:shadow-[0_0_10px_#ff0a45] focus:outline-none transition-all"
+              className={`w-full px-4 py-3 rounded-xl border focus:border-[#ff0a45] focus:shadow-[0_0_10px_#ff0a45] focus:outline-none transition-all ${
+                isLight
+                  ? 'bg-white border-neutral-300 text-[#1a1a1a] placeholder-neutral-400'
+                  : 'bg-black/30 border-white/10 text-white placeholder-neutral-400'
+              }`}
               placeholder="John Doe"
               required
             />
           </div>
 
-          {/* Email */}
+          {/* Email (Read-only) */}
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className={`block text-sm font-medium mb-2 ${
+              isLight ? 'text-[#1a1a1a]' : 'text-white'
+            }`}>
               Email
             </label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-white placeholder-neutral-400 focus:border-[#ff0a45] focus:shadow-[0_0_10px_#ff0a45] focus:outline-none transition-all"
+              value={initialData?.email || ''}
+              disabled
+              className={`w-full px-4 py-3 rounded-xl border cursor-not-allowed ${
+                isLight
+                  ? 'bg-neutral-100 border-neutral-200 text-neutral-500'
+                  : 'bg-black/20 border-white/5 text-neutral-400'
+              }`}
               placeholder="john@example.com"
-              required
             />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              Phone
-            </label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-white placeholder-neutral-400 focus:border-[#ff0a45] focus:shadow-[0_0_10px_#ff0a45] focus:outline-none transition-all"
-              placeholder="+1 (555) 123-4567"
-            />
-          </div>
-
-          {/* Password Section */}
-          <div className="pt-4 border-t border-white/10">
-            <h3 className="text-sm font-medium text-white mb-4">Change Password</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-white placeholder-neutral-400 focus:border-[#ff0a45] focus:shadow-[0_0_10px_#ff0a45] focus:outline-none transition-all"
-                  placeholder="Leave blank to keep current password"
-                  minLength={8}
-                />
-              </div>
-
-              {password && (
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-white placeholder-neutral-400 focus:border-[#ff0a45] focus:shadow-[0_0_10px_#ff0a45] focus:outline-none transition-all"
-                    placeholder="Confirm new password"
-                    minLength={8}
-                  />
-                </div>
-              )}
-            </div>
+            <p className="mt-1 text-xs text-neutral-500">
+              Email is managed by your sign-in provider.
+            </p>
           </div>
 
           {/* Actions */}
@@ -179,7 +130,11 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-4 py-2 rounded-lg border border-white/10 bg-[#080712]/60 text-neutral-300 hover:border-[#ff0a45]/30 hover:text-[#ff0a45] transition-all text-xs font-medium"
+              className={`flex-1 px-4 py-2 rounded-lg border transition-all text-xs font-medium ${
+                isLight
+                  ? 'border-neutral-300 bg-white text-[#1a1a1a] hover:border-[#ff0a45]/40 hover:text-[#ff0a45]'
+                  : 'border-white/10 bg-[#080712]/60 text-neutral-300 hover:border-[#ff0a45]/30 hover:text-[#ff0a45]'
+              }`}
             >
               Cancel
             </button>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Edit2, Save, X, ExternalLink } from 'lucide-react'
-import { api } from '../../api/client'
+import { patch } from '../../api'
 import { useToast } from '../../useToast'
 
 interface AssignmentMetadataPanelProps {
@@ -23,7 +23,7 @@ export function AssignmentMetadataPanel({ dealId, metadata, onUpdate }: Assignme
   const handleSave = async () => {
     try {
       setSaving(true)
-      await api.put(`/deals/${dealId}/legal/assignment`, {
+      await patch(`/deals/${dealId}/legal/assignment`, {
         endBuyerName: formData.endBuyerName || undefined,
         assignmentFee: formData.assignmentFee ? parseFloat(formData.assignmentFee) : undefined,
         assignmentDate: formData.assignmentDate || undefined,

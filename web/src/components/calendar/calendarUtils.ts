@@ -9,6 +9,10 @@ export interface CalendarEvent {
   endTime?: string; // Format: "HH:mm" (24-hour)
   notes?: string | null;
   urgency?: 'low' | 'medium' | 'critical';
+  // Phase 2: Reminder fields
+  enableReminder?: boolean;
+  reminderOffset?: number;
+  reminderChannel?: string;
 }
 
 export const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -156,15 +160,113 @@ export function minutesToTime(minutes: number): string {
 }
 
 /**
- * Generate time slots for day view (12AM - 11PM)
+ * Parse HH:mm time string to total minutes since midnight
+ * Example: "09:15" → 555, "14:30" → 870
+ */
+export function parseTimeToMinutes(timeStr: string): number {
+  const [h, m] = timeStr.split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+/**
+ * Calculate the segment of an event that overlaps with a specific hour row.
+ * 
+ * This function implements the row-owned calendar architecture where:
+ * - Each hour row independently decides which event segments it renders
+ * - Positioning is row-relative (0-50px per row), not grid-relative (0-800px)
+ * - Multi-hour events split into multiple segments across overlapping rows
+ * - Each segment's position is calculated relative to its row's origin (0px = start of hour)
+ * 
+ * Geometry:
+ * - Row boundaries: rowStart = rowHour * 60 minutes, rowEnd = rowStart + 60
+ * - Intersection: segmentStart = max(eventStart, rowStart), segmentEnd = min(eventEnd, rowEnd)
+ * - Row-relative: topPx = (segmentStart - rowStart) / 60 * hourHeightPx
+ * - Height: heightPx = (segmentEnd - segmentStart) / 60 * hourHeightPx
+ * 
+ * @param event - Calendar event with startTime and endTime (HH:mm format)
+ * @param rowHour - The hour this row represents (e.g., 9 for 9:00 AM row)
+ * @param hourHeightPx - Height of one hour row in pixels (default: 50)
+ * @returns Object with topPx and heightPx (numbers), or null if event doesn't overlap this row
+ */
+export function getEventSegmentForRow(
+  event: CalendarEvent,
+  rowHour: number,
+  hourHeightPx = 50
+): { topPx: number; heightPx: number } | null {
+  if (!event.startTime || !event.endTime) return null;
+  
+  // Convert event times to minutes since midnight
+  const eventStartMinutes = parseTimeToMinutes(event.startTime);
+  const eventEndMinutes = parseTimeToMinutes(event.endTime);
+  
+  // Guard: invalid event (end <= start)
+  if (eventEndMinutes <= eventStartMinutes) return null;
+  
+  // Define row boundaries
+  const rowStartMinutes = rowHour * 60;
+  const rowEndMinutes = rowStartMinutes + 60;
+  
+  // Calculate intersection segment
+  const segmentStartMinutes = Math.max(eventStartMinutes, rowStartMinutes);
+  const segmentEndMinutes = Math.min(eventEndMinutes, rowEndMinutes);
+  
+  // Check if segment is valid (no overlap if segmentEnd <= segmentStart)
+  if (segmentEndMinutes <= segmentStartMinutes) return null;
+  
+  // Calculate row-relative positioning in minutes
+  const minutesIntoRow = segmentStartMinutes - rowStartMinutes;
+  const durationMinutes = segmentEndMinutes - segmentStartMinutes;
+  
+  // Convert to pixels (fractional pixels allowed for sub-hour precision)
+  const topPx = (minutesIntoRow / 60) * hourHeightPx;
+  const heightPx = (durationMinutes / 60) * hourHeightPx;
+  
+  // Minimal clamping to enforce bounds: topPx >= 0, heightPx >= 0, topPx + heightPx <= hourHeightPx
+  const clampedTop = Math.max(0, topPx);
+  let clampedHeight = Math.max(0, Math.min(heightPx, hourHeightPx - clampedTop));
+  
+  // Ensure minimum visible height for very short events (e.g., 5-minute events)
+  // This prevents events from "disappearing" when they're too short
+  const MIN_VISIBLE_HEIGHT_PX = 4; // 4px minimum (about 5 minutes at 50px/hour)
+  if (clampedHeight > 0 && clampedHeight < MIN_VISIBLE_HEIGHT_PX) {
+    clampedHeight = MIN_VISIBLE_HEIGHT_PX;
+    // Adjust top if needed to keep within bounds
+    if (clampedTop + clampedHeight > hourHeightPx) {
+      clampedHeight = Math.max(MIN_VISIBLE_HEIGHT_PX, hourHeightPx - clampedTop);
+    }
+  }
+  
+  return {
+    topPx: clampedTop,
+    heightPx: clampedHeight,
+  };
+}
+
+/**
+ * Format 24-hour time string (HH:mm) to 12-hour display format (h:mm AM/PM)
+ * This is UI-only formatting - internal logic remains 24-hour based
+ */
+export function formatTimeForDisplay(time24: string): string {
+  const [hours, minutes] = time24.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHour = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+  return `${displayHour}:${String(minutes).padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Generate time slots for day view (8AM - 11PM)
+ * Grid starts at GRID_START_HOUR to align with event positioning
  */
 export function generateTimeSlots(): Array<{ hour: number; label: string; minutes: number }> {
+  const GRID_START_HOUR = 8; // 8:00 AM is the first visible hour (matches event positioning)
+  const GRID_END_HOUR = 23; // 11:00 PM is the last visible hour
+  
   const slots: Array<{ hour: number; label: string; minutes: number }> = [];
-  for (let hour = 0; hour <= 23; hour++) {
+  for (let hour = GRID_START_HOUR; hour <= GRID_END_HOUR; hour++) {
     const period = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
     slots.push({
-      hour,
+      hour, // Keep actual hour (8-23) for click handling compatibility
       label: `${displayHour}:00 ${period}`,
       minutes: 0, // Always 0 for hourly slots
     });

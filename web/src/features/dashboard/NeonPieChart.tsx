@@ -5,7 +5,13 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 // Using a function to get theme-aware colors
 const getPieColors = (): string[] => {
   const root = getComputedStyle(document.documentElement);
-  const neonRed = root.getPropertyValue('--neon-red').trim() || '#ff0033';
+  let neonRed = root.getPropertyValue('--neon-red').trim() || '#ff0033';
+  
+  // Validate hex format to prevent NaN from parseInt on invalid strings
+  if (!/^#[0-9a-fA-F]{6}$/.test(neonRed)) {
+    neonRed = '#ff0033';
+  }
+  
   // Convert hex to rgb for rgba
   const r = parseInt(neonRed.slice(1, 3), 16);
   const g = parseInt(neonRed.slice(3, 5), 16);
@@ -20,16 +26,22 @@ const getPieColors = (): string[] => {
 };
 
 export default function NeonPieChart({ data }: { data: any[] }) {
-  if (!data || data.length === 0) {
+  // Filter out invalid/zero values before computing totals
+  const validData = Array.isArray(data)
+    ? data.filter((entry) => Number(entry?.value) > 0)
+    : [];
+
+  // Show empty state if data is invalid, empty, or all values are zero
+  if (!Array.isArray(data) || data.length === 0 || validData.length === 0) {
     return (
-      <div className="text-white/60 text-sm p-4">
+      <div className="text-slate-600 dark:text-white/60 text-sm p-4">
         No lead source data available
       </div>
     );
   }
 
-  // Calculate total for fallback percentage calculation
-  const total = data.reduce((sum, entry) => sum + (entry.value || 0), 0);
+  // Calculate total for fallback percentage calculation from validData only
+  const total = validData.reduce((sum, entry) => sum + (entry.value || 0), 0);
   
   // Get theme-aware pie colors
   const PIE_COLORS = getPieColors();
@@ -68,7 +80,7 @@ export default function NeonPieChart({ data }: { data: any[] }) {
       <text
         x={x}
         y={y}
-        fill="var(--text-primary)"
+        fill="var(--text-primary, #111827)"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
         style={{
@@ -113,7 +125,7 @@ export default function NeonPieChart({ data }: { data: any[] }) {
           boxShadow: `0 0 12px ${neonRedDim}`,
           backdropFilter: "blur(6px)",
           pointerEvents: "none",
-          color: "var(--text-primary)",
+          color: "var(--text-primary, #111827)",
         }}
       >
         <div className="font-medium">{name}</div>
@@ -128,7 +140,7 @@ export default function NeonPieChart({ data }: { data: any[] }) {
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
-          data={data}
+          data={validData}
           dataKey="value"
           cx="50%"
           cy="50%"
@@ -140,7 +152,7 @@ export default function NeonPieChart({ data }: { data: any[] }) {
           labelLine={false}
           label={renderLabel}
         >
-          {data.map((entry, index) => (
+          {validData.map((entry, index) => (
             <Cell
               key={`slice-${index}`}
               fill={PIE_COLORS[index % PIE_COLORS.length]}

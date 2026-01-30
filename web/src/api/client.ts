@@ -70,6 +70,18 @@ export async function apiFetch<T>(
       },
     });
 
+    // Detect proxy failures: text/plain with 500 on /api/* routes
+    const contentType = response.headers.get('content-type') || '';
+    const isProxyFailure = 
+      url.startsWith('/api/') &&
+      response.status === 500 &&
+      contentType.includes('text/plain');
+
+    if (isProxyFailure) {
+      const text = await response.text().catch(() => '');
+      throw new Error('Backend unreachable. Start server: cd server && npm run dev (expects 127.0.0.1:3010)');
+    }
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: "Unknown error" }));
       throw new Error(error.error || `API Error: ${response.status}`);
@@ -83,15 +95,20 @@ export async function apiFetch<T>(
       err?.message?.includes('ECONNREFUSED') ||
       err?.message?.includes('NetworkError') ||
       err?.code === 'ECONNREFUSED' ||
-      err?.name === 'TypeError'
+      err?.name === 'TypeError' ||
+      err?.message?.includes('Backend unreachable')
     ) {
       console.error(
         '[API CONNECTION ERROR]',
-        'Could not reach backend at http://localhost:3010',
+        'Could not reach backend at http://127.0.0.1:3010',
         'Request:',
         url,
         '→ Is the DEV server running?'
       );
+      // Re-throw with clear message if not already set
+      if (!err.message?.includes('Backend unreachable')) {
+        throw new Error('Backend unreachable. Start server: cd server && npm run dev (expects 127.0.0.1:3010)');
+      }
     }
     throw err;
   }

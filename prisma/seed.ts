@@ -1,11 +1,11 @@
 import { prisma } from "../src/db/prisma";
 import { createHash } from "node:crypto";
 
-async function upsertOrg() {
+async function upsertOrg(id: string, name: string) {
   const org = await prisma.organization.upsert({
-    where: { id: "org_demo" },
+    where: { id },
     update: {},
-    create: { id: "org_demo", name: "Demo Org" },
+    create: { id, name },
   });
   return org.id;
 }
@@ -44,7 +44,11 @@ async function ensureContact(leadId: string, type: string, value: string, source
 }
 
 async function main() {
-  const orgId = await upsertOrg();
+  // Ensure required organizations exist (idempotent)
+  await upsertOrg("org_dev", "Dev Org");
+  const orgId = await upsertOrg("org_demo", "Demo Org");
+  
+  // Seed demo leads (using org_demo)
   const lead1 = await upsertLead(orgId, { address: "123 Main St", city: "Springfield", state: "IL", zip: "62701" });
   const lead2 = await upsertLead(orgId, { address: "42 Market Ave", city: "Columbus", state: "OH", zip: "43004", type: "land" });
   await ensureContact(lead1.id, "phone", "+15555550101", "seed");

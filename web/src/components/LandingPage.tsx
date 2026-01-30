@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import PricingSection from "./PricingSection";
 
 const DASHBOARD_SRC = "/dashboard-screenshot.png";
 
@@ -40,7 +41,7 @@ export default function LandingPage() {
   };
 
   // Determine active states for pills
-  const isPricingActive = location.pathname === '/pricing';
+  const isPricingActive = location.hash === '#pricing';
   const isFaqsActive = location.hash === '#faqs';
   const isWhyActive = location.hash === '#why';
 
@@ -62,82 +63,86 @@ export default function LandingPage() {
       {/* Content Wrapper */}
       <div className="relative z-10">
       {/* NAV */}
-      <header className="sticky top-0 z-50 px-6 sm:px-8 pt-5 bg-transparent">
-        <nav className="mx-auto max-w-6xl rounded-2xl border border-white/10 bg-white/6 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] px-4 sm:px-5 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:text-white/80 transition-colors">
-            <span className="px-3 py-1.5 rounded-xl bg-white/6 border border-white/10 backdrop-blur-md text-[#F5F7FA] font-semibold tracking-tight flex items-center gap-2">
-              <span>DealflowOS</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-            </span>
+      <header className="sticky top-0 z-50 px-6 sm:px-8 pt-5">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <Link
+            to="/"
+            className="flex items-center w-40 h-14 shrink-0 hover:opacity-80 transition-opacity"
+            aria-label="DealflowOS"
+          >
+            <span className="sr-only">DealflowOS</span>
           </Link>
           
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-3">
-            {/* Pill Group */}
-            <div className="rounded-full border border-white/10 bg-black/20 px-1 py-1 flex gap-1">
-              <button
-                onClick={() => handleNavClick('/pricing')}
-                className={`px-3 py-1.5 rounded-full text-sm transition ${
-                  isPricingActive
-                    ? 'bg-white/8 text-[#F5F7FA]'
-                    : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
-                }`}
+          {/* Navigation Container - Right-aligned, glass styling */}
+          <nav className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] px-4 sm:px-5 py-3">
+            {/* Desktop Nav */}
+            <div className="hidden md:flex items-center gap-3">
+              {/* Pill Group */}
+              <div className="rounded-full border border-white/10 bg-black/20 px-1 py-1 flex gap-1">
+                <button
+                  onClick={() => handleNavClick('#pricing')}
+                  className={`px-3 py-1.5 rounded-full text-sm transition ${
+                    isPricingActive
+                      ? 'bg-white/8 text-[#F5F7FA]'
+                      : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                  }`}
+                >
+                  Pricing
+                </button>
+                <button
+                  onClick={() => handleNavClick('#faqs')}
+                  className={`px-3 py-1.5 rounded-full text-sm transition ${
+                    isFaqsActive
+                      ? 'bg-white/8 text-[#F5F7FA]'
+                      : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                  }`}
+                >
+                  FAQs
+                </button>
+                <button
+                  onClick={() => handleNavClick('#why')}
+                  className={`px-3 py-1.5 rounded-full text-sm transition ${
+                    isWhyActive
+                      ? 'bg-white/8 text-[#F5F7FA]'
+                      : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                  }`}
+                >
+                  Why this exists
+                </button>
+              </div>
+              
+              {/* Start Button */}
+              <Link
+                to="/signup"
+                className="h-9 px-4 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-400 transition-colors shadow-[0_10px_30px_rgba(239,68,68,0.18)] flex items-center justify-center"
               >
-                Pricing
-              </button>
-              <button
-                onClick={() => handleNavClick('#faqs')}
-                className={`px-3 py-1.5 rounded-full text-sm transition ${
-                  isFaqsActive
-                    ? 'bg-white/8 text-[#F5F7FA]'
-                    : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
-                }`}
-              >
-                FAQs
-              </button>
-              <button
-                onClick={() => handleNavClick('#why')}
-                className={`px-3 py-1.5 rounded-full text-sm transition ${
-                  isWhyActive
-                    ? 'bg-white/8 text-[#F5F7FA]'
-                    : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
-                }`}
-              >
-                Why this exists
-              </button>
+                Start
+              </Link>
             </div>
-            
-            {/* Start Button */}
-            <Link
-              to="/signup"
-              className="h-9 px-4 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-400 transition-colors shadow-[0_10px_30px_rgba(239,68,68,0.18)] flex items-center justify-center"
-            >
-              Start
-            </Link>
-          </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden h-9 px-3 rounded-xl border border-white/12 bg-black/20 text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors"
-            aria-label="Toggle menu"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {mobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
-        </nav>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden h-9 px-3 rounded-xl border border-white/12 bg-black/20 text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </nav>
+        </div>
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute right-6 sm:right-8 top-20 mt-2 w-48 rounded-2xl border border-white/12 bg-white/8 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden">
             <div className="py-2">
               <button
-                onClick={() => handleNavClick('/pricing')}
+                onClick={() => handleNavClick('#pricing')}
                 className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
                 style={{ color: isPricingActive ? '#F5F7FA' : '#A8AFB8' }}
               >
@@ -177,15 +182,15 @@ export default function LandingPage() {
           <div className="pointer-events-none absolute -inset-10 bg-[radial-gradient(closest-side,rgba(239,68,68,0.10),transparent_70%)] blur-3xl opacity-20 z-0" />
           <div className="relative z-10 rounded-2xl bg-white/3 border border-white/5 px-8 py-10 text-center">
             <h1 className="text-[44px] font-semibold leading-[1.15] text-[#F5F7FA] mb-6">
-              Wholesaling shouldn't feel this complicated.
+              Running real estate wholesale deals shouldn't feel this chaotic.
             </h1>
             <div className="flex flex-col items-center gap-3 mt-8">
               <p className="text-[13px] text-[#7C828A] mb-2">
-                Takes 2 minutes. No setup maze. Add your first deal and you're running.
+                Track sellers, properties, follow-ups, and contracts in one calm workspace — without fighting your CRM.
               </p>
               <Link
                 to="/signup"
-                className="h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors"
+                className="h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors text-center flex items-center justify-center"
               >
                 Start with one deal
               </Link>
@@ -205,7 +210,7 @@ export default function LandingPage() {
 
       {/* AUDIENCE QUALIFIER */}
       <section className="py-20 px-8 flex justify-center">
-        <div className="max-w-[720px] text-center">
+        <div className="max-w-[720px] mx-auto bg-white/5 border border-white/5 rounded-2xl px-6 py-4 md:px-8 md:py-5 text-center">
           <p className="text-[18px] leading-relaxed text-[#A8AFB8]">
             Built for solo wholesalers and early-stage operators who need less noise, not more features.
           </p>
@@ -216,10 +221,13 @@ export default function LandingPage() {
       <section className="px-8 py-32 flex justify-center">
         <div className="max-w-[720px] mx-auto bg-white/5 border border-white/5 rounded-2xl px-6 py-10 md:px-10 md:py-12 text-center">
           <p className="text-[16px] leading-relaxed text-[#A8AFB8]">
-            You're juggling a deal on a spreadsheet, follow-ups in your calendar, contracts in email, and you just missed calling a motivated seller back because you forgot they existed. This shouldn't be your day.
+            You're tracking a motivated seller in a spreadsheet, follow-ups in your calendar, and contracts in email — and you just missed calling a property owner back because the deal slipped through the cracks.
           </p>
           <p className="text-[16px] leading-relaxed text-[#A8AFB8] mt-6">
-            DealflowOS keeps everything in one place without making you learn a new system.
+            This shouldn't be how you run real estate deals.
+          </p>
+          <p className="text-[16px] leading-relaxed text-[#A8AFB8] mt-6">
+            DealflowOS keeps every seller, property, follow-up, and document tied to the deal — without forcing you to learn a bloated system.
           </p>
         </div>
       </section>
@@ -272,16 +280,16 @@ export default function LandingPage() {
         <div className="w-full max-w-[680px]">
           <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-6 md:px-8 md:py-8">
             <div className="flex items-center justify-between py-3 border-b border-white/5">
-              <span className="text-[13px] text-[#7C828A]">Lead</span>
-              <span className="text-[13px] text-[#A8AFB8]">123 Maple St</span>
+              <span className="text-[13px] text-[#7C828A]">Seller</span>
+              <span className="text-[13px] text-[#A8AFB8]">Property: 123 Maple St</span>
             </div>
             <div className="flex items-center justify-between py-3 border-b border-white/5">
-              <span className="text-[13px] text-[#7C828A]">Follow-up</span>
-              <span className="text-[13px] text-[#A8AFB8]">Call seller</span>
+              <span className="text-[13px] text-[#7C828A]">Seller follow-up</span>
+              <span className="text-[13px] text-[#A8AFB8]">Call property owner</span>
             </div>
             <div className="flex items-center justify-between py-3">
-              <span className="text-[13px] text-[#7C828A]">Next step</span>
-              <span className="text-[13px] text-[#A8AFB8]">Send agreement</span>
+              <span className="text-[13px] text-[#7C828A]">Next deal step</span>
+              <span className="text-[13px] text-[#A8AFB8]">Send assignment agreement</span>
             </div>
           </div>
         </div>
@@ -294,9 +302,9 @@ export default function LandingPage() {
             What happens when you start?
           </h2>
           <p className="text-base md:text-lg max-w-xl mx-auto mb-16" style={{ color: '#A8AFB8' }}>
-            You get a clean workspace with just the essentials.
+            You get a clean workspace built for real estate wholesaling.
             No setup maze. No pressure to do everything.
-            Just enough structure to move your first deal forward.
+            Just enough structure to move your first property deal forward.
           </p>
 
           <div className="relative rounded-2xl bg-white/16 border border-white/12 shadow-[0_20px_60px_rgba(0,0,0,0.45)] px-8 pt-6 pb-8 md:px-10 md:pt-8 md:pb-10 space-y-8 overflow-hidden">
@@ -308,10 +316,10 @@ export default function LandingPage() {
                 </svg>
                 <div className="text-xs tracking-widest mb-2" style={{ color: '#7C828A' }}>STEP 1</div>
                 <div className="text-lg font-medium mb-1" style={{ color: '#F5F7FA' }}>
-                  You land in a quiet workspace
+                  You land in a quiet wholesaling workspace
                 </div>
                 <div className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
-                  Nothing flashing. No dashboards yelling for attention.
+                  Nothing flashing. No dashboards yelling for attention. Just sellers, properties, and deals.
                 </div>
               </div>
 
@@ -323,10 +331,10 @@ export default function LandingPage() {
                 </svg>
                 <div className="text-xs tracking-widest mb-2" style={{ color: '#7C828A' }}>STEP 2</div>
                 <div className="text-lg font-medium mb-1" style={{ color: '#F5F7FA' }}>
-                  You add one deal
+                  You add one property deal
                 </div>
                 <div className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
-                  Not ten. Just one. The system stays out of your way.
+                  Seller, property address, and follow-up. The system stays out of your way.
                 </div>
               </div>
 
@@ -341,7 +349,7 @@ export default function LandingPage() {
                   You know what to do next
                 </div>
                 <div className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
-                  No guessing. No clutter. Just the next real action.
+                  No guessing. No clutter. Just the next seller follow-up or deal step.
                 </div>
               </div>
             </div>
@@ -353,7 +361,7 @@ export default function LandingPage() {
             </p>
             <Link
               to="/signup"
-              className="inline-block h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors"
+              className="inline-block h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors text-center flex items-center justify-center"
             >
               Start with one deal
             </Link>
@@ -368,17 +376,17 @@ export default function LandingPage() {
             What you actually need is here
           </h2>
           <p className="text-[16px] leading-relaxed text-[#A8AFB8]">
-            Track every lead and deal without hunting through tabs. Set follow-ups and see what needs your attention today. Manage contracts and documents in one place. Know your numbers without staring at dashboards.
+            Track every seller and property deal without hunting through tabs. Set seller follow-ups and see what needs your attention today. Manage assignment agreements and contracts in one place. Know your deal numbers without staring at dashboards.
           </p>
           <p className="text-[16px] leading-relaxed text-[#A8AFB8] mt-6">
-            This is a real CRM. It just doesn't make you feel like you're flying a plane.
+            This is a real estate wholesaling CRM. It just doesn't make you feel like you're flying a plane.
           </p>
         </div>
       </section>
 
       {/* QUIET CREDIBILITY */}
       <section id="why" className="pt-32 pb-24 px-8 flex justify-center">
-        <div className="max-w-[640px] text-center space-y-4">
+        <div className="max-w-[640px] mx-auto bg-white/5 border border-white/5 rounded-2xl px-6 py-4 md:px-8 md:py-5 text-center space-y-4">
           <p className="text-[15px] leading-relaxed text-[#7C828A]">
             Built slowly, on purpose
           </p>
@@ -390,6 +398,12 @@ export default function LandingPage() {
           </p>
         </div>
       </section>
+
+      {/* Section Divider */}
+      <div className="mx-auto my-16 h-px w-full max-w-5xl bg-white/5" />
+
+      {/* PRICING */}
+      <PricingSection />
 
       {/* Section Divider */}
       <div className="mx-auto my-16 h-px w-full max-w-5xl bg-white/5" />
@@ -415,13 +429,13 @@ export default function LandingPage() {
             <div className="flex flex-col items-center gap-4">
               <Link
                 to="/signup"
-                className="inline-block h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors"
+                className="inline-block h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors text-center flex items-center justify-center"
               >
                 Start with one deal
               </Link>
               <Link
                 to="#preview"
-                className="inline-block h-12 px-7 rounded-xl border border-white/20 text-white/70 font-medium hover:border-white/30 hover:text-white/90 transition-colors"
+                className="inline-block h-12 px-7 rounded-xl border border-white/20 text-white/70 font-medium hover:border-white/30 hover:text-white/90 transition-colors text-center flex items-center justify-center"
               >
                 See what it looks like first
               </Link>
@@ -530,6 +544,41 @@ export default function LandingPage() {
               </p>
             </details>
           </div>
+
+          {/* Refunds Subsection */}
+          <div className="mt-12 text-left">
+            <h3 className="text-xl font-semibold mb-6" style={{ color: '#F5F7FA' }}>
+              Refunds
+            </h3>
+            <div className="space-y-4">
+              <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+                <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                  Do you offer refunds?
+                </summary>
+                <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                  Payments are generally non-refundable. Refunds are available for billing errors, verified "paid but no access" issues, and verified cancellation failures. We may also offer a limited one-time courtesy refund for accidental renewals if you contact us within 48 hours and usage is minimal.
+                </p>
+              </details>
+
+              <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+                <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                  If I cancel, do I lose access immediately?
+                </summary>
+                <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                  No. If you cancel, you keep access through the end of your current paid period. Your subscription will not renew after that.
+                </p>
+              </details>
+
+              <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
+                <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
+                  I forgot to cancel and got charged—what can I do?
+                </summary>
+                <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
+                  Contact support within 48 hours of the renewal charge. If usage after renewal is minimal and you haven't used a courtesy refund in the last 12 months, we may issue a one-time courtesy refund.
+                </p>
+              </details>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -548,9 +597,13 @@ export default function LandingPage() {
               Why this exists
             </a>
           </div>
-          <p className="text-[13px]" style={{ color: '#7C828A' }}>
-            © {new Date().getFullYear()} DealflowOS
-          </p>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 text-[13px]" style={{ color: '#7C828A' }}>
+            <p>© {new Date().getFullYear()} DealflowOS</p>
+            <span className="hidden md:inline">|</span>
+            <Link to="/terms" className="hover:text-white/80 hover:underline transition-colors">
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </footer>
       </div>
