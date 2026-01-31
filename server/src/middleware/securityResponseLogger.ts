@@ -16,8 +16,8 @@ export function securityResponseLogger(req: Request, res: Response, next: NextFu
   // Store original end function
   const originalEnd = res.end;
 
-  // Override end to capture status code
-  res.end = function (chunk?: any, encoding?: any) {
+  // Override end to capture status code; return value must match Express Response.end
+  res.end = function (chunk?: any, encoding?: any): Response {
     // Only log if not already logged and status is security-relevant
     if (!(req as any)._securityLogged && [401, 403, 429].includes(res.statusCode)) {
       // Log asynchronously (best-effort, non-blocking)
@@ -33,8 +33,7 @@ export function securityResponseLogger(req: Request, res: Response, next: NextFu
       }).catch(() => {}); // Ignore errors
     }
 
-    // Call original end
-    originalEnd.call(this, chunk, encoding);
+    return originalEnd.call(this, chunk, encoding) as Response;
   };
 
   next();

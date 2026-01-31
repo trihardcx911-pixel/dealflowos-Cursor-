@@ -3,17 +3,17 @@
  * Used for server-side token verification
  */
 
-import { initializeApp, getApps, cert, App } from 'firebase-admin/app';
-import { getAuth, Auth } from 'firebase-admin/auth';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 
-let adminApp: App | null = null;
-let adminAuth: Auth | null = null;
+let adminApp: any = null;
+let adminAuth: any = null;
 
 /**
  * Initialize Firebase Admin SDK
  * Uses service account credentials from environment variables
  */
-function initializeFirebaseAdmin(): App {
+function initializeFirebaseAdmin(): any {
   if (adminApp) {
     return adminApp;
   }
@@ -68,7 +68,7 @@ function initializeFirebaseAdmin(): App {
 /**
  * Get Firebase Admin Auth instance
  */
-export function getAdminAuth(): Auth {
+export function getAdminAuth(): any {
   if (!adminAuth) {
     initializeFirebaseAdmin();
   }

@@ -17,6 +17,7 @@ export interface SessionUser {
   plan: string;
   status: string;
   onboarding_complete: boolean;
+  session_version?: number;
 }
 
 export interface SessionAccess {

@@ -403,8 +403,8 @@ billingRouter.post("/create-checkout-session", async (req, res) => {
     // Each user has an isolated Stripe customer - no shared customer IDs
     customerId = await getOrCreateStripeCustomer(uid, email);
 
-    // Build checkout session options
-    const sessionOptions: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+    // Build checkout session options (single object so no undefined mutation; cast at call for Stripe SDK typing)
+    const sessionOptions: Record<string, unknown> = {
       mode: "subscription",
       customer: customerId,
       line_items: [
@@ -415,7 +415,6 @@ billingRouter.post("/create-checkout-session", async (req, res) => {
       ],
       success_url: `${getFrontendUrl() || "http://localhost:5173"}/billing/success`,
       cancel_url: `${getFrontendUrl() || "http://localhost:5173"}/billing/cancel?plan=${selectedPlan}`,
-      // Metadata for Phase 2 webhook processing
       metadata: {
         userId: req.user.id,
         orgId: (req as any).orgId || req.user.orgId || req.user.id,
@@ -423,9 +422,8 @@ billingRouter.post("/create-checkout-session", async (req, res) => {
       },
     };
 
-    // Bronze-only: Add 14-day free trial
     if (selectedPlan === "bronze") {
-      sessionOptions.subscription_data = {
+      (sessionOptions as any).subscription_data = {
         trial_period_days: BRONZE_TRIAL_DAYS,
         metadata: {
           userId: req.user.id,
@@ -459,7 +457,7 @@ billingRouter.post("/create-checkout-session", async (req, res) => {
       });
     }
 
-    const session = await stripe.checkout.sessions.create(sessionOptions);
+    const session = await stripe.checkout.sessions.create(sessionOptions as any);
 
     console.log(`[BILLING] Checkout session created: plan=${selectedPlan}, trial=${selectedPlan === 'bronze' ? BRONZE_TRIAL_DAYS + 'd' : 'none'}`);
 
@@ -973,7 +971,7 @@ billingRouter.get("/invoices", async (req, res) => {
     });
 
     // Map invoices to simplified format
-    const invoiceItems = invoices.data.map((inv) => {
+    const invoiceItems = invoices.data.map((inv: any) => {
       const amount = inv.amount_paid > 0 ? inv.amount_paid : inv.amount_due;
       const status = inv.status || "open";
       
@@ -1009,12 +1007,12 @@ billingRouter.get("/invoices", async (req, res) => {
 
     // Map charges to simplified format
     // Only include charges that aren't already represented by invoices
-    const invoiceChargeIds = new Set(invoiceItems.map((inv) => inv.chargeId).filter(Boolean));
+    const invoiceChargeIds = new Set(invoiceItems.map((inv: any) => inv.chargeId).filter(Boolean));
     
     // Get charge IDs that have refunds
     const refundChargeIds = new Set(
       refunds.data
-        .map((ref) => {
+        .map((ref: any) => {
           const chargeId = typeof ref.charge === 'string' ? ref.charge : ref.charge?.id;
           return chargeId;
         })
@@ -1022,8 +1020,8 @@ billingRouter.get("/invoices", async (req, res) => {
     );
     
     const chargeItems = charges.data
-      .filter((ch) => ch.status === "succeeded" && !invoiceChargeIds.has(ch.id) && !refundChargeIds.has(ch.id))
-      .map((ch) => {
+      .filter((ch: any) => ch.status === "succeeded" && !invoiceChargeIds.has(ch.id) && !refundChargeIds.has(ch.id))
+      .map((ch: any) => {
         return {
           id: ch.id,
           type: "charge" as const,
@@ -1044,14 +1042,14 @@ billingRouter.get("/invoices", async (req, res) => {
     // Map refunds to simplified format
     // Only include refunds for charges that belong to this user's Stripe customer
     const refundItems = refunds.data
-      .filter((ref) => {
+      .filter((ref: any) => {
         const chargeId = typeof ref.charge === 'string' ? ref.charge : ref.charge?.id;
         if (!chargeId) return false;
         // Verify charge belongs to this customer
-        const charge = charges.data.find((ch) => ch.id === chargeId);
+        const charge = charges.data.find((ch: any) => ch.id === chargeId);
         return charge && (charge.customer === customerId || (typeof charge.customer === 'object' && charge.customer?.id === customerId));
       })
-      .map((ref) => {
+      .map((ref: any) => {
         const chargeId = typeof ref.charge === 'string' ? ref.charge : ref.charge?.id;
         return {
           id: ref.id,

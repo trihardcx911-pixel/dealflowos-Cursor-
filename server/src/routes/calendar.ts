@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
-import { prisma } from "../db/prisma";
+import { prisma } from "../db/prisma.js";
 import { logSecurityEvent, getClientIp, getUserAgent } from "../security/securityEvents.js";
 import { detectResourceProbing } from "../security/anomalyDetector.js";
 import {
@@ -406,7 +406,8 @@ router.get("/day", async (req: Request, res: Response, next: NextFunction) => {
 router.delete("/:id", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = getUserId(req);
-    const eventId = parseInt(req.params.id, 10);
+    const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const eventId = parseInt(idParam, 10);
 
     if (isNaN(eventId)) {
       return res.status(400).json({ error: "Invalid event ID" });
@@ -481,7 +482,8 @@ router.delete("/:id", async (req: Request, res: Response, next: NextFunction) =>
 router.patch("/update/:id", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = getUserId(req); // String
-    const eventId = parseInt(req.params.id, 10);
+    const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const eventId = parseInt(idParam, 10);
 
     if (isNaN(eventId)) {
       return res.status(400).json({ error: "Invalid event ID" });
@@ -558,16 +560,16 @@ router.patch("/update/:id", async (req: Request, res: Response, next: NextFuncti
       const userTz = await getOrgTimezone(orgId);
       
       // Use updated values if provided, otherwise extract from existing canonical times
+      // Schema has startAt/endAt (optional) and startTime/endTime (required); cast for type safety
+      const ev = existingEvent as { startAt?: Date | null; endAt?: Date | null; startTime: Date; endTime: Date };
       let startTimeStr: string;
       if (data.startTime !== undefined) {
         startTimeStr = String(data.startTime);
       } else {
-        // Prefer existing startAt (canonical UTC) and convert to org timezone to extract HH:mm
-        if (existingEvent.startAt) {
-          startTimeStr = utcDateToHHmm(new Date(existingEvent.startAt), userTz);
+        if (ev.startAt) {
+          startTimeStr = utcDateToHHmm(new Date(ev.startAt), userTz);
         } else {
-          // Fallback: extract from startTime DateTime (less accurate due to UTC shifts)
-          const existingStart = new Date(existingEvent.startTime);
+          const existingStart = new Date(ev.startTime);
           startTimeStr = `${String(existingStart.getHours()).padStart(2, '0')}:${String(existingStart.getMinutes()).padStart(2, '0')}`;
         }
       }
@@ -576,12 +578,10 @@ router.patch("/update/:id", async (req: Request, res: Response, next: NextFuncti
       if (data.endTime !== undefined) {
         endTimeStr = String(data.endTime);
       } else {
-        // Prefer existing endAt (canonical UTC) and convert to org timezone to extract HH:mm
-        if (existingEvent.endAt) {
-          endTimeStr = utcDateToHHmm(new Date(existingEvent.endAt), userTz);
+        if (ev.endAt) {
+          endTimeStr = utcDateToHHmm(new Date(ev.endAt), userTz);
         } else {
-          // Fallback: extract from endTime DateTime (less accurate due to UTC shifts)
-          const existingEnd = new Date(existingEvent.endTime);
+          const existingEnd = new Date(ev.endTime);
           endTimeStr = `${String(existingEnd.getHours()).padStart(2, '0')}:${String(existingEnd.getMinutes()).padStart(2, '0')}`;
         }
       }
@@ -688,7 +688,8 @@ router.patch("/update/:id", async (req: Request, res: Response, next: NextFuncti
 router.patch("/:id/status", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = getUserId(req);
-    const eventId = parseInt(req.params.id, 10);
+    const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const eventId = parseInt(idParam, 10);
 
     if (isNaN(eventId)) {
       return res.status(400).json({ error: "Invalid event ID" });
@@ -818,35 +819,37 @@ router.get("/needs-attention", async (req: Request, res: Response, next: NextFun
         });
       }
     } else {
-      // Dev mode: filter in-memory events
-      const allEvents = calendarStore.getEventsByUserId(userId);
-      events = allEvents.filter(e => {
-        if (!e.startAt) return false; // Exclude events without canonical times
-        
+      // Dev mode: in-memory store has getUserEvents (not getEventsByUserId); normalize startAt/endAt from startTime/endTime
+      type DevEventWithCanonical = { id: number; title: string; startAt: Date; endAt: Date; status: string; urgency: string; missedAt?: Date | null };
+      const rawEvents = calendarStore.getUserEvents(userId);
+      const normalized: DevEventWithCanonical[] = rawEvents.map(e => ({
+        ...e,
+        startAt: (e as { startAt?: Date }).startAt ?? e.startTime,
+        endAt: (e as { endAt?: Date }).endAt ?? e.endTime,
+        status: (e as { status?: string }).status ?? 'scheduled',
+        missedAt: (e as { missedAt?: Date | null }).missedAt ?? null,
+      }));
+      events = normalized.filter((e: DevEventWithCanonical) => {
         const start = new Date(e.startAt);
         const isUpcoming = e.status === 'scheduled' && start >= now && start <= leadCutoff;
         const isMissed = e.status === 'missed';
-        
         return isUpcoming || isMissed;
-      }).sort((a, b) => {
-        // Missed first
+      }).sort((a: DevEventWithCanonical, b: DevEventWithCanonical) => {
         if (a.status === 'missed' && b.status !== 'missed') return -1;
         if (a.status !== 'missed' && b.status === 'missed') return 1;
         if (a.status === 'missed' && b.status === 'missed') {
-          // Sort by missedAt desc or endAt desc
           const aMissed = a.missedAt ? new Date(a.missedAt).getTime() : (a.endAt ? new Date(a.endAt).getTime() : 0);
           const bMissed = b.missedAt ? new Date(b.missedAt).getTime() : (b.endAt ? new Date(b.endAt).getTime() : 0);
           return bMissed - aMissed;
         }
-        // Then upcoming by startAt asc
-        const aStart = a.startAt ? new Date(a.startAt).getTime() : 0;
-        const bStart = b.startAt ? new Date(b.startAt).getTime() : 0;
+        const aStart = new Date(a.startAt).getTime();
+        const bStart = new Date(b.startAt).getTime();
         return aStart - bStart;
       }).slice(0, 50);
     }
 
     // Transform for frontend
-    const result = events.map(e => ({
+    const result = events.map((e: { id: number; title: string; startAt?: Date | null; endAt?: Date | null; status: string; urgency: string }) => ({
       id: e.id,
       title: e.title,
       startAt: e.startAt ? new Date(e.startAt).toISOString() : null,

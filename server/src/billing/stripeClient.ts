@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 
-let stripeInstance: Stripe | null = null;
+let stripeInstance: any = null;
 
 /**
  * Get Stripe secret key with backward-compatible aliasing
@@ -16,7 +16,7 @@ function getStripeSecretKey(): string | null {
   return null;
 }
 
-export function getStripeClient(): Stripe {
+export function getStripeClient(): any {
   if (stripeInstance) return stripeInstance;
   const key = getStripeSecretKey();
   if (!key) throw new Error("[BILLING] Missing STRIPE_SECRET_KEY or STRIPE_ACTIVE_KEY");

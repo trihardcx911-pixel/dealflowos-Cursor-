@@ -8,7 +8,7 @@ import {
   createReminder as storeCreateReminder,
   getDuePendingReminders,
   getSentRemindersForUser,
-  getMissedRemindersForUser,
+  getMissedRemindersForUser as getMissedRemindersForUserFromStore,
   markReminderSent,
   markReminderMissed,
   markReminderDelivered as storeMarkDelivered,
@@ -106,7 +106,7 @@ export async function getMissedRemindersForUser(
   userId: string,
   limit: number = 50
 ): Promise<Reminder[]> {
-  return await getMissedRemindersForUser(orgId, userId, limit);
+  return await getMissedRemindersForUserFromStore(orgId, userId, limit);
 }
 
 /**

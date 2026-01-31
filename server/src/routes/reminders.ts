@@ -69,7 +69,7 @@ remindersRouter.get('/due', async (req: Request, res: Response) => {
  */
 remindersRouter.patch('/:id/mark-delivered', async (req: Request, res: Response) => {
   try {
-    const reminderId = req.params.id;
+    const reminderId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const userId = req.user?.id;
     const orgId = (req as any).orgId || req.user?.orgId || req.user?.id;
 

@@ -157,9 +157,10 @@ function parseCustomMapping(mappingStr: string | undefined, headers: string[]): 
 // --- POST /leads/import (preview) ---
 leadsImportRouter.post("/", upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-    const filePath = path.resolve(req.file.path);
-    const filename = req.file.originalname;
+    const file = (req as express.Request & { file?: { path: string; originalname: string } }).file;
+    if (!file) return res.status(400).json({ error: "No file uploaded" });
+    const filePath = path.resolve(file.path);
+    const filename = file.originalname;
 
     let rows: any[] = [];
     if (isExcelFile(filename)) {

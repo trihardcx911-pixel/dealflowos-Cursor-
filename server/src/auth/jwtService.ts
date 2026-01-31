@@ -27,6 +27,13 @@ if (!process.env.JWT_SECRET) {
   console.warn("[DEV WARNING] JWT_SECRET not set – using dev auth mode");
 }
 
+/** Returns JWT_SECRET for sign/verify; throws if missing (runtime-safe). */
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET ?? (process.env.NODE_ENV === "production" ? undefined : "DEV_ONLY_INSECURE_JWT_SECRET_DO_NOT_USE_IN_PROD_123456");
+  if (!secret) throw new Error("JWT_SECRET missing");
+  return secret;
+}
+
 // JWT TTL: longer in dev (7 days) for convenience, standard in production (15 minutes)
 const DEFAULT_TTL_SECONDS = parseInt(process.env.JWT_TTL_SECONDS || "900", 10);
 const DEV_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
@@ -79,7 +86,7 @@ export function signAppToken(user: SessionUser): string {
     exp: now + JWT_TTL_SECONDS,
   };
 
-  return jwt.sign(payload, JWT_SECRET, { algorithm: "HS256" });
+  return jwt.sign(payload, getJwtSecret(), { algorithm: "HS256" });
 }
 
 /**
@@ -91,10 +98,10 @@ export function signAppToken(user: SessionUser): string {
  */
 export function verifyAppToken(token: string): AppTokenPayload {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
+    const decoded = jwt.verify(token, getJwtSecret(), {
       algorithms: ["HS256"],
       issuer: "dealflowos",
-    }) as AppTokenPayload;
+    }) as unknown as AppTokenPayload;
 
     // Additional validation: ensure it's a DealflowOS token
     if (decoded.iss !== "dealflowos") {

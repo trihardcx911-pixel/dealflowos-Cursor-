@@ -150,7 +150,7 @@ router.patch("/:id", async (req: Request, res: Response, next: NextFunction) => 
   try {
     const userId = req.user?.id;
     const orgId = (req as any).orgId || req.user?.orgId || userId;
-    const taskId = req.params.id;
+    const taskId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -253,7 +253,7 @@ router.delete("/:id", async (req: Request, res: Response, next: NextFunction) =>
   try {
     const userId = req.user?.id;
     const orgId = (req as any).orgId || req.user?.orgId || userId;
-    const taskId = req.params.id;
+    const taskId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });

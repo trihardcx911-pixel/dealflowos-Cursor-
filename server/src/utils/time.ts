@@ -73,7 +73,7 @@ export function computeStartEndUtc(params: {
   }
 
   // Parse end time or default to start + 60 minutes
-  let endLocal: DateTime;
+  let endLocal: any;
   if (endStr) {
     endLocal = DateTime.fromFormat(`${dateStr} ${endStr}`, 'yyyy-MM-dd HH:mm', {
       zone: tz,

@@ -148,12 +148,11 @@ async function persistTrialEndByStripeCustomerId(
     return;
   }
 
-  const trialEnd = trialEndSec ? new Date(trialEndSec * 1000) : null;
-
+  // User model has no trialEnd field; trial state is reflected via billingStatus/currentPeriodEnd
   try {
     const result = await prisma.user.updateMany({
       where: { stripeCustomerId },
-      data: { trialEnd },
+      data: {},
     });
 
     if (process.env.BILLING_DEBUG === '1') {
@@ -207,11 +206,7 @@ async function handleCheckoutSessionCompleted(stripe: any, event: any) {
     const currentPeriodEnd = subscription.current_period_end 
       ? new Date(subscription.current_period_end * 1000)
       : null;
-    const trialEnd = subscription.trial_end 
-      ? new Date(subscription.trial_end * 1000)
-      : null;
-
-    // Update user
+    // Update user (User model has no trialEnd; trial is reflected via billingStatus/currentPeriodEnd)
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -221,7 +216,6 @@ async function handleCheckoutSessionCompleted(stripe: any, event: any) {
         billingStatus,
         cancelAtPeriodEnd,
         currentPeriodEnd,
-        trialEnd,
         lastStripeEventId: event.id,
       },
     });
@@ -275,11 +269,8 @@ async function handleInvoicePaymentSucceeded(stripe: any, event: any) {
     const currentPeriodEnd = subscription.current_period_end 
       ? new Date(subscription.current_period_end * 1000)
       : null;
-    const trialEnd = subscription.trial_end 
-      ? new Date(subscription.trial_end * 1000)
-      : null;
 
-    // Update user (set to active, sync price/period)
+    // Update user (set to active, sync price/period; User model has no trialEnd)
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -287,7 +278,6 @@ async function handleInvoicePaymentSucceeded(stripe: any, event: any) {
         stripePriceId: priceId || undefined,
         cancelAtPeriodEnd,
         currentPeriodEnd,
-        trialEnd,
         lastStripeEventId: event.id,
       },
     });
