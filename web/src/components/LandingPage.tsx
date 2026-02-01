@@ -66,7 +66,11 @@ export default function LandingPage() {
       {/* NAV — centered forehead pill + liquid glass headband */}
       <header className="sticky top-0 z-50 px-4 sm:px-6 pt-5 w-full">
         <div className="flex justify-center w-full">
-          <nav className="relative inline-flex items-center gap-2 sm:gap-3 rounded-2xl border border-white/10 bg-white/[0.08] backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] px-3 sm:px-5 py-3 min-w-0 max-w-full">
+          <nav className="relative inline-flex items-center gap-2 sm:gap-3 rounded-2xl overflow-hidden border border-white/15 ring-1 ring-white/10 bg-white/[0.04] backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_8px_30px_rgba(0,0,0,0.22),0_0_24px_rgba(255,10,69,0.06)] px-3 sm:px-5 py-3 min-w-0 max-w-full">
+            {/* Inner highlight — crisp glass edge */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.12] to-transparent pointer-events-none z-0" aria-hidden="true" />
+            {/* Specular reflection — soft radial gleam */}
+            <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0" style={{ background: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.22), transparent 55%)' }} aria-hidden="true" />
             {/* Headband strip — top highlight inside pill */}
             <div className="absolute top-0 left-0 right-0 h-[8px] rounded-t-2xl bg-gradient-to-b from-white/20 to-transparent pointer-events-none z-0" aria-hidden="true" />
             <div className="relative z-10 flex items-center gap-2 sm:gap-3 min-w-0">
