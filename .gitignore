@@ -19,3 +19,4 @@ uploads/
 
 # local db / configs
 postgresql.conf
+web/.claude/
