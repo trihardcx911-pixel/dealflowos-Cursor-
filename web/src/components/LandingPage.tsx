@@ -44,6 +44,7 @@ export default function LandingPage() {
   const isPricingActive = location.hash === '#pricing';
   const isFaqsActive = location.hash === '#faqs';
   const isWhyActive = location.hash === '#why';
+  const isSupportActive = location.hash === '#support';
 
   return (
     <div className="min-h-screen w-full text-[#F5F7FA] font-sans bg-gradient-to-b from-[#12141A] to-[#0B0D10] relative">
@@ -62,117 +63,79 @@ export default function LandingPage() {
       
       {/* Content Wrapper */}
       <div className="relative z-10">
-      {/* NAV */}
-      <header className="sticky top-0 z-50 px-6 sm:px-8 pt-5">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <Link
-            to="/"
-            className="flex items-center w-40 h-14 shrink-0 hover:opacity-80 transition-opacity"
-            aria-label="DealflowOS"
-          >
-            <span className="sr-only">DealflowOS</span>
-          </Link>
-          
-          {/* Navigation Container - Right-aligned, glass styling */}
-          <nav className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] px-4 sm:px-5 py-3">
-            {/* Desktop Nav */}
-            <div className="hidden md:flex items-center gap-3">
-              {/* Pill Group */}
-              <div className="rounded-full border border-white/10 bg-black/20 px-1 py-1 flex gap-1">
-                <button
-                  onClick={() => handleNavClick('#pricing')}
-                  className={`px-3 py-1.5 rounded-full text-sm transition ${
-                    isPricingActive
-                      ? 'bg-white/8 text-[#F5F7FA]'
-                      : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
-                  }`}
+      {/* NAV — centered forehead pill + liquid glass headband */}
+      <header className="sticky top-0 z-50 px-4 sm:px-6 pt-5 w-full">
+        <div className="flex justify-center w-full">
+          <nav className="relative inline-flex items-center gap-2 sm:gap-3 rounded-2xl border border-white/10 bg-white/[0.08] backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] px-3 sm:px-5 py-3 min-w-0 max-w-full">
+            {/* Headband strip — top highlight inside pill */}
+            <div className="absolute top-0 left-0 right-0 h-[8px] rounded-t-2xl bg-gradient-to-b from-white/20 to-transparent pointer-events-none z-0" aria-hidden="true" />
+            <div className="relative z-10 flex items-center gap-2 sm:gap-3 min-w-0">
+              {/* Desktop: pill items + Support + Start */}
+              <div className="hidden md:flex items-center gap-2 sm:gap-3 shrink-0">
+                <div className="rounded-full border border-white/10 bg-black/20 px-1 py-1 flex gap-1">
+                  <button
+                    onClick={() => handleNavClick('#pricing')}
+                    className={`px-3 py-1.5 rounded-full text-sm transition shrink-0 ${
+                      isPricingActive ? 'bg-white/8 text-[#F5F7FA]' : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                    }`}
+                  >
+                    Pricing
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('#faqs')}
+                    className={`px-3 py-1.5 rounded-full text-sm transition shrink-0 ${
+                      isFaqsActive ? 'bg-white/8 text-[#F5F7FA]' : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                    }`}
+                  >
+                    FAQs
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('#why')}
+                    className={`px-3 py-1.5 rounded-full text-sm transition shrink-0 ${
+                      isWhyActive ? 'bg-white/8 text-[#F5F7FA]' : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                    }`}
+                  >
+                    Why this exists
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('#support')}
+                    className={`px-3 py-1.5 rounded-full text-sm transition shrink-0 ${
+                      isSupportActive ? 'bg-white/8 text-[#F5F7FA]' : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                    }`}
+                  >
+                    Support
+                  </button>
+                </div>
+                <Link
+                  to="/signup"
+                  className="h-9 px-4 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-400 transition-colors shadow-[0_10px_30px_rgba(239,68,68,0.18)] flex items-center justify-center shrink-0"
                 >
-                  Pricing
-                </button>
-                <button
-                  onClick={() => handleNavClick('#faqs')}
-                  className={`px-3 py-1.5 rounded-full text-sm transition ${
-                    isFaqsActive
-                      ? 'bg-white/8 text-[#F5F7FA]'
-                      : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
-                  }`}
-                >
-                  FAQs
-                </button>
-                <button
-                  onClick={() => handleNavClick('#why')}
-                  className={`px-3 py-1.5 rounded-full text-sm transition ${
-                    isWhyActive
-                      ? 'bg-white/8 text-[#F5F7FA]'
-                      : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
-                  }`}
-                >
-                  Why this exists
-                </button>
+                  Start
+                </Link>
               </div>
-              
-              {/* Start Button */}
-              <Link
-                to="/signup"
-                className="h-9 px-4 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-400 transition-colors shadow-[0_10px_30px_rgba(239,68,68,0.18)] flex items-center justify-center"
+              {/* Mobile: menu button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden h-9 px-3 rounded-xl border border-white/12 bg-black/20 text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors shrink-0"
+                aria-label="Toggle menu"
               >
-                Start
-              </Link>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                </svg>
+              </button>
             </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden h-9 px-3 rounded-xl border border-white/12 bg-black/20 text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors"
-              aria-label="Toggle menu"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {mobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
+            {/* Mobile dropdown — always in DOM, visibility via classes */}
+            <div className={`md:hidden absolute left-0 right-0 top-full mt-2 rounded-2xl border border-white/12 bg-white/8 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-200 z-20 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none -translate-y-1'}`}>
+              <div className="py-2">
+                <button onClick={() => handleNavClick('#pricing')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isPricingActive ? '#F5F7FA' : '#A8AFB8' }}>Pricing</button>
+                <button onClick={() => handleNavClick('#faqs')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isFaqsActive ? '#F5F7FA' : '#A8AFB8' }}>FAQs</button>
+                <button onClick={() => handleNavClick('#why')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isWhyActive ? '#F5F7FA' : '#A8AFB8' }}>Why this exists</button>
+                <button onClick={() => handleNavClick('#support')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isSupportActive ? '#F5F7FA' : '#A8AFB8' }}>Support</button>
+                <Link to="/signup" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors" style={{ color: '#EF4444' }}>Start</Link>
+              </div>
+            </div>
           </nav>
         </div>
-
-        {/* Mobile Menu Dropdown */}
-        {mobileMenuOpen && (
-          <div className="md:hidden absolute right-6 sm:right-8 top-20 mt-2 w-48 rounded-2xl border border-white/12 bg-white/8 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden">
-            <div className="py-2">
-              <button
-                onClick={() => handleNavClick('#pricing')}
-                className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
-                style={{ color: isPricingActive ? '#F5F7FA' : '#A8AFB8' }}
-              >
-                Pricing
-              </button>
-              <button
-                onClick={() => handleNavClick('#faqs')}
-                className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
-                style={{ color: isFaqsActive ? '#F5F7FA' : '#A8AFB8' }}
-              >
-                FAQs
-              </button>
-              <button
-                onClick={() => handleNavClick('#why')}
-                className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
-                style={{ color: isWhyActive ? '#F5F7FA' : '#A8AFB8' }}
-              >
-                Why this exists
-              </button>
-              <Link
-                to="/signup"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors"
-                style={{ color: '#EF4444' }}
-              >
-                Start
-              </Link>
-            </div>
-          </div>
-        )}
       </header>
 
       {/* HERO */}
@@ -588,6 +551,9 @@ export default function LandingPage() {
       {/* FOOTER */}
       <footer className="py-12 px-6 sm:px-8 border-t border-white/5">
         <div className="max-w-[640px] mx-auto text-center">
+          <section id="support" className="mb-6">
+            <p className="text-[13px] mb-2" style={{ color: '#7C828A' }}>Support: <a href="mailto:support@dealflowos.com" className="text-[#A8AFB8] hover:text-white/80 transition-colors underline">support@dealflowos.com</a></p>
+          </section>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 text-[13px] mb-4" style={{ color: '#7C828A' }}>
             <a href="mailto:questions@dealflowos.com" className="hover:text-white/80 transition-colors">
               Questions? questions@dealflowos.com
