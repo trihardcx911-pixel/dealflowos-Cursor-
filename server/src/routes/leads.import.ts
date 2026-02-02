@@ -10,7 +10,27 @@ import { getOrgLeads } from "../dev/leadsStore.js";
 import { getOrgId } from "../middleware/getOrgId.js";
 
 export const leadsImportRouter = express.Router();
-const upload = multer({ dest: "uploads/" });
+
+// Multer configuration with file size limit (10MB max to prevent DoS)
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const upload = multer({
+  dest: "uploads/",
+  limits: { fileSize: MAX_FILE_SIZE },
+});
+
+// Multer error handler middleware
+function handleMulterError(err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({ error: "File too large. Maximum size is 10MB." });
+    }
+    return res.status(400).json({ error: `Upload error: ${err.message}` });
+  }
+  if (err) {
+    return res.status(500).json({ error: "File upload failed" });
+  }
+  next();
+}
 
 // --- helper: detect file type ---
 function isExcelFile(filename: string) {
@@ -155,7 +175,7 @@ function parseCustomMapping(mappingStr: string | undefined, headers: string[]): 
 }
 
 // --- POST /leads/import (preview) ---
-leadsImportRouter.post("/", upload.single("file"), async (req, res) => {
+leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req, res) => {
   try {
     const file = (req as express.Request & { file?: { path: string; originalname: string } }).file;
     if (!file) return res.status(400).json({ error: "No file uploaded" });
