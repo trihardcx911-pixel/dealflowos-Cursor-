@@ -1,4 +1,5 @@
-export const API_BASE = '/api'
+const API_ORIGIN = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+export const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : "/api";
 
 /**
  * CANONICAL API CLIENT
@@ -48,18 +49,28 @@ export class NetworkError extends Error {
   }
 }
 
+/**
+ * Normalize path before prepending API_BASE so callers can pass either /kpis or /api/kpis
+ * without producing /api/api/kpis when API_BASE already includes /api.
+ */
+function normalizePath(path: string): string {
+  const withSlash = path.startsWith('/') ? path : `/${path}`
+  if (API_BASE.endsWith('/api') && withSlash.startsWith('/api/')) return withSlash.slice(4)
+  if (API_BASE.endsWith('/api') && withSlash === '/api') return '/'
+  return withSlash
+}
+
 function resolveUrl(path: string) {
   // If path is already a full URL, return as-is
   if (/^https?:\/\//i.test(path)) {
     return path
   }
+  const normalized = normalizePath(path)
   // If path already starts with API_BASE, return as-is to avoid double-prefixing
-  if (path.startsWith(API_BASE)) {
-    return path
+  if (normalized.startsWith(API_BASE)) {
+    return normalized
   }
-  // Normalize path to start with / and prepend API_BASE
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  return `${API_BASE}${normalizedPath}`
+  return `${API_BASE}${normalized}`
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -84,7 +95,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   try {
     const res = await fetch(resolvedUrl, {
-      credentials: 'include',
+      credentials: 'omit',
       ...init,
       headers,
     })

@@ -23,17 +23,26 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 /**
+ * Normalize path before prepending API_BASE_URL so /api/kpis does not become /api/api/kpis.
+ */
+function normalizePath(path: string): string {
+  const withSlash = path.startsWith('/') ? path : `/${path}`;
+  if (API_BASE_URL.endsWith('/api') && withSlash.startsWith('/api/')) return withSlash.slice(4);
+  if (API_BASE_URL.endsWith('/api') && withSlash === '/api') return '/';
+  return withSlash;
+}
+
+/**
  * Build URL with query params
  */
 function buildUrl(path: string, params?: Record<string, string | number | undefined>): string {
+  const normalized = normalizePath(path);
   // If path already starts with API_BASE, use as-is to avoid double-prefixing
   let fullPath: string;
-  if (path.startsWith(API_BASE_URL)) {
-    fullPath = path;
+  if (normalized.startsWith(API_BASE_URL)) {
+    fullPath = normalized;
   } else {
-    // Normalize path to start with / and prepend API_BASE
-    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-    fullPath = `${API_BASE_URL}${normalizedPath}`;
+    fullPath = `${API_BASE_URL}${normalized}`;
   }
   
   // Add query params if provided
