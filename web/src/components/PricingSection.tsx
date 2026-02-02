@@ -197,7 +197,7 @@ export default function PricingSection() {
 
   return (
     <section id="pricing" className="py-32 px-6 sm:px-8 flex justify-center">
-      <div className="max-w-6xl w-full">
+      <div className="max-w-6xl w-full min-w-0">
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold mb-4" style={{ color: '#F5F7FA' }}>
@@ -323,7 +323,7 @@ export default function PricingSection() {
 
         {/* Comparison Table */}
         <div className="mt-20">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-w-full min-w-0">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-white/10">
