@@ -114,7 +114,7 @@ export default function LandingPage() {
                   to="/signup"
                   className="h-9 px-4 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-400 transition-colors shadow-[0_10px_30px_rgba(239,68,68,0.18)] flex items-center justify-center shrink-0"
                 >
-                  Start
+                  Sign up
                 </Link>
               </div>
               {/* Mobile: menu button */}
@@ -135,7 +135,7 @@ export default function LandingPage() {
                 <button onClick={() => handleNavClick('#faqs')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isFaqsActive ? '#F5F7FA' : '#A8AFB8' }}>FAQs</button>
                 <button onClick={() => handleNavClick('#why')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isWhyActive ? '#F5F7FA' : '#A8AFB8' }}>Why this exists</button>
                 <button onClick={() => handleNavClick('#support')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isSupportActive ? '#F5F7FA' : '#A8AFB8' }}>Support</button>
-                <Link to="/signup" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors" style={{ color: '#EF4444' }}>Start</Link>
+                <Link to="/signup" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors" style={{ color: '#EF4444' }}>Sign up</Link>
               </div>
             </div>
           </nav>
@@ -159,7 +159,7 @@ export default function LandingPage() {
                 to="/signup"
                 className="h-12 px-7 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors text-center flex items-center justify-center"
               >
-                Start with one deal
+                Create account
               </Link>
               <p className="text-[13px] text-[#7C828A]">
                 No credit card required.
