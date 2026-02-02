@@ -122,25 +122,37 @@ export default function LandingPage() {
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="min-[700px]:hidden h-12 w-12 shrink-0 rounded-2xl border border-white/15 ring-1 ring-white/10 bg-white/[0.04] backdrop-blur-md text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors flex items-center justify-center"
                 aria-label="Toggle menu"
+                aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-menu"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
                 </svg>
               </button>
             </div>
-            {/* Mobile dropdown — always in DOM, visibility via classes */}
-            <div className={`min-[700px]:hidden absolute left-0 right-0 top-full mt-2 rounded-2xl border border-white/12 bg-white/8 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-200 z-20 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none -translate-y-1'}`}>
-              <div className="py-2">
-                <button onClick={() => handleNavClick('#pricing')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isPricingActive ? '#F5F7FA' : '#A8AFB8' }}>Pricing</button>
-                <button onClick={() => handleNavClick('#faqs')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isFaqsActive ? '#F5F7FA' : '#A8AFB8' }}>FAQs</button>
-                <button onClick={() => handleNavClick('#why')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isWhyActive ? '#F5F7FA' : '#A8AFB8' }}>Why this exists</button>
-                <button onClick={() => handleNavClick('#support')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isSupportActive ? '#F5F7FA' : '#A8AFB8' }}>Support</button>
-                <Link to="/signup" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors" style={{ color: '#EF4444' }}>Sign up</Link>
-              </div>
-            </div>
           </nav>
         </div>
       </header>
+
+      {/* Mobile fullscreen overlay menu — always in DOM, visibility via classes */}
+      <div
+        className={`min-[700px]:hidden fixed inset-0 z-[100] transition-opacity duration-200 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden={!mobileMenuOpen}
+      >
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
+        <div
+          id="mobile-menu"
+          className="absolute top-20 left-4 right-4 rounded-2xl border border-white/15 ring-1 ring-white/10 bg-white/[0.04] backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden py-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button onClick={() => handleNavClick('#pricing')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isPricingActive ? '#F5F7FA' : '#A8AFB8' }}>Pricing</button>
+          <button onClick={() => handleNavClick('#faqs')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isFaqsActive ? '#F5F7FA' : '#A8AFB8' }}>FAQs</button>
+          <button onClick={() => handleNavClick('#why')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isWhyActive ? '#F5F7FA' : '#A8AFB8' }}>Why this exists</button>
+          <button onClick={() => handleNavClick('#support')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isSupportActive ? '#F5F7FA' : '#A8AFB8' }}>Support</button>
+          <Link to="/signup" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors" style={{ color: '#EF4444' }}>Sign up</Link>
+        </div>
+      </div>
 
       {/* HERO */}
       <section className="min-h-[80vh] flex items-center justify-center px-8">
@@ -213,16 +225,16 @@ export default function LandingPage() {
             {/* Halo behind Screenshot */}
             <div className="pointer-events-none absolute -inset-10 bg-[radial-gradient(closest-side,rgba(239,68,68,0.10),transparent_70%)] blur-3xl opacity-20 z-0" />
             <div className="absolute inset-0 bg-gradient-to-b from-white/6 to-transparent pointer-events-none rounded-2xl z-0"></div>
-            <div className="relative z-10 w-full aspect-[4/3] sm:aspect-[16/9] overflow-hidden bg-white/5">
+            <div className="relative z-10 w-full max-w-full overflow-hidden bg-white/5 min-h-[200px]">
               {imgOk ? (
                 <img 
                   src={DASHBOARD_SRC} 
                   alt="DealflowOS dashboard showing deals, follow-ups, and next actions"
-                  className="w-full h-full object-contain"
+                  className="w-full h-auto object-contain"
                   onError={() => setImgOk(false)}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
+                <div className="w-full min-h-[200px] flex items-center justify-center">
                   <div className="text-center px-8">
                     <p className="text-[16px] leading-relaxed" style={{ color: '#A8AFB8' }}>
                       Dashboard preview
