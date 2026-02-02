@@ -95,7 +95,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   try {
     const res = await fetch(resolvedUrl, {
-      credentials: 'omit',
+      credentials: 'same-origin',
       ...init,
       headers,
     })
