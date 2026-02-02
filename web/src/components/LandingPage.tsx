@@ -66,7 +66,7 @@ export default function LandingPage() {
       {/* NAV — centered forehead pill + liquid glass headband */}
       <header className="sticky top-0 z-50 px-4 sm:px-6 pt-5 w-full">
         <div className="flex justify-center w-full">
-          <nav className="relative inline-flex items-center gap-2 sm:gap-3 rounded-2xl overflow-hidden border border-white/15 ring-1 ring-white/10 bg-white/[0.04] backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_8px_30px_rgba(0,0,0,0.22),0_0_24px_rgba(255,10,69,0.06)] px-3 sm:px-5 py-3 min-w-0 max-w-full">
+          <nav className="relative inline-flex items-center gap-2 sm:gap-3 rounded-2xl overflow-hidden border border-white/15 ring-1 ring-white/10 bg-white/[0.04] backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_8px_30px_rgba(0,0,0,0.22),0_0_24px_rgba(255,10,69,0.06)] px-3 sm:px-5 py-3 min-w-0 max-w-full min-[900px]:min-w-[640px]">
             {/* Inner highlight — crisp glass edge */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.12] to-transparent pointer-events-none z-0" aria-hidden="true" />
             {/* Specular reflection — soft radial gleam */}
@@ -75,7 +75,7 @@ export default function LandingPage() {
             <div className="absolute top-0 left-0 right-0 h-[8px] rounded-t-2xl bg-gradient-to-b from-white/20 to-transparent pointer-events-none z-0" aria-hidden="true" />
             <div className="relative z-10 flex items-center gap-2 sm:gap-3 min-w-0">
               {/* Desktop: pill items + Support + Start */}
-              <div className="hidden md:flex items-center gap-2 sm:gap-3 shrink-0">
+              <div className="hidden min-[900px]:flex flex-nowrap items-center gap-2 sm:gap-3 shrink-0 whitespace-nowrap overflow-x-auto">
                 <div className="rounded-full border border-white/10 bg-black/20 px-1 py-1 flex gap-1">
                   <button
                     onClick={() => handleNavClick('#pricing')}
@@ -120,7 +120,7 @@ export default function LandingPage() {
               {/* Mobile: menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden h-9 px-3 rounded-xl border border-white/12 bg-black/20 text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors shrink-0"
+                className="min-[900px]:hidden h-9 px-3 rounded-xl border border-white/12 bg-black/20 text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors shrink-0"
                 aria-label="Toggle menu"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,7 +129,7 @@ export default function LandingPage() {
               </button>
             </div>
             {/* Mobile dropdown — always in DOM, visibility via classes */}
-            <div className={`md:hidden absolute left-0 right-0 top-full mt-2 rounded-2xl border border-white/12 bg-white/8 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-200 z-20 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none -translate-y-1'}`}>
+            <div className={`min-[900px]:hidden absolute left-0 right-0 top-full mt-2 rounded-2xl border border-white/12 bg-white/8 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-200 z-20 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none -translate-y-1'}`}>
               <div className="py-2">
                 <button onClick={() => handleNavClick('#pricing')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isPricingActive ? '#F5F7FA' : '#A8AFB8' }}>Pricing</button>
                 <button onClick={() => handleNavClick('#faqs')} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors" style={{ color: isFaqsActive ? '#F5F7FA' : '#A8AFB8' }}>FAQs</button>
