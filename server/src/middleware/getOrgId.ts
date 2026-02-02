@@ -21,7 +21,16 @@ interface AuthenticatedRequest extends Request {
   userId?: string;
 }
 
-const isDev = process.env.NODE_ENV === "development" || process.env.DEV_AUTH_BYPASS === "1";
+/**
+ * Runtime dev mode check - requires BOTH conditions:
+ * 1. NODE_ENV === "development"
+ * 2. DEV_AUTH_BYPASS === "1"
+ *
+ * This prevents accidental dev behavior in production if only one flag is set.
+ */
+function isDevMode(): boolean {
+  return process.env.NODE_ENV === "development" && process.env.DEV_AUTH_BYPASS === "1";
+}
 
 export function getOrgId(req: AuthenticatedRequest): string {
   // 1. Prefer orgId set by auth middleware
@@ -30,7 +39,7 @@ export function getOrgId(req: AuthenticatedRequest): string {
   }
 
   // 2. In dev mode, allow x-dev-org-id header ONLY if no Authorization present
-  if (isDev) {
+  if (isDevMode()) {
     const hasAuth = !!req.headers.authorization;
     if (!hasAuth) {
       const devOrgId = req.headers["x-dev-org-id"];
@@ -51,7 +60,7 @@ export function getUserId(req: AuthenticatedRequest): string {
     return req.userId;
   }
 
-  if (isDev) {
+  if (isDevMode()) {
     const devUserId = req.headers["x-dev-user-id"];
     if (typeof devUserId === "string" && devUserId.length > 0) {
       return devUserId;
