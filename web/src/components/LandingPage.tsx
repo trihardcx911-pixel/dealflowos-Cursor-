@@ -63,9 +63,24 @@ export default function LandingPage() {
       
       {/* Content Wrapper */}
       <div className="relative z-10">
-      {/* NAV — centered forehead pill + liquid glass headband */}
+      {/* Mobile-only floating hamburger — visible only on mobile */}
+      <div className="min-[700px]:hidden fixed top-4 left-1/2 -translate-x-1/2 z-[110]">
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="h-12 w-12 rounded-2xl border border-white/15 bg-white/[0.04] backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_8px_30px_rgba(0,0,0,0.22),0_0_24px_rgba(255,10,69,0.06)] flex items-center justify-center text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors ring-1 ring-white/10"
+          aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-menu"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+          </svg>
+        </button>
+      </div>
+
+      {/* NAV — desktop pill (hidden on mobile) */}
       <header className="sticky top-0 z-50 px-4 sm:px-6 pt-5 w-full">
-        <div className="flex justify-center w-full">
+        <div className="hidden min-[700px]:flex justify-center w-full">
           <nav className="relative flex w-full max-w-full min-[700px]:inline-flex min-[700px]:w-auto min-[700px]:min-w-0 min-[700px]:max-w-full items-center gap-2 sm:gap-3 rounded-2xl overflow-hidden border border-white/15 ring-1 ring-white/10 bg-white/[0.04] backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_8px_30px_rgba(0,0,0,0.22),0_0_24px_rgba(255,10,69,0.06)] pl-3 pr-2 sm:pl-5 sm:pr-3 py-3 min-w-0">
             {/* Inner highlight — crisp glass edge */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.12] to-transparent pointer-events-none z-0" aria-hidden="true" />
@@ -117,18 +132,6 @@ export default function LandingPage() {
                   Sign up
                 </Link>
               </div>
-              {/* Mobile: menu button — 48px touch target, same glass as nav */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="min-[700px]:hidden h-12 w-12 shrink-0 rounded-2xl border border-white/15 ring-1 ring-white/10 bg-white/[0.04] backdrop-blur-md text-[#A8AFB8] hover:text-[#F5F7FA] transition-colors flex items-center justify-center"
-                aria-label="Toggle menu"
-                aria-expanded={mobileMenuOpen}
-                aria-controls="mobile-menu"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-                </svg>
-              </button>
             </div>
           </nav>
         </div>
@@ -155,7 +158,7 @@ export default function LandingPage() {
       </div>
 
       {/* HERO */}
-      <section className="min-h-[80vh] flex items-center justify-center px-8">
+      <section className="min-h-[80vh] flex items-center justify-center px-8 pt-24 min-[700px]:pt-0">
         <div className="relative w-full max-w-[720px]">
           {/* Halo behind HERO */}
           <div className="pointer-events-none absolute -inset-10 bg-[radial-gradient(closest-side,rgba(239,68,68,0.10),transparent_70%)] blur-3xl opacity-20 z-0" />
