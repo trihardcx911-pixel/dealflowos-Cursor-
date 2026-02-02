@@ -138,8 +138,9 @@ const hasDatabase = Boolean(process.env.DATABASE_URL);
 const app = express();
 // Ensure uploads directory exists for multer disk storage
 try { fs.mkdirSync('uploads', { recursive: true }); } catch {}
-// CORS tightened: allow only local Vite app and disable credentials
-app.use(cors({ origin: "http://localhost:5173", credentials: false }));
+// CORS: use FRONTEND_URL from env for production, fallback to localhost for dev
+const corsOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+app.use(cors({ origin: corsOrigin, credentials: false }));
 
 // IMPORTANT: Webhook route must be mounted BEFORE express.json() to use raw body
 app.use("/stripe", stripeWebhookRouter);
