@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthLayout from '../../components/layout/AuthLayout'
-import { post, API_BASE } from '../../api'
+import { post, setToken, isJwt, API_BASE } from '../../api'
 import { useToast } from '../../useToast'
 
 export default function SignupPage() {
@@ -17,7 +17,12 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await post(`${API_BASE}/auth/signup`, { email, password })
+      const data = await post<{ token?: string; accessToken?: string; jwt?: string; data?: { token?: string; accessToken?: string } }>(`${API_BASE}/auth/signup`, { email, password })
+      const raw = data?.token ?? data?.accessToken ?? data?.jwt ?? data?.data?.token ?? data?.data?.accessToken ?? ''
+      const normalized = typeof raw === 'string' ? raw.trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '') : ''
+      if (normalized && isJwt(normalized)) {
+        setToken(normalized)
+      }
       notify('success', 'Signed up! Please login.')
       // Preserve plan param through login flow
       if (plan) {

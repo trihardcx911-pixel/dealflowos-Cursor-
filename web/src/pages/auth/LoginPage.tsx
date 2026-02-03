@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import AuthLayout from '../../components/layout/AuthLayout'
-import { post, setToken, ApiError, NetworkError, API_BASE } from '../../api'
+import { post, setToken, isJwt, ApiError, NetworkError, API_BASE } from '../../api'
 import { useToast } from '../../useToast'
 import { signInWithGoogle, sendEmailLink } from '../../auth/firebaseAuth'
+import { checkBillingStatus } from '../../hooks/useBillingStatus'
+import { getNextRoute } from '../../lib/routeDecision'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('user@example.com')
@@ -28,17 +30,33 @@ export default function LoginPage() {
     e.preventDefault()
     setError(null)
     try {
-      const res = await post<{ token: string }>(`${API_BASE}/auth/login`, { email, password })
-      setToken(res.token)
-      notify('success', 'Logged in')
-      // Check for plan param from signup flow
-      const plan = (location.state as { plan?: string } | null)?.plan
-      if (plan) {
-        navigate(`/billing/redirect?plan=${plan}`, { replace: true })
-      } else {
-        const redirectTo = (location.state as { from?: string } | null)?.from || '/leads'
-        navigate(redirectTo, { replace: true })
+      const data = await post<{ token?: string; accessToken?: string; jwt?: string; data?: { token?: string; accessToken?: string } }>(`${API_BASE}/auth/login`, { email, password })
+      const raw = data?.token ?? data?.accessToken ?? data?.jwt ?? data?.data?.token ?? data?.data?.accessToken ?? ''
+      const normalized = typeof raw === 'string' ? raw.trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '') : ''
+      if (!normalized || !isJwt(normalized)) {
+        throw new Error('Login failed: server did not return a valid session. Please try again or contact support.')
       }
+      setToken(normalized)
+      notify('success', 'Logged in')
+
+      // Get plan intent and from path from location state
+      const state = location.state as { plan?: string; from?: string } | null
+      const planIntent = state?.plan
+      const fromPath = state?.from
+
+      // Check billing status to determine redirect
+      const billingStatus = await checkBillingStatus()
+
+      // Use centralized route decision
+      const decision = getNextRoute({
+        isAuthenticated: true,
+        billingStatus: billingStatus.status,
+        planIntent,
+        fromPath,
+        currentPath: location.pathname,
+      })
+
+      navigate(decision.route, { replace: true })
     } catch (err) {
       let message = 'Login failed'
       if (err instanceof NetworkError) {

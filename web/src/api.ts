@@ -16,8 +16,20 @@ export const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : "/api";
 const FORCE_DEV_IDENTITY = import.meta.env.DEV && (localStorage.getItem("DFOS_FORCE_DEV_IDENTITY") === "1");
 let didWarnDevToken = false;
 
-function getToken() {
-  return localStorage.getItem('token') || ''
+/** True only if s looks like a JWT (three non-empty dot-separated segments). Never send non-JWT as Bearer. */
+export function isJwt(s: string): boolean {
+  if (typeof s !== 'string' || !s.trim()) return false
+  const parts = s.trim().split('.')
+  return parts.length === 3 && parts.every((p) => p.length > 0)
+}
+
+function getToken(): string {
+  const raw = localStorage.getItem('token') || ''
+  if (raw && !isJwt(raw)) {
+    localStorage.removeItem('token')
+    return ''
+  }
+  return raw
 }
 
 function getDevHeaders(): HeadersInit {
@@ -84,10 +96,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     console.warn("  (b) Clear token: localStorage.removeItem('token')");
   }
   
-  // Compose headers: base → dev (if forced) → auth (if not forced) → overrides
+  // Compose headers: base → dev (if forced) → auth (if not forced, and token is a real JWT) → overrides
   const base: HeadersInit = { "content-type": "application/json" };
   const dev = FORCE_DEV_IDENTITY ? getDevHeaders() : {};
-  const auth = (!FORCE_DEV_IDENTITY && token) ? { authorization: `Bearer ${token}` } : {};
+  const auth = (!FORCE_DEV_IDENTITY && token && isJwt(token)) ? { authorization: `Bearer ${token}` } : {};
   const headers: HeadersInit = { ...base, ...dev, ...auth, ...(init.headers ?? {}) };
 
   const resolvedUrl = resolveUrl(path);
@@ -174,5 +186,8 @@ export function del<T>(path: string, headers?: HeadersInit) {
 }
 
 export function setToken(token: string) {
+  if (!isJwt(token)) return
+  const legacyKeys = ['token', 'accessToken', 'authToken', 'dfos_token', 'jwt']
+  legacyKeys.forEach((k) => localStorage.removeItem(k))
   localStorage.setItem('token', token)
 }
