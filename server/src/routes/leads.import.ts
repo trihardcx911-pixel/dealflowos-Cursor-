@@ -1,5 +1,6 @@
 console.log(">>> leads.import.ts FILE LOADED");
 import express from "express";
+import type { Request, Response } from "express";
 import multer from "multer";
 import csv from "csv-parser";
 import XLSX from "xlsx";
@@ -175,7 +176,7 @@ function parseCustomMapping(mappingStr: string | undefined, headers: string[]): 
 }
 
 // --- POST /leads/import (preview) ---
-leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req, res) => {
+leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req: Request, res: Response) => {
   try {
     const file = (req as express.Request & { file?: { path: string; originalname: string } }).file;
     if (!file) return res.status(400).json({ error: "No file uploaded" });
