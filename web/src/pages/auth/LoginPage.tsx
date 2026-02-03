@@ -66,7 +66,12 @@ export default function LoginPage() {
       navigate(decision.route, { replace: true })
     } catch (err) {
       let message = 'Login failed'
-      if (err instanceof NetworkError) {
+      // Extract Firebase error code if present (e.g., auth/wrong-password, auth/user-not-found)
+      const firebaseCode = (err as any)?.code
+      if (firebaseCode) {
+        console.error('[FIREBASE_AUTH_ERROR]', { code: firebaseCode, message: (err as Error).message })
+        message = `Login failed (${firebaseCode}): ${(err as Error).message}`
+      } else if (err instanceof NetworkError) {
         message = 'Login request failed: cannot reach backend. Make sure the server is running.'
       } else if (err instanceof ApiError) {
         const suffix = err.status ? ` (${err.status})` : ''
@@ -100,7 +105,14 @@ export default function LoginPage() {
       navigate(decision.route, { replace: true })
     } catch (err) {
       console.error('Google sign-in error:', err)
-      const message = err instanceof Error ? err.message : 'Google sign-in failed'
+      const firebaseCode = (err as any)?.code
+      let message = 'Google sign-in failed'
+      if (firebaseCode) {
+        console.error('[FIREBASE_AUTH_ERROR]', { code: firebaseCode, message: (err as Error).message })
+        message = `Google sign-in failed (${firebaseCode}): ${(err as Error).message}`
+      } else if (err instanceof Error) {
+        message = err.message
+      }
       setError(message)
       notify('error', message)
     }

@@ -21,7 +21,13 @@ const firebaseConfig = {
 }
 
 // Initialize Firebase
-console.log('FIREBASE KEY:', import.meta.env.VITE_FIREBASE_API_KEY)
+// Log non-sensitive config for debugging (never log apiKey)
+console.log('[FIREBASE_CONFIG]', {
+  authDomain: firebaseConfig.authDomain,
+  projectId: firebaseConfig.projectId,
+  appId: firebaseConfig.appId,
+  hasApiKey: !!firebaseConfig.apiKey,
+})
 let app: FirebaseApp
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig)
