@@ -3,6 +3,10 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthLayout from '../../components/layout/AuthLayout'
 import { post, setToken, isJwt, API_BASE } from '../../api'
 import { useToast } from '../../useToast'
+import { createUserWithEmailPassword, getFirebaseAuthErrorMessage } from '../../auth/firebaseAuth'
+import { establishAppSession } from '../../lib/firebase/auth'
+import { checkBillingStatus } from '../../hooks/useBillingStatus'
+import { getNextRoute } from '../../lib/routeDecision'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('user+' + Date.now() + '@example.com')
@@ -17,21 +21,38 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const data = await post<{ token?: string; accessToken?: string; jwt?: string; data?: { token?: string; accessToken?: string } }>(`${API_BASE}/auth/signup`, { email, password })
-      const raw = data?.token ?? data?.accessToken ?? data?.jwt ?? data?.data?.token ?? data?.data?.accessToken ?? ''
-      const normalized = typeof raw === 'string' ? raw.trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '') : ''
-      if (normalized && isJwt(normalized)) {
-        setToken(normalized)
-      }
-      notify('success', 'Signed up! Please login.')
-      // Preserve plan param through login flow
-      if (plan) {
-        navigate('/login', { state: { plan } })
+      if (import.meta.env.PROD) {
+        const user = await createUserWithEmailPassword(email, password)
+        await establishAppSession(user)
+        notify('success', 'Account created.')
+        const billingStatus = await checkBillingStatus()
+        const decision = getNextRoute({
+          isAuthenticated: true,
+          billingStatus: billingStatus.status,
+          planIntent: plan ?? undefined,
+          fromPath: undefined,
+          currentPath: '/signup',
+        })
+        navigate(decision.route, { replace: true })
       } else {
-        navigate('/login')
+        const data = await post<{ token?: string; accessToken?: string; jwt?: string; data?: { token?: string; accessToken?: string } }>(`${API_BASE}/auth/signup`, { email, password })
+        const raw = data?.token ?? data?.accessToken ?? data?.jwt ?? data?.data?.token ?? data?.data?.accessToken ?? ''
+        const normalized = typeof raw === 'string' ? raw.trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '') : ''
+        if (normalized && isJwt(normalized)) {
+          setToken(normalized)
+        }
+        notify('success', 'Signed up! Please login.')
+        if (plan) {
+          navigate('/login', { state: { plan } })
+        } else {
+          navigate('/login')
+        }
       }
     } catch (e: any) {
-      notify('error', e?.error?.message || e?.message || 'Signup failed')
+      const code = e?.code
+      const friendly = code ? getFirebaseAuthErrorMessage(code) : null
+      const message = friendly ?? e?.error?.message ?? e?.message ?? 'Signup failed'
+      notify('error', message)
     } finally {
       setLoading(false)
     }
@@ -40,7 +61,7 @@ export default function SignupPage() {
   return (
     <AuthLayout
       title="Create account"
-      subtitle="Access to the CRM is still invite-only. Use backend-created credentials."
+      subtitle={import.meta.env.PROD ? 'Create an account with email and password.' : 'Access to the CRM is still invite-only. Use backend-created credentials.'}
       footer={
         <span>
           Already have an account?{' '}

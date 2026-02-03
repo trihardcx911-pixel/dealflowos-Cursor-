@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import AuthLayout from '../../components/layout/AuthLayout'
 import { post, setToken, isJwt, ApiError, NetworkError, API_BASE } from '../../api'
 import { useToast } from '../../useToast'
-import { signInWithGoogle, signInWithEmailPassword, sendEmailLink } from '../../auth/firebaseAuth'
+import { signInWithGoogle, signInWithEmailPassword, sendEmailLink, getFirebaseAuthErrorMessage } from '../../auth/firebaseAuth'
 import { establishAppSession } from '../../lib/firebase/auth'
 import { checkBillingStatus } from '../../hooks/useBillingStatus'
 import { getNextRoute } from '../../lib/routeDecision'
@@ -66,11 +66,11 @@ export default function LoginPage() {
       navigate(decision.route, { replace: true })
     } catch (err) {
       let message = 'Login failed'
-      // Extract Firebase error code if present (e.g., auth/wrong-password, auth/user-not-found)
       const firebaseCode = (err as any)?.code
       if (firebaseCode) {
         console.error('[FIREBASE_AUTH_ERROR]', { code: firebaseCode, message: (err as Error).message })
-        message = `Login failed (${firebaseCode}): ${(err as Error).message}`
+        const friendly = getFirebaseAuthErrorMessage(firebaseCode)
+        message = friendly ?? (err as Error).message
       } else if (err instanceof NetworkError) {
         message = 'Login request failed: cannot reach backend. Make sure the server is running.'
       } else if (err instanceof ApiError) {
@@ -109,7 +109,8 @@ export default function LoginPage() {
       let message = 'Google sign-in failed'
       if (firebaseCode) {
         console.error('[FIREBASE_AUTH_ERROR]', { code: firebaseCode, message: (err as Error).message })
-        message = `Google sign-in failed (${firebaseCode}): ${(err as Error).message}`
+        const friendly = getFirebaseAuthErrorMessage(firebaseCode)
+        message = friendly ?? (err as Error).message
       } else if (err instanceof Error) {
         message = err.message
       }
@@ -138,7 +139,7 @@ export default function LoginPage() {
   return (
     <AuthLayout
       title="Sign in"
-      subtitle="Use the credentials you created on the backend."
+      subtitle={import.meta.env.PROD ? 'Sign in with your account.' : 'Use the credentials you created on the backend.'}
       footer={
         <div className="space-y-2">
           <span>

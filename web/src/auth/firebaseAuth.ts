@@ -7,6 +7,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
@@ -21,10 +22,32 @@ import { auth } from '../config/firebase'
 const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn'
 
 /**
+ * User-friendly message for Firebase auth error codes. Never logs or returns secrets.
+ */
+export function getFirebaseAuthErrorMessage(code: string | undefined): string | null {
+  if (!code) return null
+  const c = String(code)
+  if (c === 'auth/invalid-credential' || c === 'auth/wrong-password' || c === 'auth/user-not-found' || c.includes('INVALID_LOGIN_CREDENTIALS')) return 'Invalid email or password.'
+  if (c === 'auth/operation-not-allowed') return 'Email/password auth disabled in Firebase.'
+  if (c === 'auth/email-already-in-use') return 'An account with this email already exists.'
+  if (c === 'auth/weak-password') return 'Password is too weak.'
+  if (c === 'auth/invalid-email') return 'Invalid email address.'
+  return null
+}
+
+/**
  * Sign in with email and password (Firebase)
  */
 export async function signInWithEmailPassword(email: string, password: string): Promise<User> {
   const result = await signInWithEmailAndPassword(auth, email, password)
+  return result.user
+}
+
+/**
+ * Create account with email and password (Firebase)
+ */
+export async function createUserWithEmailPassword(email: string, password: string): Promise<User> {
+  const result = await createUserWithEmailAndPassword(auth, email, password)
   return result.user
 }
 
