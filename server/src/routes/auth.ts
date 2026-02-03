@@ -86,14 +86,9 @@ authRouter.post("/login", async (req, res) => {
     });
   }
 
-  // Mock login - return static user with token
-  console.log('[AUTH] Login successful, sending response');
-  res.json({
-    token: "mock-jwt-token-" + Date.now(),
-    user: {
-      email: email,
-      id: "1"
-    }
+  // Email/password login disabled in production to prevent invalid token format; use Firebase -> POST /api/auth/session
+  return res.status(501).json({
+    error: "Email/password login is disabled in production. Use POST /api/auth/session with a Firebase ID token.",
   });
 });
 
