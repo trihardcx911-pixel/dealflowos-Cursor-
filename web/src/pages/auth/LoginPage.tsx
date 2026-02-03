@@ -31,7 +31,6 @@ export default function LoginPage() {
     e.preventDefault()
     setError(null)
     try {
-      console.log('[AUTH_FLOW]', { prod: import.meta.env.PROD, mode: import.meta.env.MODE })
       if (import.meta.env.PROD) {
         const user = await signInWithEmailPassword(email, password)
         await establishAppSession(user)
