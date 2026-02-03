@@ -6,6 +6,7 @@
 import {
   signInWithPopup,
   GoogleAuthProvider,
+  signInWithEmailAndPassword,
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
@@ -18,6 +19,14 @@ import {
 import { auth } from '../config/firebase'
 
 const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn'
+
+/**
+ * Sign in with email and password (Firebase)
+ */
+export async function signInWithEmailPassword(email: string, password: string): Promise<User> {
+  const result = await signInWithEmailAndPassword(auth, email, password)
+  return result.user
+}
 
 /**
  * Sign in with Google using popup

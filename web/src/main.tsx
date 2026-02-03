@@ -27,8 +27,20 @@ import NotFoundPage from './pages/NotFoundPage'
 import BillingRedirectPage from './pages/billing/BillingRedirectPage'
 import BillingSuccessPage from './pages/billing/BillingSuccessPage'
 import BillingCancelPage from './pages/billing/BillingCancelPage'
+import OnboardingPlanPage from './pages/onboarding/OnboardingPlanPage'
 import { ToastProvider } from './useToast'
 import { completeEmailLinkSignIn } from './auth/firebaseAuth'
+import { establishAppSession } from './lib/firebase/auth'
+
+// One-time cleanup: remove any stale mock token from storage
+const storedToken = localStorage.getItem('token')
+if (typeof storedToken === 'string' && storedToken.startsWith('mock-jwt-token')) {
+  localStorage.removeItem('token')
+}
+
+// Build stamp for deploy verification (proves which bundle is running)
+console.log('[BUILD_STAMP]', import.meta.env.MODE, import.meta.env.PROD, import.meta.env.VITE_BUILD_STAMP ?? '__STAMP__')
+console.log('[BUILD]', import.meta.env.MODE, import.meta.env.VITE_GIT_SHA ?? 'no-sha', new Date().toISOString())
 
 // 🆕 React Query imports
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -36,10 +48,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // 🆕 Create global QueryClient instance
 const queryClient = new QueryClient();
 
-// Complete email link sign-in if link is detected
-completeEmailLinkSignIn().catch(err => {
-  console.error('Email link sign-in completion error:', err)
-})
+// Complete email link sign-in if link is detected; exchange Firebase user for app JWT
+completeEmailLinkSignIn()
+  .then(async (user) => {
+    if (user) await establishAppSession(user)
+  })
+  .catch((err) => {
+    console.error('Email link sign-in completion error:', err)
+  })
 
 const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -72,6 +88,7 @@ const router = createBrowserRouter([
   { path: '/billing/redirect', element: <BillingRedirectPage /> },
   { path: '/billing/success', element: <BillingSuccessPage /> },
   { path: '/billing/cancel', element: <BillingCancelPage /> },
+  { path: '/onboarding/plan', element: <OnboardingPlanPage /> },
   { path: '*', element: <NotFoundPage /> },
 ])
 

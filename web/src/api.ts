@@ -103,6 +103,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers: HeadersInit = { ...base, ...dev, ...auth, ...(init.headers ?? {}) };
 
   const resolvedUrl = resolveUrl(path);
+  if (import.meta.env.PROD && (path.includes('/auth/login') || resolvedUrl.includes('/auth/login'))) {
+    throw new Error('Blocked: /auth/login is disabled in production. Use Firebase -> /auth/session.')
+  }
   console.log('[API] Requesting:', init.method || 'GET', resolvedUrl);
 
   try {
