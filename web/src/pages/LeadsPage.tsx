@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import * as RW from 'react-window'
+import { List, type RowComponentProps } from 'react-window'
 import { useQueryClient } from '@tanstack/react-query'
 import { get, post, patch, del } from '../api'
 import { useToast } from '../useToast'
@@ -1282,18 +1282,13 @@ export default function LeadsPage() {
     return null
   }
 
-  // react-window v2 API: exports "List" not "FixedSizeList"
-  const RWList = (RW as any).List ?? (RW as any).default?.List;
-  const canVirtualize = typeof RWList === "function";
-
   // Virtualization constants
   const PREVIEW_HEIGHT = 400;
   const ROW_HEIGHT = 40;
 
-  // Virtualized row renderer for react-window v2
-  const PreviewRow = (props: any) => {
-    const { index, style } = props;
-    const row = previewRows[index];
+  const PreviewRow = (props: RowComponentProps<{ rows: LeadImportRow[] }>) => {
+    const { index, style, rows } = props;
+    const row = rows?.[index];
     if (!row) return null;
     
     const status = getRowStatus(row);
@@ -1569,11 +1564,6 @@ export default function LeadsPage() {
                               <strong>{summary.invalid}</strong> lead{summary.invalid !== 1 ? 's' : ''} will be skipped
                             </div>
                           )}
-                          {!canVirtualize && previewRows.length > 50 && (
-                            <div className="text-xs text-white/60 mt-2">
-                              Showing first 50 of {previewRows.length} rows (virtualization unavailable)
-                            </div>
-                          )}
                         </div>
                       );
                     })()}
@@ -1592,39 +1582,32 @@ export default function LeadsPage() {
                     )}
 
                     {(() => {
-                      // Try to render virtualized list with react-window v2
-                      if (canVirtualize) {
-                        try {
-                          return (
-                            <div className="border border-white/10 rounded overflow-hidden">
-                              {/* Table Header */}
-                              <div className="grid grid-cols-[60px_1fr_1fr_80px_100px_1fr] gap-3 px-3 py-2 bg-white dark:bg-[#0a0a0c]/95 backdrop-blur-sm text-black dark:text-white/60 text-xs sticky top-0 z-10 border-b border-gray-200 dark:border-white/10">
-                                <div>Validation</div>
-                                <div>Address</div>
-                                <div>City</div>
-                                <div>State</div>
-                                <div>Zip</div>
-                                <div>Issues</div>
-                              </div>
-                              
-                              {/* Virtualized Body */}
-                              <RWList
-                                className="neon-scrollbar"
-                                rowComponent={PreviewRow}
-                                rowCount={previewRows.length}
-                                rowHeight={ROW_HEIGHT}
-                                rowProps={{}}
-                                overscanCount={10}
-                                style={{ height: PREVIEW_HEIGHT, width: "100%" }}
-                              />
+                      try {
+                        return (
+                          <div className="border border-white/10 rounded overflow-hidden">
+                            {/* Table Header */}
+                            <div className="grid grid-cols-[60px_1fr_1fr_80px_100px_1fr] gap-3 px-3 py-2 bg-white dark:bg-[#0a0a0c]/95 backdrop-blur-sm text-black dark:text-white/60 text-xs sticky top-0 z-10 border-b border-gray-200 dark:border-white/10">
+                              <div>Validation</div>
+                              <div>Address</div>
+                              <div>City</div>
+                              <div>State</div>
+                              <div>Zip</div>
+                              <div>Issues</div>
                             </div>
-                          );
-                        } catch (e) {
-                          console.warn('[react-window] Virtualization failed, using fallback:', e);
-                          // Fall through to fallback below
-                        }
+                            <List
+                              className="neon-scrollbar"
+                              rowComponent={PreviewRow}
+                              rowCount={previewRows.length}
+                              rowHeight={ROW_HEIGHT}
+                              rowProps={{ rows: previewRows }}
+                              overscanCount={10}
+                              style={{ height: PREVIEW_HEIGHT, width: '100%' }}
+                            />
+                          </div>
+                        );
+                      } catch (e) {
+                        console.warn('[react-window] Virtualization failed, using fallback:', e);
                       }
-                      
                       // Fallback: Non-virtualized table for compatibility
                       return (
                         <div className="overflow-y-auto min-h-0 max-h-[400px] border border-white/10 rounded">
