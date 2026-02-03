@@ -107,8 +107,30 @@ export async function completeEmailLinkSignIn(): Promise<User | null> {
  * @param email - Email address to send the password reset link to
  */
 export async function sendPasswordReset(email: string): Promise<void> {
+  const resetUrl = window.location.origin + '/reset-password'
+  const parsedUrl = new URL(resetUrl)
+  
+  // Allowlist: only send reset links to known production domains
+  const allowedHosts = [
+    'dealflowos.com',
+    'dealflowos.net',
+    'localhost',
+    'dealflowos.firebaseapp.com',
+    'dealflowos.web.app',
+  ]
+  
+  if (!allowedHosts.some(host => parsedUrl.hostname === host || parsedUrl.hostname.endsWith('.' + host))) {
+    throw new Error(`Reset URL hostname "${parsedUrl.hostname}" is not in the allowlist. Cannot send reset email.`)
+  }
+  
+  console.log('[PASSWORD_RESET]', {
+    hostname: parsedUrl.hostname,
+    pathname: parsedUrl.pathname,
+    to: email,
+  })
+  
   await sendPasswordResetEmail(auth, email, {
-    url: window.location.origin + '/reset-password',
+    url: resetUrl,
     handleCodeInApp: false,
   })
 }
