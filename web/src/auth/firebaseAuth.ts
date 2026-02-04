@@ -21,6 +21,8 @@ import { auth } from '../config/firebase'
 
 const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn'
 
+const DEV_DIAGNOSTICS = import.meta.env.DEV && import.meta.env.VITE_DEV_DIAGNOSTICS === '1'
+
 /**
  * User-friendly message for Firebase auth error codes. Never logs or returns secrets.
  */
@@ -33,6 +35,20 @@ export function getFirebaseAuthErrorMessage(code: string | undefined): string | 
   if (c === 'auth/weak-password') return 'Password is too weak.'
   if (c === 'auth/invalid-email') return 'Invalid email address.'
   return null
+}
+
+/**
+ * User-friendly message for Firebase password-reset errors. Non-enumerating (does not reveal if email exists).
+ */
+export function getFirebasePasswordResetErrorMessage(code: string | undefined): string | null {
+  if (!code) return null
+  const c = String(code)
+  if (c === 'auth/invalid-email') return 'Invalid email address.'
+  if (c === 'auth/user-not-found') return "If an account exists, you'll receive a reset email."
+  if (c === 'auth/too-many-requests') return 'Too many attempts. Try again later.'
+  if (c === 'auth/network-request-failed') return 'Network error. Check connection and try again.'
+  if (c === 'auth/operation-not-allowed') return 'Password reset is disabled. Contact support.'
+  return 'Could not send reset email. Try again.'
 }
 
 /**
@@ -122,17 +138,34 @@ export async function sendPasswordReset(email: string): Promise<void> {
   if (!allowedHosts.some(host => parsedUrl.hostname === host || parsedUrl.hostname.endsWith('.' + host))) {
     throw new Error(`Reset URL hostname "${parsedUrl.hostname}" is not in the allowlist. Cannot send reset email.`)
   }
-  
-  console.log('[PASSWORD_RESET]', {
-    hostname: parsedUrl.hostname,
-    pathname: parsedUrl.pathname,
-    to: email,
-  })
-  
-  await sendPasswordResetEmail(auth, email, {
-    url: resetUrl,
-    handleCodeInApp: false,
-  })
+
+  if (DEV_DIAGNOSTICS) {
+    const emailDomain = email.includes('@') ? email.split('@')[1] : 'unknown'
+    console.log('[PASSWORD_RESET]', {
+      hostname: parsedUrl.hostname,
+      pathname: parsedUrl.pathname,
+      emailDomain,
+    })
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email, {
+      url: resetUrl,
+      handleCodeInApp: false,
+    })
+  } catch (err: unknown) {
+    if (DEV_DIAGNOSTICS) {
+      const code = err && typeof err === 'object' && 'code' in err ? (err as { code?: string }).code : undefined
+      const message = err && typeof err === 'object' && 'message' in err ? (err as { message?: string }).message : undefined
+      console.log('[PASSWORD_RESET_ERROR]', {
+        firebaseErrorCode: code,
+        firebaseErrorMessage: message,
+        hostname: parsedUrl.hostname,
+        origin: window.location.origin,
+      })
+    }
+    throw err
+  }
 }
 
 /**
