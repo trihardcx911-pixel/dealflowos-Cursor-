@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from 'react'
-import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import AuthLayout from '../../components/layout/AuthLayout'
 import { verifyPasswordReset, confirmPasswordResetCode } from '../../auth/firebaseAuth'
 
@@ -25,9 +25,10 @@ function allCriteriaMet(criteria: PasswordCriteria): boolean {
   return Object.values(criteria).every(Boolean)
 }
 
+const DEV_DIAGNOSTICS = import.meta.env.DEV && import.meta.env.VITE_DEV_DIAGNOSTICS === '1'
+
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
   const [oobCode, setOobCode] = useState<string | null>(null)
   const [email, setEmail] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -39,14 +40,21 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  // Extract oobCode from URL on mount
+  // Read only mode and oobCode from URL (ignore apiKey, continueUrl, etc.)
   useEffect(() => {
-    const code = searchParams.get('oobCode') || searchParams.get('code')
     const mode = searchParams.get('mode')
+    const code = searchParams.get('oobCode') || searchParams.get('code')
+
+    if (DEV_DIAGNOSTICS) {
+      console.log('[RESET_PASSWORD]', {
+        hostname: window.location.hostname,
+        hasMode: !!mode,
+        hasOobCode: !!code,
+      })
+    }
 
     if (code && mode === 'resetPassword') {
       setOobCode(code)
-      // Verify the code immediately
       verifyCode(code)
     } else {
       setError('This reset link is invalid or has expired.')
@@ -59,20 +67,12 @@ export default function ResetPasswordPage() {
       const emailAddress = await verifyPasswordReset(code)
       setEmail(emailAddress)
       setError(null)
-    } catch (err: any) {
+    } catch (err: unknown) {
       let message = 'This reset link is invalid or has expired.'
-      
-      if (err?.code) {
-        switch (err.code) {
-          case 'auth/expired-action-code':
-          case 'auth/invalid-action-code':
-            message = 'This reset link is invalid or has expired.'
-            break
-          default:
-            message = 'This reset link is invalid or has expired.'
-        }
+      const codeErr = err && typeof err === 'object' && 'code' in err ? (err as { code?: string }).code : undefined
+      if (codeErr === 'auth/expired-action-code' || codeErr === 'auth/invalid-action-code') {
+        message = 'This reset link is invalid or has expired.'
       }
-      
       setError(message)
     } finally {
       setLoading(false)
@@ -83,13 +83,11 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setError(null)
 
-    // Validate passwords match
     if (password !== confirmPassword) {
       setError('Passwords do not match.')
       return
     }
 
-    // Validate password strength
     const criteria = validatePassword(password)
     if (!allCriteriaMet(criteria)) {
       setError('Password does not meet security requirements.')
@@ -102,30 +100,19 @@ export default function ResetPasswordPage() {
     }
 
     setVerifying(true)
-
     try {
       await confirmPasswordResetCode(oobCode, password)
       setSuccess(true)
-    } catch (err: any) {
+    } catch (err: unknown) {
       let message = 'Failed to reset password. Please try again.'
-      
-      if (err?.code) {
-        switch (err.code) {
-          case 'auth/expired-action-code':
-          case 'auth/invalid-action-code':
-            message = 'This reset link is invalid or has expired.'
-            break
-          case 'auth/weak-password':
-            message = 'Password does not meet security requirements.'
-            break
-          case 'auth/too-many-requests':
-            message = 'Too many attempts. Please try again later.'
-            break
-          default:
-            message = 'Failed to reset password. Please try again.'
-        }
+      const codeErr = err && typeof err === 'object' && 'code' in err ? (err as { code?: string }).code : undefined
+      if (codeErr === 'auth/expired-action-code' || codeErr === 'auth/invalid-action-code') {
+        message = 'This reset link is invalid or has expired.'
+      } else if (codeErr === 'auth/weak-password') {
+        message = 'Password does not meet security requirements.'
+      } else if (codeErr === 'auth/too-many-requests') {
+        message = 'Too many attempts. Please try again later.'
       }
-      
       setError(message)
     } finally {
       setVerifying(false)
@@ -136,53 +123,49 @@ export default function ResetPasswordPage() {
   const allMet = allCriteriaMet(passwordCriteria)
   const passwordsMatch = password === confirmPassword || confirmPassword === ''
 
-  if (loading) {
-    return (
-      <AuthLayout
-        title="Verifying reset link"
-        subtitle="Please wait while we verify your password reset link."
-      >
+  const isInvalidLink = !loading && !!error && !email
+  const title = loading
+    ? 'Verifying reset link'
+    : isInvalidLink
+      ? 'Invalid reset link'
+      : success
+        ? 'Password updated'
+        : 'Set a new password'
+  const subtitle = loading
+    ? 'Please wait while we verify your password reset link.'
+    : isInvalidLink
+      ? error ?? undefined
+      : success
+        ? 'Your password has been updated successfully.'
+        : 'Choose a strong password to protect your DealflowOS account.'
+  const footer = isInvalidLink
+    ? <Link to="/forgot-password" className="text-sm text-white/60 hover:text-white/80 transition-colors">Request a new reset link</Link>
+    : success
+      ? (
+          <Link
+            to="/login"
+            className="inline-block rounded-lg bg-[var(--neon-red)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--neon-red)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--neon-red)]/50 transition-colors"
+          >
+            Return to sign in
+          </Link>
+        )
+      : <Link to="/login" className="text-sm text-white/60 hover:text-white/80 transition-colors">Back to sign in</Link>
+
+  return (
+    <AuthLayout title={title} subtitle={subtitle} footer={footer}>
+      {loading && (
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--neon-red)]"></div>
         </div>
-      </AuthLayout>
-    )
-  }
-
-  if (error && !email) {
-    return (
-      <AuthLayout
-        title="Invalid reset link"
-        subtitle={error}
-        footer={
-          <Link to="/forgot-password" className="text-sm text-white/60 hover:text-white/80 transition-colors">
-            Request a new reset link
-          </Link>
-        }
-      >
+      )}
+      {!loading && isInvalidLink && (
         <div className="space-y-4">
           <div className="rounded-lg bg-white/5 border border-white/10 p-4">
             <p className="text-sm text-[var(--neon-red)] text-center">{error}</p>
           </div>
         </div>
-      </AuthLayout>
-    )
-  }
-
-  if (success) {
-    return (
-      <AuthLayout
-        title="Password updated"
-        subtitle="Your password has been updated successfully."
-        footer={
-          <Link 
-            to="/login" 
-            className="inline-block rounded-lg bg-[var(--neon-red)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--neon-red)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--neon-red)]/50 transition-colors"
-          >
-            Return to sign in
-          </Link>
-        }
-      >
+      )}
+      {!loading && success && (
         <div className="space-y-4">
           <div className="rounded-lg bg-white/5 border border-white/10 p-4">
             <p className="text-sm text-white/80 text-center">
@@ -190,24 +173,12 @@ export default function ResetPasswordPage() {
             </p>
           </div>
         </div>
-      </AuthLayout>
-    )
-  }
-
-  return (
-    <AuthLayout
-      title="Set a new password"
-      subtitle="Choose a strong password to protect your DealflowOS account."
-      footer={
-        <Link to="/login" className="text-sm text-white/60 hover:text-white/80 transition-colors">
-          Back to sign in
-        </Link>
-      }
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-4">
-          <label className="block text-left">
-            <span className="text-sm text-white/70 mb-1 block">New password</span>
+      )}
+      {!loading && !isInvalidLink && !success && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
+            <label className="block text-left">
+              <span className="text-sm text-white/70 mb-1 block">New password</span>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -321,22 +292,23 @@ export default function ResetPasswordPage() {
               <p className="text-xs text-[var(--neon-red)] mt-1">Passwords do not match.</p>
             )}
           </label>
-        </div>
-
-        {error && (
-          <div className="rounded-lg bg-white/5 border border-white/10 p-3">
-            <p className="text-sm text-[var(--neon-red)]">{error}</p>
           </div>
-        )}
 
-        <button
-          type="submit"
-          disabled={verifying || !allMet || !passwordsMatch || !password || !confirmPassword}
-          className="w-full rounded-lg bg-[var(--neon-red)] px-4 py-3 text-sm font-semibold text-white hover:bg-[var(--neon-red)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--neon-red)]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {verifying ? 'Updating password...' : 'Update password'}
-        </button>
-      </form>
+          {error && (
+            <div className="rounded-lg bg-white/5 border border-white/10 p-3">
+              <p className="text-sm text-[var(--neon-red)]">{error}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={verifying || !allMet || !passwordsMatch || !password || !confirmPassword}
+            className="w-full rounded-lg bg-[var(--neon-red)] px-4 py-3 text-sm font-semibold text-white hover:bg-[var(--neon-red)]/90 focus:outline-none focus:ring-2 focus:ring-[var(--neon-red)]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {verifying ? 'Updating password...' : 'Update password'}
+          </button>
+        </form>
+      )}
     </AuthLayout>
   )
 }
