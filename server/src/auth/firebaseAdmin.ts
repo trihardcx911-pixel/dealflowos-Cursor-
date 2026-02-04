@@ -1,130 +1,204 @@
 /**
  * Firebase Admin SDK Initialization
  * Used for server-side token verification
+ *
+ * CRITICAL: This module enforces a single, properly-credentialed Firebase Admin instance.
+ * In production, FIREBASE_SERVICE_ACCOUNT_JSON is REQUIRED.
  */
 
-import { initializeApp, getApps, cert, applicationDefault } from 'firebase-admin/app';
+import { initializeApp, getApps, deleteApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
-let adminApp: any = null;
-let adminAuth: any = null;
-
 const isProd = process.env.NODE_ENV === 'production';
+const EXPECTED_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+
+// Single source of truth - set once at module load, never reassigned
+let certifiedApp: any = null;
+let certifiedAuth: any = null;
 
 /**
- * Initialize Firebase Admin SDK
- * Uses service account credentials from environment variables
+ * Initialize Firebase Admin SDK with explicit credentials.
+ *
+ * INVARIANTS:
+ * - In production: MUST use cert(serviceAccount) - no fallbacks
+ * - Existing apps without proper credentials are DELETED
+ * - Single app instance enforced
  */
-function initializeFirebaseAdmin(): any {
-  if (adminApp) {
-    return adminApp;
+function initializeFirebaseAdmin(): { app: any; auth: any } {
+  // Already initialized with certified credentials
+  if (certifiedApp && certifiedAuth) {
+    return { app: certifiedApp, auth: certifiedAuth };
   }
 
-  // Check if already initialized
+  // Validate project ID
+  if (!EXPECTED_PROJECT_ID) {
+    const msg = '[FIREBASE] FATAL: Missing FIREBASE_PROJECT_ID environment variable';
+    console.error(msg);
+    throw new Error(msg);
+  }
+
+  // Get service account JSON (required in production)
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+
+  // Production MUST have explicit credentials
+  if (isProd && !serviceAccountJson && !serviceAccountPath) {
+    const msg = '[FIREBASE] FATAL: Production requires FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH';
+    console.error(msg);
+    throw new Error(msg);
+  }
+
+  // Parse service account credentials
+  let serviceAccount: any = null;
+  if (serviceAccountJson) {
+    try {
+      serviceAccount = JSON.parse(serviceAccountJson);
+    } catch (e: any) {
+      const msg = `[FIREBASE] FATAL: Invalid JSON in FIREBASE_SERVICE_ACCOUNT_JSON: ${e.message}`;
+      console.error(msg);
+      throw new Error(msg);
+    }
+  } else if (serviceAccountPath) {
+    try {
+      serviceAccount = require(serviceAccountPath);
+    } catch (e: any) {
+      const msg = `[FIREBASE] FATAL: Cannot load service account from path: ${e.message}`;
+      console.error(msg);
+      throw new Error(msg);
+    }
+  }
+
+  // Validate service account projectId matches expected
+  if (serviceAccount && serviceAccount.project_id !== EXPECTED_PROJECT_ID) {
+    const msg = `[FIREBASE] FATAL: Service account project_id mismatch. Expected: ${EXPECTED_PROJECT_ID}, Got: ${serviceAccount.project_id}`;
+    console.error(msg);
+    throw new Error(msg);
+  }
+
+  // CRITICAL: Delete any existing apps that may be misconfigured
+  // This prevents reuse of apps initialized without cert() credentials
   const existingApps = getApps();
   if (existingApps.length > 0) {
-    adminApp = existingApps[0];
-    adminAuth = getAuth(adminApp);
-    console.log('[FIREBASE] Using existing app instance');
-    return adminApp;
+    console.warn(`[FIREBASE] Found ${existingApps.length} existing app(s). Deleting to ensure proper credentials.`);
+    for (const app of existingApps) {
+      try {
+        deleteApp(app);
+        console.log(`[FIREBASE] Deleted existing app: ${app.name}`);
+      } catch (e: any) {
+        console.warn(`[FIREBASE] Failed to delete app ${app.name}: ${e.message}`);
+      }
+    }
   }
 
-  // Initialize with service account credentials
-  // For development, we can use the project ID and let Admin SDK use Application Default Credentials
-  // For production, use a service account JSON file
-  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
-
-  if (!projectId) {
-    console.error('[FIREBASE] FATAL: Missing FIREBASE_PROJECT_ID');
-    throw new Error('FIREBASE_PROJECT_ID or VITE_FIREBASE_PROJECT_ID environment variable is required');
-  }
-
-  // Try to initialize with service account credentials if available
-  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-
-  // Diagnostic logging (safe - no secrets)
-  console.log('[FIREBASE] Initialization:', {
-    projectId,
-    hasServiceAccountPath: !!serviceAccountPath,
-    hasServiceAccountJson: !!serviceAccountJson,
-    hasGoogleAppCreds: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+  // Initialize with explicit credentials
+  console.log('[FIREBASE] Initializing with:', {
+    projectId: EXPECTED_PROJECT_ID,
+    hasServiceAccount: !!serviceAccount,
+    serviceAccountProjectId: serviceAccount?.project_id || null,
     isProd,
   });
 
-  if (serviceAccountPath) {
-    // Use service account file path
-    console.log('[FIREBASE] Using service account from file path');
-    const serviceAccount = require(serviceAccountPath);
-    adminApp = initializeApp({
+  let app: any;
+  if (serviceAccount) {
+    // Production path: explicit cert() credentials
+    app = initializeApp({
       credential: cert(serviceAccount),
-      projectId,
+      projectId: EXPECTED_PROJECT_ID,
     });
-  } else if (serviceAccountJson) {
-    // Use service account JSON string (from environment variable)
-    console.log('[FIREBASE] Using service account from JSON env var');
-    try {
-      const serviceAccount = JSON.parse(serviceAccountJson);
-      adminApp = initializeApp({
-        credential: cert(serviceAccount),
-        projectId,
-      });
-    } catch (parseError: any) {
-      console.error('[FIREBASE] FATAL: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', parseError.message);
-      throw new Error('Invalid FIREBASE_SERVICE_ACCOUNT_JSON - JSON parse failed');
-    }
-  } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    // Use Application Default Credentials (ADC) - works on GCP or with GOOGLE_APPLICATION_CREDENTIALS
-    console.log('[FIREBASE] Using Application Default Credentials (GOOGLE_APPLICATION_CREDENTIALS)');
-    adminApp = initializeApp({
-      credential: applicationDefault(),
-      projectId,
-    });
-  } else if (!isProd) {
-    // Development fallback: project ID only (for emulator or gcloud CLI auth)
-    console.log('[FIREBASE] DEV MODE: Using project ID only (no explicit credentials)');
-    adminApp = initializeApp({
-      projectId,
-    });
+    console.log('[FIREBASE] Initialized with cert(serviceAccount)');
   } else {
-    // Production without credentials - this will fail token verification
-    console.error('[FIREBASE] FATAL: Production requires service account credentials');
-    console.error('[FIREBASE] Set one of: FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_PATH, or GOOGLE_APPLICATION_CREDENTIALS');
-    throw new Error(
-      'Firebase Admin SDK requires credentials in production. ' +
-      'Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH environment variable.'
-    );
+    // Development-only fallback: projectId only (uses ADC or emulator)
+    console.warn('[FIREBASE] DEV MODE: Initializing without explicit credentials (ADC/emulator)');
+    app = initializeApp({
+      projectId: EXPECTED_PROJECT_ID,
+    });
   }
 
-  adminAuth = getAuth(adminApp);
+  const auth = getAuth(app);
+
+  // Store as single source of truth
+  certifiedApp = app;
+  certifiedAuth = auth;
+
   console.log('[FIREBASE] Admin SDK initialized successfully');
-  return adminApp;
+  return { app, auth };
 }
 
 /**
- * Get Firebase Admin Auth instance
+ * Get Firebase Admin Auth instance.
+ * Guaranteed to be from a properly-credentialed app.
  */
 export function getAdminAuth(): any {
-  if (!adminAuth) {
-    initializeFirebaseAdmin();
-  }
-  return adminAuth!;
+  const { auth } = initializeFirebaseAdmin();
+  return auth;
 }
 
 /**
- * Verify Firebase ID token
- * @param idToken - Firebase ID token from client
- * @returns Decoded token with user information
+ * Verify Firebase ID token.
+ * Includes diagnostic logging on failure (no secrets).
  */
-export async function verifyIdToken(idToken: string) {
+export async function verifyIdToken(idToken: string): Promise<any> {
   const auth = getAdminAuth();
+
   try {
     const decodedToken = await auth.verifyIdToken(idToken);
     return decodedToken;
   } catch (error: any) {
-    throw new Error(`Firebase token verification failed: ${error.message}`);
+    // Diagnostic logging on failure (production-safe, no secrets)
+    console.error('[FIREBASE] Token verification FAILED:', {
+      errorCode: error.code || 'unknown',
+      errorMessage: error.message || 'unknown',
+      expectedProjectId: EXPECTED_PROJECT_ID,
+      // Log app config for diagnosis (no secrets)
+      appProjectId: certifiedApp?.options?.projectId || 'not-set',
+      hasCredential: !!certifiedApp?.options?.credential,
+    });
+
+    // Extract token claims for diagnosis (no full token logged)
+    try {
+      const parts = idToken.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+        console.error('[FIREBASE] Token claims (for diagnosis):', {
+          aud: payload.aud,
+          iss: payload.iss,
+          exp: payload.exp,
+          iat: payload.iat,
+          expiredAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : 'unknown',
+          issuedAt: payload.iat ? new Date(payload.iat * 1000).toISOString() : 'unknown',
+          nowUtc: new Date().toISOString(),
+        });
+
+        // Check for common mismatches
+        if (payload.aud !== EXPECTED_PROJECT_ID) {
+          console.error(`[FIREBASE] MISMATCH: token.aud (${payload.aud}) !== FIREBASE_PROJECT_ID (${EXPECTED_PROJECT_ID})`);
+        }
+        const expectedIss = `https://securetoken.google.com/${EXPECTED_PROJECT_ID}`;
+        if (payload.iss !== expectedIss) {
+          console.error(`[FIREBASE] MISMATCH: token.iss (${payload.iss}) !== expected (${expectedIss})`);
+        }
+      }
+    } catch (parseErr) {
+      console.error('[FIREBASE] Could not parse token for diagnosis');
+    }
+
+    // Re-throw with original error details preserved
+    throw new Error(`Firebase token verification failed: ${error.code || 'UNKNOWN'} - ${error.message}`);
   }
 }
 
-export { adminApp };
+// STARTUP VALIDATION: In production, initialize immediately to fail fast
+if (isProd) {
+  try {
+    console.log('[FIREBASE] Production startup validation...');
+    initializeFirebaseAdmin();
+    console.log('[FIREBASE] Startup validation PASSED');
+  } catch (e: any) {
+    console.error('[FIREBASE] Startup validation FAILED:', e.message);
+    // In production, a misconfigured Firebase Admin is fatal
+    process.exit(1);
+  }
+}
 
+// Export for testing/debugging only
+export { certifiedApp as adminApp };
