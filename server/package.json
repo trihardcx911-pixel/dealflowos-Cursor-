@@ -10,6 +10,7 @@
     "dev:lite": "NODE_ENV=development DEV_AUTH_BYPASS=1 tsx watch -r ./src/env.cjs src/dev.server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
+    "verify:schema": "node verify-db-schema.js",
     "migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "postinstall": "prisma generate --schema prisma/schema.prisma"

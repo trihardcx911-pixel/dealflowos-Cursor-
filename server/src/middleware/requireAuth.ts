@@ -347,7 +347,15 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         return next();
       }
     } catch (err: any) {
-      console.warn("[AUTH] Session cookie verification failed:", { error: err?.message, code: err?.code });
+      // DIAGNOSTIC: Log session cookie verification/DB errors
+      console.error("[AUTH] Session cookie verification/DB failed:", {
+        error: err?.message?.substring(0, 200),
+        code: err?.code,
+        pgCode: pgCode(err),
+        isFirebaseError: err?.errorInfo?.code || err?.code?.startsWith?.('auth/'),
+        isDbError: err?.code && !err?.code?.startsWith?.('auth/'),
+        path: req.path,
+      });
       const isProd = process.env.NODE_ENV === "production";
       res.clearCookie("dfos_session", { path: "/", sameSite: isProd ? "none" : "lax", secure: isProd });
       // Fall through to Authorization header / dev bypass
@@ -522,6 +530,17 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
             // Treat as "not revoked" and continue auth
           } else {
             // Production or other DB errors: return 503 (not 401)
+            // DIAGNOSTIC: Log DB error details to help identify root cause
+            console.error('[AUTH] Revocation check DB error:', {
+              code: error?.code,
+              message: error?.message?.substring(0, 200),
+              pgCode: pgCode(error),
+              isUndefinedTable: pgCode(error) === "42P01",
+              isUndefinedColumn: pgCode(error) === "42703",
+              path: req.path,
+              userId: userId?.substring(0, 8) + '...',
+            });
+
             const errorResponse: any = {
               error: 'Auth subsystem unavailable',
               code: 'AUTH_DB_UNAVAILABLE',
@@ -530,7 +549,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
             if (DIAG()) {
               errorResponse.reason = String(error?.message || "").slice(0, 120);
             }
-            
+
             logSecurityEvent({
               event_type: "auth_db_error",
               user_id: userId,
@@ -568,15 +587,28 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
           // DB error - return appropriate status code (not 401)
           const pgErrCode = pgCode(error);
           const isSchemaError = pgErrCode === "42P01" || pgErrCode === "42703";
-          
+
+          // DIAGNOSTIC: Log DB error details to help identify root cause
+          console.error('[AUTH] User access check DB error:', {
+            code: error?.code,
+            message: error?.message?.substring(0, 200),
+            pgCode: pgErrCode,
+            isUndefinedTable: pgErrCode === "42P01",
+            isUndefinedColumn: pgErrCode === "42703",
+            isSchemaError,
+            path: req.path,
+            userId: userId?.substring(0, 8) + '...',
+            query: 'SELECT status, plan, "trialEnd", ... FROM "User" WHERE id = $1',
+          });
+
           const errorResponse: any = isSchemaError
             ? { error: 'Database schema error', code: 'SCHEMA_MISMATCH', step: 'user_access_check' }
             : { error: 'Auth subsystem unavailable', code: 'AUTH_DB_UNAVAILABLE', step: 'user_access_check' };
-          
+
           if (DIAG()) {
             errorResponse.reason = String(error?.message || "").slice(0, 120);
           }
-          
+
           const statusCode = isSchemaError ? 500 : 503;
           
           logSecurityEvent({
