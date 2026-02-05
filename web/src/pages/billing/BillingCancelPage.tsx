@@ -5,6 +5,11 @@ export default function BillingCancelPage() {
   const [searchParams] = useSearchParams()
   const plan = searchParams.get('plan') || 'bronze'
 
+  // Check if user is logged in (has token) - if so, they're in onboarding flow
+  const hasToken = typeof window !== 'undefined' && localStorage.getItem('token')
+  const backUrl = hasToken ? '/onboarding/plan?canceled=true' : '/'
+  const backLabel = hasToken ? 'Back to plan selection' : 'Back to pricing'
+
   return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: 'var(--bg-base, #0B0B10)' }}>
       <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] p-8 text-center">
@@ -21,10 +26,10 @@ export default function BillingCancelPage() {
         </p>
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(backUrl)}
             className="w-full h-12 px-4 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors"
           >
-            Back to pricing
+            {backLabel}
           </button>
           <button
             onClick={() => navigate(`/billing/redirect?plan=${plan}`)}

@@ -4,6 +4,7 @@ node_modules/
 # env
 .env
 .env.local
+.env.mcp
 
 # builds
 dist/
@@ -19,4 +20,6 @@ uploads/
 
 # local db / configs
 postgresql.conf
+dealflowos.json
 web/.claude/
+.secrets/

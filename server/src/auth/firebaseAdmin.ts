@@ -187,6 +187,51 @@ export async function verifyIdToken(idToken: string): Promise<any> {
   }
 }
 
+/**
+ * Create a Firebase session cookie from an ID token.
+ * Used for HttpOnly session cookies (Vercel ↔ Render).
+ *
+ * @param idToken - Firebase ID token from client
+ * @param expiresInMs - Session duration in milliseconds (max 14 days)
+ * @returns Session cookie string
+ */
+export async function createSessionCookie(idToken: string, expiresInMs: number): Promise<string> {
+  const auth = getAdminAuth();
+  const expiresInSeconds = Math.floor(expiresInMs / 1000);
+  try {
+    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn: expiresInSeconds });
+    return sessionCookie;
+  } catch (error: any) {
+    console.error('[FIREBASE] Session cookie creation FAILED:', {
+      errorCode: error.code || 'unknown',
+      errorMessage: error.message || 'unknown',
+    });
+    throw new Error(`Session cookie creation failed: ${error.code || 'UNKNOWN'} - ${error.message}`);
+  }
+}
+
+/**
+ * Verify a Firebase session cookie.
+ *
+ * @param sessionCookie - Session cookie from request (never log contents)
+ * @param checkRevoked - Whether to check if the session has been revoked
+ * @returns Decoded claims (e.g. uid, email)
+ */
+export async function verifySessionCookie(sessionCookie: string, checkRevoked: boolean = true): Promise<any> {
+  const auth = getAdminAuth();
+  try {
+    const decodedClaims = await auth.verifySessionCookie(sessionCookie, checkRevoked);
+    return decodedClaims;
+  } catch (error: any) {
+    console.error("[FIREBASE] Session cookie verification FAILED:", {
+      errorCode: error.code || "unknown",
+      errorMessage: error.message || "unknown",
+      checkRevoked,
+    });
+    throw new Error(`Session cookie verification failed: ${error.code || "UNKNOWN"} - ${error.message}`);
+  }
+}
+
 // STARTUP VALIDATION: In production, initialize immediately to fail fast
 if (isProd) {
   try {

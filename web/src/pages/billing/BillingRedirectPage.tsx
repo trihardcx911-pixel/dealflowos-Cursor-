@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { post, ApiError, NetworkError } from '../../api'
+
+interface CheckoutSession {
+  url: string
+  id: string
+}
 
 export default function BillingRedirectPage() {
   const [searchParams] = useSearchParams()
@@ -8,37 +14,29 @@ export default function BillingRedirectPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Check if user is logged in
+  const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('token'))
+  const backUrl = hasToken ? '/onboarding/plan' : '/'
+  const backLabel = hasToken ? 'Back to plan selection' : 'Back to pricing'
+
+  // Compute display states (single return, no fragments)
+  const showLoginRequired = !hasToken
+  const showLoading = hasToken && loading && !error
+  const showError = hasToken && error
+
   useEffect(() => {
+    // Don't attempt checkout if not logged in
+    if (!hasToken) {
+      setLoading(false)
+      return
+    }
+
     async function createCheckout() {
       try {
         setLoading(true)
         setError(null)
-        
-        const res = await fetch('/api/billing/create-checkout-session', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-dev-user-id': 'user_dev',
-            'x-dev-user-email': 'dev@example.com',
-            'x-dev-org-id': 'org_dev',
-          },
-          body: JSON.stringify({ plan }),
-        })
 
-        // Detect proxy failures: text/plain with 500 on /api/* routes
-        const contentType = res.headers.get('content-type') || '';
-        const isProxyFailure = res.status === 500 && contentType.includes('text/plain');
-        
-        if (isProxyFailure) {
-          throw new Error('Backend unreachable. Start server: cd server && npm run dev (expects 127.0.0.1:3010)')
-        }
-
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ error: 'Failed to create checkout session' }))
-          throw new Error(errorData.error || `HTTP ${res.status}`)
-        }
-
-        const data = await res.json() as { url: string; id: string }
+        const data = await post<CheckoutSession>('/billing/create-checkout-session', { plan })
 
         if (data.url) {
           // Redirect to Stripe Checkout
@@ -47,31 +45,62 @@ export default function BillingRedirectPage() {
           setError('No checkout URL received')
           setLoading(false)
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('[BILLING] Checkout creation failed:', err)
-        // Detect network/proxy errors
-        const isNetworkError = 
-          err?.message?.includes('Failed to fetch') ||
-          err?.message?.includes('ECONNREFUSED') ||
-          err?.message?.includes('Backend unreachable') ||
-          err?.name === 'TypeError';
-        
-        const errorMessage = isNetworkError && !err?.message?.includes('Backend unreachable')
-          ? 'Backend unreachable. Start server: cd server && npm run dev (expects 127.0.0.1:3010)'
-          : (err?.message || 'Failed to create checkout session');
-        
+
+        let errorMessage = 'Failed to create checkout session'
+        if (err instanceof NetworkError) {
+          errorMessage = err.message
+        } else if (err instanceof ApiError) {
+          errorMessage = err.message || `HTTP ${err.status}`
+        } else if (err instanceof Error) {
+          errorMessage = err.message
+        }
+
         setError(errorMessage)
         setLoading(false)
       }
     }
 
     createCheckout()
-  }, [plan])
+  }, [plan, hasToken])
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: 'var(--bg-base, #0B0B10)' }}>
       <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] p-8 text-center">
-        {loading && !error && (
+        {/* Login required state */}
+        {showLoginRequired && (
+          <div>
+            <div className="mb-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                <span className="text-2xl text-white/60">🔐</span>
+              </div>
+            </div>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: '#F5F7FA' }}>
+              Login required
+            </h2>
+            <p className="text-sm mb-6" style={{ color: '#A8AFB8' }}>
+              Please log in to continue to checkout.
+            </p>
+            <div className="flex flex-col gap-3">
+              <Link
+                to={`/login?redirect=/billing/redirect&plan=${plan}`}
+                className="w-full h-12 px-4 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors flex items-center justify-center"
+              >
+                Log in to continue
+              </Link>
+              <Link
+                to="/"
+                className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 transition-colors font-medium flex items-center justify-center"
+              >
+                Back to pricing
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Loading state */}
+        {showLoading && (
           <div>
             <div className="mb-4">
               <div className="w-16 h-16 mx-auto rounded-full border-4 border-red-500/30 border-t-red-500 animate-spin" />
@@ -84,7 +113,9 @@ export default function BillingRedirectPage() {
             </p>
           </div>
         )}
-        {error && (
+
+        {/* Error state */}
+        {showError && (
           <div>
             <div className="mb-4">
               <div className="w-16 h-16 mx-auto rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center">
@@ -99,10 +130,10 @@ export default function BillingRedirectPage() {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate(backUrl)}
                 className="flex-1 h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 transition-colors font-medium"
               >
-                Back to pricing
+                {backLabel}
               </button>
             </div>
           </div>
@@ -111,4 +142,3 @@ export default function BillingRedirectPage() {
     </div>
   )
 }
-

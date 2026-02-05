@@ -1,5 +1,6 @@
 import express from "express";
 import { establishSession } from "../auth/sessionService.js";
+import { createSessionCookie } from "../auth/firebaseAdmin.js";
 import { authRateLimiter } from "../middleware/rateLimit.js";
 import { logSecurityEvent, getClientIp, getUserAgent } from "../security/securityEvents.js";
 import { detectImpossibleTravel, detectIdentityShift } from "../security/anomalyDetector.js";
@@ -8,6 +9,37 @@ import { invalidateUserAccessCache } from "../middleware/requireAuth.js";
 import { signAppToken } from "../auth/jwtService.js";
 
 export const authRouter = express.Router();
+
+const FIREBASE_ISS_PREFIX = "https://securetoken.google.com/";
+let didWarnMissingFirebaseProjectId = false;
+
+/** UX guard: token must look like a Firebase ID token (3 segments, iss, aud). Does NOT verify signature. */
+function looksLikeFirebaseIdToken(token: string): { ok: boolean; reason?: string } {
+  const parts = token.trim().split(".");
+  if (parts.length !== 3) {
+    return { ok: false, reason: "Expected 3 JWT segments" };
+  }
+  let payload: any;
+  try {
+    const payloadB64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = payloadB64 + "===".slice(0, (4 - (payloadB64.length % 4)) % 4);
+    payload = JSON.parse(Buffer.from(padded, "base64").toString("utf8"));
+  } catch {
+    return { ok: false, reason: "Invalid JWT payload encoding" };
+  }
+  if (!payload.iss || typeof payload.iss !== "string" || !payload.iss.startsWith(FIREBASE_ISS_PREFIX)) {
+    return { ok: false, reason: "Not a Firebase ID token (iss)" };
+  }
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+  if (projectId && payload.aud !== projectId) {
+    return { ok: false, reason: "aud does not match FIREBASE_PROJECT_ID" };
+  }
+  if (!projectId && !didWarnMissingFirebaseProjectId) {
+    didWarnMissingFirebaseProjectId = true;
+    console.warn("[AUTH] FIREBASE_PROJECT_ID not set; skipping aud check for Firebase token guard");
+  }
+  return { ok: true };
+}
 
 // DEV-only: seed user_dev billing once per boot when DEV_AUTH_BYPASS=1
 let devBillingSeeded = false;
@@ -152,25 +184,50 @@ authRouter.post("/session", authRateLimiter, async (req, res) => {
   }).catch(() => {}); // Ignore errors
 
   try {
-    // Extract Firebase ID token from Authorization header
+    // Extract Firebase ID token from Authorization header or body
+    let idToken: string | null = null;
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      idToken = authHeader.substring(7).trim();
+    } else if (req.body?.idToken && typeof req.body.idToken === "string") {
+      idToken = req.body.idToken.trim();
+    }
+
+    if (!idToken || idToken.length === 0) {
       await logSecurityEvent({
         event_type: "auth_session_error",
         ip,
         user_agent: userAgent,
         path,
         method,
-        status_code: 401,
-        reason: "missing_authorization_header",
+        status_code: 400,
+        reason: "missing_firebase_token",
       });
-      (req as any)._securityLogged = true; // Prevent double-logging
-      return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+      (req as any)._securityLogged = true;
+      return res.status(400).json({ error: "Firebase ID token required" });
     }
 
-    const idToken = authHeader.substring(7); // Remove 'Bearer ' prefix
+    // UX guard: reject non-Firebase JWTs before calling establishSession
+    const guard = looksLikeFirebaseIdToken(idToken);
+    if (!guard.ok) {
+      await logSecurityEvent({
+        event_type: "auth_session_error",
+        ip,
+        user_agent: userAgent,
+        path,
+        method,
+        status_code: 400,
+        reason: "non_firebase_jwt_guard",
+        meta: { hint: guard.reason },
+      });
+      (req as any)._securityLogged = true;
+      return res.status(400).json({
+        error: "Expected Firebase ID token (securetoken.google.com). Got a non-Firebase JWT.",
+        hint: "Call user.getIdToken(true) and send that token.",
+      });
+    }
 
-    // Use shared session service to establish session
+    // Use shared session service to establish session (cryptographic verification)
     const session = await establishSession(idToken);
 
     // Log based on outcome
@@ -192,11 +249,27 @@ authRouter.post("/session", authRateLimiter, async (req, res) => {
       (req as any)._securityLogged = true; // Prevent double-logging
 
       // Anomaly detection (log-only, non-blocking)
-      // Run asynchronously - don't await to avoid blocking request
       detectImpossibleTravel(session.user.id, ip, "unknown").catch(() => {});
       detectIdentityShift(session.user.id, ip, userAgent).catch(() => {});
+
+      // Best-effort: set session cookie only when access is allowed (must not break login)
+      const SESSION_COOKIE_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+      try {
+        const sessionCookieValue = await createSessionCookie(idToken, SESSION_COOKIE_MAX_AGE_MS);
+        const isProd = process.env.NODE_ENV === "production";
+        res.cookie("dfos_session", sessionCookieValue, {
+          httpOnly: true,
+          secure: isProd,
+          sameSite: isProd ? "none" : "lax",
+          path: "/",
+          maxAge: SESSION_COOKIE_MAX_AGE_MS,
+        });
+      } catch (cookieErr: any) {
+        console.error("[AUTH] Session cookie creation failed (login still succeeds):", cookieErr?.message || cookieErr);
+        // Do not throw; return normal JSON response
+      }
     } else {
-      // Log access denied
+      // Log access denied; do NOT set cookie
       await logSecurityEvent({
         event_type: "auth_session_denied",
         user_id: session.user.id,
@@ -214,7 +287,7 @@ authRouter.post("/session", authRateLimiter, async (req, res) => {
       (req as any)._securityLogged = true; // Prevent double-logging
     }
 
-    // Return session response
+    // Return session response (backward compatible: app_session_token unchanged)
     const response: any = {
       user: {
         id: session.user.id,
@@ -226,7 +299,6 @@ authRouter.post("/session", authRateLimiter, async (req, res) => {
       access: session.access,
     };
 
-    // Include app_session_token if available (only when access is allowed)
     if (session.app_session_token) {
       response.app_session_token = session.app_session_token;
     }

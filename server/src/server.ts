@@ -112,6 +112,7 @@ if (isProd && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) {
 
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import fs from "fs";
 import { leadsImportRouter } from "./routes/leads.import.js";
 import { leadsDevRouter } from "./routes/leads.dev.js";
@@ -136,11 +137,28 @@ import { userRouter } from "./routes/user.js";
 const hasDatabase = Boolean(process.env.DATABASE_URL);
 
 const app = express();
+// Trust Render proxy (req.ip, X-Forwarded-*, secure cookies)
+app.set("trust proxy", 1);
 // Ensure uploads directory exists for multer disk storage
 try { fs.mkdirSync('uploads', { recursive: true }); } catch {}
-// CORS: use FRONTEND_URL from env for production, fallback to localhost for dev
-const corsOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
-app.use(cors({ origin: corsOrigin, credentials: false }));
+// credentials true required for session cookies (Vercel ↔ Render)
+const allowedOrigins = new Set<string>([
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+].filter(Boolean) as string[]);
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.has(origin)) return cb(null, true);
+    if (origin.endsWith(".vercel.app")) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(corsOptions));
 
 // IMPORTANT: Webhook route must be mounted BEFORE express.json() to use raw body
 app.use("/stripe", stripeWebhookRouter);
@@ -156,6 +174,8 @@ app.use((req, res, next) => {
   return json100kb(req, res, next);
 });
 app.use(express.urlencoded({ limit: "100kb", extended: false }));
+
+app.use(cookieParser());
 
 // Security response logger (logs 401, 403, 429 if not already logged)
 app.use(securityResponseLogger);

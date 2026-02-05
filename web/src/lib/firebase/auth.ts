@@ -10,7 +10,7 @@ import { post, setToken, isJwt } from "../../api";
  * Stores app_session_token in localStorage for /api/* requests.
  */
 export async function establishAppSession(user: User): Promise<string> {
-  const idToken = await user.getIdToken();
+  const idToken = await user.getIdToken(true);
   const data = await post<{ app_session_token?: string }>(
     "/auth/session",
     {},

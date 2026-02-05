@@ -7,6 +7,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { verifyAppToken, JWT_SECRET, AppTokenPayload } from "../auth/jwtService.js";
+import { verifySessionCookie } from "../auth/firebaseAdmin.js";
 import { pool } from "../db/pool.js";
 import { SessionUser } from "../auth/sessionService.js";
 import { logSecurityEvent, getClientIp, getUserAgent } from "../security/securityEvents.js";
@@ -257,6 +258,100 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       hasBearer: !!hasBearer,
       devBypassEnabled: devBypass,
     });
+  }
+
+  // Cookie-first: if dfos_session present, verify and apply same gates as JWT path (then fall through on failure)
+  const sessionCookie = req.cookies?.dfos_session;
+  if (sessionCookie) {
+    try {
+      const decodedClaims = await verifySessionCookie(sessionCookie, true);
+      const firebaseUid = decodedClaims.uid;
+      const userResult = await pool.query(
+        `SELECT id, email, firebase_uid, status, plan, trial_ends_at, session_version, lock_state, lock_expires_at, "billingStatus", "cancelAtPeriodEnd", "currentPeriodEnd"
+         FROM "User" WHERE firebase_uid = $1`,
+        [firebaseUid]
+      );
+      if (userResult.rows.length === 0) {
+        const isProd = process.env.NODE_ENV === "production";
+        res.clearCookie("dfos_session", { path: "/", sameSite: isProd ? "none" : "lax", secure: isProd });
+        // Fall through to Authorization / dev bypass
+      } else {
+        const user = userResult.rows[0];
+        const userAccess: UserAccessCache = {
+          status: user.status,
+          plan: user.plan,
+          trial_ends_at: user.trial_ends_at,
+          session_version: user.session_version ?? 1,
+          lock_state: user.lock_state ?? "none",
+          lock_expires_at: user.lock_expires_at,
+          billingStatus: user.billingStatus,
+          cancelAtPeriodEnd: user.cancelAtPeriodEnd,
+          currentPeriodEnd: user.currentPeriodEnd,
+          cachedAt: Date.now(),
+        };
+
+        const nowDate = new Date();
+        if (userAccess.lock_state === "hard") {
+          const isProd = process.env.NODE_ENV === "production";
+          res.clearCookie("dfos_session", { path: "/", sameSite: isProd ? "none" : "lax", secure: isProd });
+          return res.status(403).json({ error: "Account restricted" });
+        }
+        if (userAccess.lock_state === "soft" && userAccess.lock_expires_at && nowDate < new Date(userAccess.lock_expires_at)) {
+          const isProd = process.env.NODE_ENV === "production";
+          res.clearCookie("dfos_session", { path: "/", sameSite: isProd ? "none" : "lax", secure: isProd });
+          return res.status(403).json({ error: "Account restricted" });
+        }
+
+        const devBillingBypass = process.env.NODE_ENV !== "production" && process.env.DEV_BILLING_BYPASS === "1";
+        if (!devBillingBypass && userAccess.billingStatus != null) {
+          const billingCheck = enforceBillingAccess(userAccess);
+          if (!billingCheck.ok) {
+            return res.status(billingCheck.status ?? 402).json(billingCheck.body ?? { error: "Subscription required", code: "BILLING_REQUIRED" });
+          }
+        }
+
+        let allowed = false;
+        if (userAccess.status !== "active") {
+          allowed = false;
+        } else if (userAccess.plan === "trial") {
+          allowed = !userAccess.trial_ends_at || new Date() < new Date(userAccess.trial_ends_at);
+        } else if (["bronze", "silver", "gold"].includes(userAccess.plan)) {
+          allowed = true;
+        }
+        if (!allowed) {
+          const isProd = process.env.NODE_ENV === "production";
+          res.clearCookie("dfos_session", { path: "/", sameSite: isProd ? "none" : "lax", secure: isProd });
+          return res.status(403).json({ error: "Access denied" });
+        }
+
+        const resolvedOrgId = user.id; // MVP: 1:1
+        req.user = {
+          id: user.id,
+          firebase_uid: user.firebase_uid,
+          email: user.email,
+          plan: user.plan,
+          status: user.status,
+          onboarding_complete: false,
+        };
+        req.user.orgId = resolvedOrgId;
+        (req as { orgId?: string }).orgId = resolvedOrgId;
+        res.locals.orgId = resolvedOrgId;
+        (req.user as any).billingStatus = userAccess.billingStatus;
+        (req.user as any).cancelAtPeriodEnd = userAccess.cancelAtPeriodEnd;
+        (req.user as any).currentPeriodEnd = userAccess.currentPeriodEnd;
+        (req.user as any).isPastDue = userAccess.billingStatus === "past_due";
+        res.locals.user = req.user;
+        if (DIAG()) {
+          console.log("[AUTH RESOLVE] mode=SESSION_COOKIE", { userId: user.id, orgId: resolvedOrgId });
+        }
+        return next();
+      }
+    } catch (err: any) {
+      console.warn("[AUTH] Session cookie verification failed:", { error: err?.message, code: err?.code });
+      const isProd = process.env.NODE_ENV === "production";
+      res.clearCookie("dfos_session", { path: "/", sameSite: isProd ? "none" : "lax", secure: isProd });
+      // Fall through to Authorization header / dev bypass
+    }
   }
 
   // If Authorization header is present, use real auth (skip dev bypass)

@@ -110,7 +110,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   try {
     const res = await fetch(resolvedUrl, {
-      credentials: 'same-origin',
+      credentials: "include",
       ...init,
       headers,
     })
