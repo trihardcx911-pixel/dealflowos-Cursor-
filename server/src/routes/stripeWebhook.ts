@@ -1,6 +1,7 @@
 import express from "express";
 import { getStripeClient, isStripeConfigured } from "../billing/stripeClient.js";
 import { prisma } from "../db/prisma.js";
+import { pool } from "../db/pool.js";
 import {
   mapStripeStatusToBillingStatus,
   mapPriceIdToTier,
@@ -203,22 +204,44 @@ async function handleCheckoutSessionCompleted(stripe: any, event: any) {
     const priceId = subscription.items.data[0]?.price?.id;
     const billingStatus = mapStripeStatusToBillingStatus(subscription.status);
     const cancelAtPeriodEnd = subscription.cancel_at_period_end || false;
-    const currentPeriodEnd = subscription.current_period_end 
+    const currentPeriodEnd = subscription.current_period_end
       ? new Date(subscription.current_period_end * 1000)
       : null;
-    // Update user (User model has no trialEnd; trial is reflected via billingStatus/currentPeriodEnd)
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        stripeCustomerId: customerId || undefined,
-        stripeSubscriptionId: subscriptionId,
-        stripePriceId: priceId || undefined,
+
+    // Determine plan from metadata (preferred) or priceId mapping (fallback)
+    const metaPlan = metadata.plan as "bronze" | "silver" | "gold" | undefined;
+    const priceTier = mapPriceIdToTier(priceId || '');
+    const finalPlan = metaPlan || priceTier || 'bronze';
+    if (!metaPlan && !priceTier) {
+      console.warn(`[STRIPE WEBHOOK] checkout.session.completed: Unknown priceId "${priceId}"; defaulting plan to bronze`);
+    }
+
+    // Update user with raw SQL since Prisma schema doesn't include 'plan' column
+    // (plan column exists in DB but is accessed via raw queries throughout the codebase)
+    await pool.query(
+      `UPDATE "User" SET
+        "stripeCustomerId" = COALESCE($2, "stripeCustomerId"),
+        "stripeSubscriptionId" = $3,
+        "stripePriceId" = COALESCE($4, "stripePriceId"),
+        "billingStatus" = $5,
+        "cancelAtPeriodEnd" = $6,
+        "currentPeriodEnd" = $7,
+        "lastStripeEventId" = $8,
+        plan = $9,
+        "updatedAt" = NOW()
+      WHERE id = $1`,
+      [
+        user.id,
+        customerId || null,
+        subscriptionId,
+        priceId || null,
         billingStatus,
         cancelAtPeriodEnd,
         currentPeriodEnd,
-        lastStripeEventId: event.id,
-      },
-    });
+        event.id,
+        finalPlan,
+      ]
+    );
 
     // Invalidate auth cache so user gets immediate access
     invalidateUserAccessCache(user.id);
@@ -226,6 +249,7 @@ async function handleCheckoutSessionCompleted(stripe: any, event: any) {
     console.log(`[STRIPE WEBHOOK] checkout.session.completed: Updated user ${user.id}`, {
       billingStatus,
       subscriptionId,
+      plan: finalPlan,
     });
   } catch (error: any) {
     console.error("[STRIPE WEBHOOK] Error in checkout.session.completed:", error);

@@ -371,7 +371,7 @@ billingRouter.post("/create-checkout-session", async (req, res) => {
              ON CONFLICT (id) DO UPDATE SET 
                email = COALESCE(EXCLUDED.email, "User".email),
                "updatedAt" = NOW()`,
-            [uid, email, req.user.firebase_uid || "firebase_dev", req.user.plan || "gold", "active"]
+            [uid, email, req.user.firebase_uid || "firebase_dev", selectedPlan, "active"]
           );
           console.log(`[BILLING] Upserted dev user: ${uid}`);
         }
