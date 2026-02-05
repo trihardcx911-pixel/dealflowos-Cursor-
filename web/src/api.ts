@@ -99,10 +99,15 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   // Compose headers: base → dev (if forced) → auth (if not forced, and token is a real JWT) → overrides
   const base: HeadersInit = { "content-type": "application/json" };
   const dev = FORCE_DEV_IDENTITY ? getDevHeaders() : {};
-  const auth = (!FORCE_DEV_IDENTITY && token && isJwt(token)) ? { authorization: `Bearer ${token}` } : {};
-  const headers: HeadersInit = { ...base, ...dev, ...auth, ...(init.headers ?? {}) };
-
+  
+  // Never auto-attach localStorage token for /auth/session (expects Firebase ID token only)
   const resolvedUrl = resolveUrl(path);
+  const normalizedPath = normalizePath(path);
+  const isAuthSession = normalizedPath.endsWith("/auth/session") || resolvedUrl.endsWith("/api/auth/session");
+  const shouldAutoAttach = !FORCE_DEV_IDENTITY && token && isJwt(token) && !isAuthSession;
+  const auth = shouldAutoAttach ? { authorization: `Bearer ${token}` } : {};
+  
+  const headers: HeadersInit = { ...base, ...dev, ...auth, ...(init.headers ?? {}) };
   if (import.meta.env.PROD && (path.includes('/auth/login') || resolvedUrl.includes('/auth/login'))) {
     throw new Error('Blocked: /auth/login is disabled in production. Use Firebase -> /auth/session.')
   }
