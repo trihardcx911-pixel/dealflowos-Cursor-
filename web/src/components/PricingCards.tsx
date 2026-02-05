@@ -64,6 +64,8 @@ interface PricingCardsProps {
   bronzeCtaText?: string
   /** Whether this is on the onboarding page (uses different Bronze CTA behavior) */
   isOnboarding?: boolean
+  /** Disable the Bronze CTA button (e.g., during checkout redirect) */
+  bronzeDisabled?: boolean
 }
 
 export default function PricingCards({
@@ -71,6 +73,7 @@ export default function PricingCards({
   onWaitlistClick,
   bronzeCtaText,
   isOnboarding = false,
+  bronzeDisabled = false,
 }: PricingCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -179,7 +182,8 @@ export default function PricingCards({
           ) : isOnboarding && onBronzeClick ? (
             <button
               onClick={onBronzeClick}
-              className="w-full h-12 px-4 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500/50"
+              disabled={bronzeDisabled}
+              className="w-full h-12 px-4 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500/50 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {bronzeCtaText || tier.ctaText}
             </button>

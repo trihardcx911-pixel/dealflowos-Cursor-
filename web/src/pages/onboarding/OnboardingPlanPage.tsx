@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import PricingCards from '../../components/PricingCards'
 import { useBillingStatus } from '../../hooks/useBillingStatus'
 import { hasActiveSubscription, DEFAULT_APP_ROUTE } from '../../lib/routeDecision'
+import { post, ApiError, NetworkError } from '../../api'
 
 export default function OnboardingPlanPage() {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   const checkoutCanceled = searchParams.get('canceled') === 'true'
 
   // Check auth and billing status
   const hasToken = typeof window !== 'undefined' && localStorage.getItem('token')
-  const { data: billingStatus, isLoading: billingLoading, isError: billingError, refetch } = useBillingStatus()
+  const { data: billingStatus, isLoading: billingLoading } = useBillingStatus()
   const isSubscribed = hasActiveSubscription(billingStatus?.status)
 
   const [waitlistOpen, setWaitlistOpen] = useState(false)
@@ -133,21 +132,37 @@ export default function OnboardingPlanPage() {
     }
   }
 
-  const handleBronzeClick = () => {
-    navigate('/billing/redirect?plan=bronze')
-  }
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
-  const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['billing', 'status'] })
-    refetch()
+  const handleBronzeClick = async () => {
+    setCheckoutError(null)
+    setCheckoutLoading(true)
+    try {
+      const data = await post<{ url?: string }>('/billing/create-checkout-session', { plan: 'bronze' })
+      if (data.url) {
+        window.location.assign(data.url)
+      } else {
+        setCheckoutError('No checkout URL received')
+        setCheckoutLoading(false)
+      }
+    } catch (err) {
+      const msg = err instanceof ApiError
+        ? (err.message || `HTTP ${err.status}`)
+        : err instanceof NetworkError
+          ? err.message
+          : 'Failed to start checkout'
+      setCheckoutError(msg)
+      setCheckoutLoading(false)
+    }
   }
 
   // Compute display states (single return, no fragments)
-  const showLoading = hasToken && billingLoading && !billingError
-  const showBillingError = hasToken && billingError && !billingLoading
-  const showAlreadySubscribed = hasToken && !billingLoading && !billingError && isSubscribed
+  // On billing error: if cached data shows subscription → "already subscribed"; else → plan selection
+  const showLoading = hasToken && billingLoading
+  const showAlreadySubscribed = hasToken && !billingLoading && isSubscribed
   const showUnauthenticated = !hasToken
-  const showPlanSelection = hasToken && !billingLoading && !billingError && !isSubscribed
+  const showPlanSelection = hasToken && !billingLoading && !isSubscribed
 
   return (
     <div
@@ -174,39 +189,6 @@ export default function OnboardingPlanPage() {
             <div className="text-center">
               <div className="w-12 h-12 mx-auto rounded-full border-4 border-red-500/30 border-t-red-500 animate-spin mb-4" />
               <p className="text-sm text-white/60">Checking subscription status...</p>
-            </div>
-          </div>
-        )}
-
-        {/* Billing status error state */}
-        {showBillingError && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] p-8 text-center">
-              <div className="mb-4">
-                <div className="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
-                  <span className="text-2xl text-amber-400">⚠</span>
-                </div>
-              </div>
-              <h2 className="text-xl font-semibold mb-2" style={{ color: '#F5F7FA' }}>
-                Can't check subscription status
-              </h2>
-              <p className="text-sm mb-6" style={{ color: '#A8AFB8' }}>
-                We couldn't verify your subscription status. This may be a temporary issue.
-              </p>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleRetry}
-                  className="w-full h-12 px-4 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors"
-                >
-                  Retry
-                </button>
-                <Link
-                  to="/"
-                  className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 transition-colors font-medium flex items-center justify-center"
-                >
-                  Back to home
-                </Link>
-              </div>
             </div>
           </div>
         )}
@@ -317,13 +299,24 @@ export default function OnboardingPlanPage() {
               </p>
             </div>
 
+            {/* Checkout error */}
+            {checkoutError && (
+              <div className="w-full max-w-6xl mb-6">
+                <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-4 flex items-center gap-3">
+                  <span className="text-red-400 flex-shrink-0">✕</span>
+                  <p className="text-sm text-red-200">{checkoutError}</p>
+                </div>
+              </div>
+            )}
+
             {/* Pricing Cards */}
             <div className="w-full max-w-6xl">
               <PricingCards
                 isOnboarding={true}
                 onBronzeClick={handleBronzeClick}
                 onWaitlistClick={openWaitlist}
-                bronzeCtaText="Continue to checkout"
+                bronzeCtaText={checkoutLoading ? 'Redirecting to checkout…' : 'Continue to checkout'}
+                bronzeDisabled={checkoutLoading}
               />
             </div>
 

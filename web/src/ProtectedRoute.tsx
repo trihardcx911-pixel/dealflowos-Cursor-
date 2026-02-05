@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { Navigate, Outlet, useLocation, Link } from 'react-router-dom'
 import { useBillingStatus } from './hooks/useBillingStatus'
 import { hasActiveSubscription, hasBillingIssue } from './lib/routeDecision'
-import { useQueryClient } from '@tanstack/react-query'
 
 type ProtectedRouteProps = {
   children?: ReactNode
@@ -10,9 +9,8 @@ type ProtectedRouteProps = {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const location = useLocation()
-  const queryClient = useQueryClient()
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-  const { data: billingStatus, isLoading, isError, refetch } = useBillingStatus()
+  const { data: billingStatus, isLoading, isError } = useBillingStatus()
 
   // Determine current state
   const isAuthenticated = Boolean(token)
@@ -21,16 +19,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const isCheckingStatus = isLoading && !isError
 
   // Compute what to render based on state (single return, no fragments)
+  // On billing error: if cached data shows subscription → allow; else → onboarding
   const showLogin = !isAuthenticated
   const showLoading = isAuthenticated && isCheckingStatus
-  const showVerifyError = isAuthenticated && isError && !isLoading
-  const showOnboarding = isAuthenticated && !isCheckingStatus && !isError && !isSubscribed
-  const showContent = isAuthenticated && !isCheckingStatus && !isError && isSubscribed
-
-  const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['billing', 'status'] })
-    refetch()
-  }
+  const showOnboarding = isAuthenticated && !isCheckingStatus && !isSubscribed
+  const showContent = isAuthenticated && !isCheckingStatus && isSubscribed
 
   return (
     <div className="contents">
@@ -46,41 +39,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
           <div className="text-center">
             <div className="w-12 h-12 mx-auto rounded-full border-4 border-red-500/30 border-t-red-500 animate-spin mb-4" />
             <p className="text-sm text-white/60">Verifying access...</p>
-          </div>
-        </div>
-      )}
-
-      {showVerifyError && (
-        <div
-          className="min-h-screen flex items-center justify-center px-6"
-          style={{ backgroundColor: 'var(--bg-base, #0B0B10)' }}
-        >
-          <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] p-8 text-center">
-            <div className="mb-4">
-              <div className="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
-                <span className="text-2xl text-amber-400">⚠</span>
-              </div>
-            </div>
-            <h2 className="text-xl font-semibold mb-2" style={{ color: '#F5F7FA' }}>
-              Can't verify subscription
-            </h2>
-            <p className="text-sm mb-6" style={{ color: '#A8AFB8' }}>
-              We couldn't verify your subscription status. This may be a temporary issue.
-            </p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={handleRetry}
-                className="w-full h-12 px-4 rounded-xl bg-red-500 text-white font-medium hover:bg-red-400 transition-colors"
-              >
-                Retry
-              </button>
-              <Link
-                to="/settings/billing"
-                className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 transition-colors font-medium flex items-center justify-center"
-              >
-                Manage billing
-              </Link>
-            </div>
           </div>
         </div>
       )}
