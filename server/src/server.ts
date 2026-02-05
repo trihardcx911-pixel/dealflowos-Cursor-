@@ -142,11 +142,15 @@ app.set("trust proxy", 1);
 // Ensure uploads directory exists for multer disk storage
 try { fs.mkdirSync('uploads', { recursive: true }); } catch {}
 // credentials true required for session cookies (Vercel ↔ Render)
+const frontendUrls = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((url) => url.trim())
+  .filter((url) => url.length > 0);
 const allowedOrigins = new Set<string>([
-  process.env.FRONTEND_URL,
+  ...frontendUrls,
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-].filter(Boolean) as string[]);
+]);
 const corsOptions: cors.CorsOptions = {
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
