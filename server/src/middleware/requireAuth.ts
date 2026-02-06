@@ -578,7 +578,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         let userResult;
         try {
           userResult = await pool.query(
-            `SELECT status, plan, "trialEnd" AS trial_ends_at, session_version, lock_state, lock_expires_at,
+            `SELECT status, plan, trial_ends_at, session_version, lock_state, lock_expires_at,
                     "billingStatus", "cancelAtPeriodEnd", "currentPeriodEnd"
              FROM "User" WHERE id = $1`,
             [userId]
@@ -598,7 +598,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
             isSchemaError,
             path: req.path,
             userId: userId?.substring(0, 8) + '...',
-            query: 'SELECT status, plan, "trialEnd", ... FROM "User" WHERE id = $1',
+            query: 'SELECT status, plan, trial_ends_at, ... FROM "User" WHERE id = $1',
           });
 
           const errorResponse: any = isSchemaError

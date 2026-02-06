@@ -168,7 +168,7 @@ billingRouter.get("/summary", async (req, res) => {
   try {
     // Fetch user's billing state from DB (DB-first approach)
     const userResult = await pool.query(
-      `SELECT "stripeCustomerId", "stripeSubscriptionId", "stripePriceId", "trialEnd",
+      `SELECT "stripeCustomerId", "stripeSubscriptionId", "stripePriceId", trial_ends_at AS "trialEnd",
               "billingStatus", "cancelAtPeriodEnd", "currentPeriodEnd"
        FROM "User" WHERE id = $1`,
       [uid]
@@ -644,13 +644,13 @@ billingRouter.post("/cancel", async (req, res) => {
     updateData.cancelAtPeriodEnd = true; // Force true for cancel action
 
     await pool.query(
-      `UPDATE "User" SET 
+      `UPDATE "User" SET
         "cancelAtPeriodEnd" = $1,
         "currentPeriodStart" = $2,
         "currentPeriodEnd" = $3,
         "billingStatus" = $4::"BillingStatus",
         "stripePriceId" = $5,
-        "trialEnd" = $6,
+        trial_ends_at = $6,
         "stripeEndedAt" = $7,
         "updatedAt" = NOW()
        WHERE id = $8`,
@@ -747,13 +747,13 @@ billingRouter.post("/resume", async (req, res) => {
     updateData.cancelAtPeriodEnd = false; // Force false for resume action
 
     await pool.query(
-      `UPDATE "User" SET 
+      `UPDATE "User" SET
         "cancelAtPeriodEnd" = $1,
         "currentPeriodStart" = $2,
         "currentPeriodEnd" = $3,
         "billingStatus" = $4::"BillingStatus",
         "stripePriceId" = $5,
-        "trialEnd" = $6,
+        trial_ends_at = $6,
         "stripeEndedAt" = $7,
         "updatedAt" = NOW()
        WHERE id = $8`,

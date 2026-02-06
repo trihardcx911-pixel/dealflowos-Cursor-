@@ -71,7 +71,7 @@ authRouter.post("/login", async (req, res) => {
         const farFuture = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10);
         try {
           await pool.query(
-            `UPDATE "User" SET "billingStatus" = 'active', "cancelAtPeriodEnd" = false, "trialEnd" = $1, "currentPeriodEnd" = $2 WHERE id = 'user_dev'`,
+            `UPDATE "User" SET "billingStatus" = 'active', "cancelAtPeriodEnd" = false, trial_ends_at = $1, "currentPeriodEnd" = $2 WHERE id = 'user_dev'`,
             [farFuture, farFuture]
           );
           console.log("[DEV BILLING] user_dev set to active (10y)");
