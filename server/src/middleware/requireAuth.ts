@@ -493,9 +493,9 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
       // Step 2a: Check token revocation (denylist)
       step = "revocation_check";
-      // Skip revocation check if table is known to be missing (dev only)
-      if (IS_DEV() && REVOKED_TOKENS_MISSING) {
-        // Skip query entirely - table is missing
+      // Skip revocation check if table is known to be missing (cached across all envs)
+      if (REVOKED_TOKENS_MISSING) {
+        // Skip query entirely - table is missing (fail-open)
       } else {
         try {
           const revokedCheck = await pool.query(
@@ -520,16 +520,19 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
             return res.status(401).json({ error: 'Session token has been revoked' });
           }
         } catch (error: any) {
-          // In dev only: fail-open for missing revocation table (42P01)
-          if (IS_DEV() && isMissingTable(error, "revoked_tokens")) {
+          // Fail-open for missing revocation table (optional security feature)
+          // MVP: revocation is opt-in; missing table should not block auth/payments
+          if (isMissingTable(error, "revoked_tokens")) {
             // Cache the "table missing" state to avoid repeated queries
             REVOKED_TOKENS_MISSING = true;
-            if (DIAG()) {
-              console.warn("[AUTH DIAG] revoked_tokens missing; skipping revocation in dev");
-            }
+            console.warn("[AUTH] revoked_tokens table missing; treating token as not revoked (fail-open)", {
+              path: req.path,
+              userId: userId?.substring(0, 8) + '...',
+              pgCode: pgCode(error),
+            });
             // Treat as "not revoked" and continue auth
           } else {
-            // Production or other DB errors: return 503 (not 401)
+            // Other DB errors (connection failures, schema errors, etc.): return 503
             // DIAGNOSTIC: Log DB error details to help identify root cause
             console.error('[AUTH] Revocation check DB error:', {
               code: error?.code,
