@@ -63,6 +63,12 @@ export function useBillingStatus() {
         if (error instanceof ApiError && error.status === 401) {
           return { status: 'none' as BillingStatus }
         }
+        if (error instanceof ApiError && error.status === 503) {
+          // Backend auth subsystem unavailable (DB error) - treat as unauthenticated
+          // Prevents 503 DB errors from breaking onboarding UI
+          console.warn('[BILLING] Auth subsystem unavailable (503), treating as unauthenticated')
+          return { status: 'none' as BillingStatus }
+        }
         if (error instanceof NetworkError) {
           return { status: 'none' as BillingStatus }
         }

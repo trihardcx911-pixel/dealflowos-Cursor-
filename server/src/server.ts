@@ -110,6 +110,13 @@ if (isProd && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) {
   console.warn("WARN: JWT_SECRET missing/short — using dev auth flow (do not use in production).");
 }
 
+// Fail fast in production if DATABASE_URL is missing (prevents confusing "Auth subsystem unavailable" errors)
+if (isProd && !process.env.DATABASE_URL) {
+  console.error("ERROR: DATABASE_URL environment variable is required in production");
+  console.error("Set DATABASE_URL in Render environment to your PostgreSQL connection string");
+  process.exit(1);
+}
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";

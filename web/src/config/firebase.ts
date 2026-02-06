@@ -24,7 +24,7 @@ const firebaseConfig = {
 // Log non-sensitive config for debugging (never log apiKey)
 console.log('[FIREBASE_CONFIG]', {
   authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId,
+  projectId: firebaseConfig.projectIdws,
   appId: firebaseConfig.appId,
   hasApiKey: !!firebaseConfig.apiKey,
 })
