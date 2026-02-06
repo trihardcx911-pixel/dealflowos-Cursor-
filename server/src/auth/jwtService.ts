@@ -34,8 +34,9 @@ function getJwtSecret(): string {
   return secret;
 }
 
-// JWT TTL: longer in dev (7 days) for convenience, standard in production (15 minutes)
-const DEFAULT_TTL_SECONDS = parseInt(process.env.JWT_TTL_SECONDS || "900", 10);
+// JWT TTL: 24h default in production (MVP), 7 days in dev for convenience
+// Override via JWT_TTL_SECONDS env var if needed
+const DEFAULT_TTL_SECONDS = parseInt(process.env.JWT_TTL_SECONDS || "86400", 10); // 24h
 const DEV_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 const JWT_TTL_SECONDS = (process.env.NODE_ENV !== "production") ? DEV_TTL_SECONDS : DEFAULT_TTL_SECONDS;
 

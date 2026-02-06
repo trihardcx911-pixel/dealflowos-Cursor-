@@ -153,6 +153,19 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
         data?.error ||
         res.statusText ||
         `HTTP ${res.status}`
+
+      // Detect expired token: clear auth state so routing guards redirect to login
+      const isExpiredToken =
+        res.status === 401 &&
+        (String(message).toLowerCase().includes('expired') ||
+         data?.error === 'Token has expired')
+      if (isExpiredToken) {
+        console.warn('[API] Token expired - clearing auth state')
+        localStorage.removeItem('token')
+        // Dispatch event so any auth-aware components can react immediately
+        window.dispatchEvent(new CustomEvent('auth:expired'))
+      }
+
       throw new ApiError(res.status, String(message), data)
     }
 
