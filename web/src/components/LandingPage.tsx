@@ -513,7 +513,7 @@ export default function LandingPage() {
                 Is my data private and secure?
               </summary>
               <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
-                Encryption in transit, standard authentication. We don't sell data and this isn't ad-driven.
+                Yes. Your data is encrypted in transit and protected by standard account security. We don't sell your data or use it for advertising.
               </p>
             </details>
 
@@ -522,7 +522,7 @@ export default function LandingPage() {
                 How do I get help if I'm stuck?
               </summary>
               <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
-                Email questions@dealflowos.com. We keep support expectations minimal and respond directly.
+                Email questions@dealflowos.com and include a screenshot plus what you were trying to do. We reply directly—typically within 1–2 business days.
               </p>
             </details>
           </div>
