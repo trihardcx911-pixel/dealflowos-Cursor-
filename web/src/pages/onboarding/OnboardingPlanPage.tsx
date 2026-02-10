@@ -29,10 +29,40 @@ export default function OnboardingPlanPage() {
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false)
   const [waitlistHoneypot, setWaitlistHoneypot] = useState("")
 
+  const debugEnabled =
+    typeof window !== "undefined" &&
+    (localStorage.getItem("dfos_tracking_debug") === "1" ||
+      window.location.search.includes("gtm_debug=1"))
+
+  const TRACKING_KEY = "dfos_trial_signup_complete_fired"
+
   useEffect(() => {
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({ event: "trial_signup_complete" });
-  }, []);
+    if (typeof window === "undefined") return
+
+    try {
+      if (typeof window.sessionStorage !== "undefined") {
+        if (window.sessionStorage.getItem(TRACKING_KEY) === "1") {
+          return
+        }
+        window.sessionStorage.setItem(TRACKING_KEY, "1")
+      }
+
+      window.dataLayer = window.dataLayer || []
+      const path = window.location?.pathname || "/onboarding/plan"
+
+      window.dataLayer.push({ event: "dfos_plan_page_mount", path })
+      window.dataLayer.push({ event: "trial_signup_complete", path })
+
+      if (debugEnabled) {
+        console.log(
+          "[DFOS TRACKING] fired dfos_plan_page_mount + trial_signup_complete",
+          { path }
+        )
+      }
+    } catch {
+      // Never let tracking errors break the page
+    }
+  }, [debugEnabled])
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
