@@ -27,7 +27,7 @@ export default function TermsOfService() {
                 <strong style={{ color: '#F5F7FA' }}>DealflowOS – Terms of Service</strong>
               </p>
               <p className="mb-4">
-                These Terms of Service ("Terms") govern your access to and use of DealflowOS (the "Service"), operated by DealflowOS, Inc., a Delaware corporation ("Company," "we," "us," or "our").
+                These Terms of Service ("Terms") govern your access to and use of DealflowOS (the "Service"), operated by DealflowOS, LLC, a New Jersey limited liability company ("Company," "we," "us," or "our").
               </p>
               <p>
                 By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.
@@ -37,7 +37,7 @@ export default function TermsOfService() {
             <div>
               <h2 className="text-base font-semibold mb-3" style={{ color: '#F5F7FA' }}>1. Company Information</h2>
               <p>
-                DealflowOS, Inc. is a Delaware C-Corporation. The Company may operate as a foreign corporation in one or more U.S. states where required by law.
+                DealflowOS, LLC is a New Jersey limited liability company. The Company may operate as a foreign entity in one or more U.S. states where required by law.
               </p>
             </div>
 
@@ -78,7 +78,7 @@ export default function TermsOfService() {
             <div>
               <h2 className="text-base font-semibold mb-3" style={{ color: '#F5F7FA' }}>6. Limitation of Liability</h2>
               <p className="mb-2">
-                To the maximum extent permitted by law, DealflowOS, Inc. shall not be liable for indirect, incidental, consequential, or punitive damages, including lost profits, lost deals, or business interruption.
+                To the maximum extent permitted by law, DealflowOS, LLC shall not be liable for indirect, incidental, consequential, or punitive damages, including lost profits, lost deals, or business interruption.
               </p>
               <p>
                 Our total liability shall not exceed the amount paid by you in the prior 12 months or $100, whichever is greater.
@@ -88,7 +88,7 @@ export default function TermsOfService() {
             <div>
               <h2 className="text-base font-semibold mb-3" style={{ color: '#F5F7FA' }}>7. Indemnification</h2>
               <p>
-                You agree to indemnify and hold harmless DealflowOS, Inc. from any claims arising from your use of the Service, real estate activities, or violation of laws or third-party rights.
+                You agree to indemnify and hold harmless DealflowOS, LLC from any claims arising from your use of the Service, real estate activities, or violation of laws or third-party rights.
               </p>
             </div>
 
@@ -123,7 +123,7 @@ export default function TermsOfService() {
             <div>
               <h2 className="text-base font-semibold mb-3" style={{ color: '#F5F7FA' }}>12. Governing Law</h2>
               <p>
-                These Terms are governed by the laws of the State of Delaware.
+                These Terms are governed by the laws of the State of New Jersey.
               </p>
             </div>
 
