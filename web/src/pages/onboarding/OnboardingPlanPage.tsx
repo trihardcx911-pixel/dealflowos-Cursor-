@@ -5,6 +5,12 @@ import { useBillingStatus } from '../../hooks/useBillingStatus'
 import { hasActiveSubscription, DEFAULT_APP_ROUTE } from '../../lib/routeDecision'
 import { post, ApiError, NetworkError } from '../../api'
 
+declare global {
+  interface Window {
+    dataLayer?: any[];
+  }
+}
+
 export default function OnboardingPlanPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -22,6 +28,11 @@ export default function OnboardingPlanPage() {
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false)
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false)
   const [waitlistHoneypot, setWaitlistHoneypot] = useState("")
+
+  useEffect(() => {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: "trial_signup_complete" });
+  }, []);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
