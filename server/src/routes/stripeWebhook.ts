@@ -6,7 +6,6 @@ import {
   mapStripeStatusToBillingStatus,
   mapPriceIdToTier,
   findUserByStripeIdentifiers,
-  isDuplicateWebhook,
 } from "../billing/stripeEntitlements.js";
 import { BillingStatus } from "@prisma/client";
 import { invalidateUserAccessCache } from "../middleware/requireAuth.js";
@@ -18,13 +17,13 @@ const DB_CAPABILITIES = {
   HAS_stripeCustomerId: true,
   HAS_stripeSubscriptionId: true,
   HAS_stripePriceId: true,
-  HAS_trialEnd: true,
+  HAS_trial_ends_at: true,
   HAS_billingStatus: true,
   HAS_cancelAtPeriodEnd: true,
   HAS_currentPeriodEnd: true,
-  HAS_currentPeriodStart: true,
+  HAS_currentPeriodStart: false, // not in Prisma User schema
   HAS_subscriptionCancelledAt: true,
-  HAS_stripeEndedAt: true,
+  HAS_stripeEndedAt: false, // not in Prisma User schema
 };
 
 /**
@@ -80,8 +79,8 @@ async function persistSubscriptionStateToUser(state: ReturnType<typeof extractSu
     updateData.stripePriceId = state.stripePriceId;
   }
 
-  if (DB_CAPABILITIES.HAS_trialEnd) {
-    updateData.trialEnd = state.trialEndSec ? new Date(state.trialEndSec * 1000) : null;
+  if (DB_CAPABILITIES.HAS_trial_ends_at) {
+    updateData.trial_ends_at = state.trialEndSec ? new Date(state.trialEndSec * 1000) : null;
   }
 
   if (DB_CAPABILITIES.HAS_billingStatus && state.status) {
@@ -188,12 +187,6 @@ async function handleCheckoutSessionCompleted(stripe: any, event: any) {
       return;
     }
 
-    // Idempotency check
-    if (await isDuplicateWebhook(user.id, event.id)) {
-      console.log("[STRIPE WEBHOOK] checkout.session.completed: Duplicate event", { userId: user.id, eventId: event.id });
-      return;
-    }
-
     // Retrieve subscription to get full details
     if (!subscriptionId) {
       console.warn("[STRIPE WEBHOOK] checkout.session.completed: No subscription ID in session");
@@ -274,12 +267,6 @@ async function handleInvoicePaymentSucceeded(stripe: any, event: any) {
       return;
     }
 
-    // Idempotency check
-    if (await isDuplicateWebhook(user.id, event.id)) {
-      console.log("[STRIPE WEBHOOK] invoice.payment_succeeded: Duplicate event", { userId: user.id, eventId: event.id });
-      return;
-    }
-
     // Retrieve subscription to get current state
     if (!subscriptionId) {
       console.warn("[STRIPE WEBHOOK] invoice.payment_succeeded: No subscription ID in invoice");
@@ -335,12 +322,6 @@ async function handleInvoicePaymentFailed(stripe: any, event: any) {
       return;
     }
 
-    // Idempotency check
-    if (await isDuplicateWebhook(user.id, event.id)) {
-      console.log("[STRIPE WEBHOOK] invoice.payment_failed: Duplicate event", { userId: user.id, eventId: event.id });
-      return;
-    }
-
     // Update user to past_due
     await prisma.user.update({
       where: { id: user.id },
@@ -370,17 +351,11 @@ async function handleSubscriptionUpdated(stripe: any, event: any) {
     const subscriptionId = subscription.id;
     const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id;
 
-    // Find user for idempotency check
+    // Find user
     const user = await findUserByStripeIdentifiers(subscriptionId, customerId);
     if (!user) {
       console.warn("[STRIPE WEBHOOK] customer.subscription.updated: User not found", { customerId, subscriptionId });
       // Still attempt persistence by customerId (BOLA-safe)
-    } else {
-      // Idempotency check
-      if (await isDuplicateWebhook(user.id, event.id)) {
-        console.log("[STRIPE WEBHOOK] customer.subscription.updated: Duplicate event", { userId: user.id, eventId: event.id });
-        return;
-      }
     }
 
     // Extract and persist subscription state
@@ -420,17 +395,11 @@ async function handleSubscriptionCreated(stripe: any, event: any) {
     const subscriptionId = subscription.id;
     const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id;
 
-    // Find user for idempotency check
+    // Find user
     const user = await findUserByStripeIdentifiers(subscriptionId, customerId);
     if (!user) {
       console.warn("[STRIPE WEBHOOK] customer.subscription.created: User not found", { customerId, subscriptionId });
       // Still attempt persistence by customerId (BOLA-safe)
-    } else {
-      // Idempotency check
-      if (await isDuplicateWebhook(user.id, event.id)) {
-        console.log("[STRIPE WEBHOOK] customer.subscription.created: Duplicate event", { userId: user.id, eventId: event.id });
-        return;
-      }
     }
 
     // Extract and persist subscription state
@@ -470,17 +439,11 @@ async function handleSubscriptionDeleted(stripe: any, event: any) {
     const subscriptionId = subscription.id;
     const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id;
 
-    // Find user for idempotency check
+    // Find user
     const user = await findUserByStripeIdentifiers(subscriptionId, customerId);
     if (!user) {
       console.warn("[STRIPE WEBHOOK] customer.subscription.deleted: User not found", { customerId, subscriptionId });
       // Still attempt persistence by customerId (BOLA-safe)
-    } else {
-      // Idempotency check
-      if (await isDuplicateWebhook(user.id, event.id)) {
-        console.log("[STRIPE WEBHOOK] customer.subscription.deleted: Duplicate event", { userId: user.id, eventId: event.id });
-        return;
-      }
     }
 
     // Extract and persist subscription state (includes canceled status and timestamps)
@@ -558,6 +521,17 @@ stripeWebhookRouter.post(
         error: "Invalid signature",
         message: err.message,
       });
+    }
+
+    // Per-event idempotency: skip if already processed (safe for retries and out-of-order)
+    try {
+      await prisma.processedStripeEvent.create({ data: { event_id: event.id } });
+    } catch (err: any) {
+      if (err?.code === "P2002") {
+        console.log(`[STRIPE WEBHOOK] Event already processed: ${event.id} (${event.type})`);
+        return res.json({ received: true });
+      }
+      throw err;
     }
 
     // Handle different event types

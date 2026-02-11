@@ -176,6 +176,11 @@ model User {
   @@index([firebase_uid])
 }
 
+model ProcessedStripeEvent {
+  event_id   String   @id // Stripe event id (evt_xxx) - used for idempotency
+  created_at DateTime @default(now())
+}
+
 model Deal {
   id        String           @id @default(cuid())
   documents LegalDocument[]
