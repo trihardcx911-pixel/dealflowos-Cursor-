@@ -110,6 +110,14 @@ leadsDevRouter.post("/", async (req, res) => {
   const orgId = (req as any).orgId || req.user.orgId || req.user.id;
   const now = new Date().toISOString();
 
+  // Validate orgId is present (do not create junk orgs)
+  if (!orgId || typeof orgId !== 'string' || orgId.trim().length === 0) {
+    return res.status(400).json({
+      error: "VALIDATION_ERROR",
+      message: "orgId is required"
+    });
+  }
+
   if (isDevMode) {
     // Dev mode: use in-memory store
     const newLead = {
@@ -166,6 +174,22 @@ leadsDevRouter.post("/", async (req, res) => {
         error: "VALIDATION_ERROR",
         message: `Invalid lead type. Must be one of: ${validTypes.join(', ')}`
       });
+    }
+    
+    // Ensure Organization exists before inserting Lead (prevent FK violation)
+    const orgCheck = await pool.query(
+      `SELECT 1 FROM "Organization" WHERE id = $1`,
+      [orgId]
+    );
+    if (orgCheck.rows.length === 0) {
+      // Auto-create Organization with defaults (ON CONFLICT handles race conditions)
+      await pool.query(
+        `INSERT INTO "Organization" (id, name, timezone, "marketProfile", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, NOW(), NOW())
+         ON CONFLICT (id) DO NOTHING`,
+        [orgId, 'Default', 'America/New_York', 'metro_sfr']
+      );
+      console.log(`[ORG] Auto-created Organization for orgId=${orgId}`);
     }
     
     const result = await pool.query(
