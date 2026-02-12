@@ -170,7 +170,7 @@ leadsDevRouter.post("/", async (req, res) => {
     
     const result = await pool.query(
       `INSERT INTO "Lead" ("id", "orgId", type, address, city, state, zip, "addressHash", source, "homeownerName", "phoneNumber", temperature, "createdAt", "updatedAt")
-       VALUES ($1, $2, $3::lead_type, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, 'cold'), $13, $14)
+       VALUES ($1, $2, $3::"LeadType", $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, 'cold'), $13, $14)
        RETURNING *`,
       [
         crypto.randomUUID(),
@@ -445,7 +445,7 @@ leadsDevRouter.patch("/:id", async (req, res) => {
     let paramIndex = 1;
 
     if (type && dbType) {
-      updates.push(`type = $${paramIndex}::lead_type`);
+      updates.push(`type = $${paramIndex}::"LeadType"`);
       values.push(dbType);
       paramIndex++;
     }
