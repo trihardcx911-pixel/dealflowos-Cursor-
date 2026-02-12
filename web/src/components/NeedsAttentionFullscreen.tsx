@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FocusedDealBrief } from './FocusedDealBrief'
+import { safeFocus } from '../utils/safeFocus'
 
 interface NeedsAttentionItem {
   dealId: string
@@ -88,13 +89,13 @@ export function NeedsAttentionFullscreen({
     return () => document.removeEventListener('keydown', handleEscape)
   }, [isOpen, onClose, viewMode])
 
-  // Focus trap: focus first focusable element when opened
+  // Focus trap: focus first focusable element when opened (prevent scroll)
   useEffect(() => {
     if (isOpen && panelRef.current && viewMode === 'list') {
       const firstFocusable = panelRef.current.querySelector<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       )
-      firstFocusable?.focus()
+      safeFocus(firstFocusable)
     }
   }, [isOpen, viewMode])
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { safeFocus } from "../../utils/safeFocus";
 
 interface DeleteConfirmModalProps {
   lead?: any;  // Optional: for single delete mode
@@ -25,11 +26,9 @@ export default function DeleteConfirmModal({
 
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Focus management: focus Cancel button when modal opens
+  // Focus management: focus Cancel button when modal opens (prevent scroll)
   useEffect(() => {
-    if (cancelButtonRef.current) {
-      cancelButtonRef.current.focus();
-    }
+    safeFocus(cancelButtonRef.current);
   }, []);
 
   // ESC key handler: close modal unless isDeleting

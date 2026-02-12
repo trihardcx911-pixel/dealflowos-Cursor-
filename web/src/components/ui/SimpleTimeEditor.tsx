@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { safeFocus } from "../../utils/safeFocus";
 
 interface SimpleTimeEditorProps {
   value: string; // "HH:mm" in 24h format
@@ -134,7 +135,7 @@ export const SimpleTimeEditor: React.FC<SimpleTimeEditorProps> = ({
       setHourInput(String(prev));
       emitTime(prev, parseInt(minuteInput, 10) || 0, selectedPeriod);
     } else if (e.key === "Enter" || e.key === "Tab") {
-      minuteRef.current?.focus();
+      safeFocus(minuteRef.current);
       if (e.key === "Enter") e.preventDefault();
     }
   };

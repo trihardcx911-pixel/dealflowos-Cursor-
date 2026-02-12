@@ -6,6 +6,7 @@ import { List, type RowComponentProps } from 'react-window'
 import { useQueryClient } from '@tanstack/react-query'
 import { get, post, patch, del } from '../api'
 import { useToast } from '../useToast'
+import { safeFocus } from '../utils/safeFocus'
 import BackToDashboard from '../components/BackToDashboard'
 import EditLeadModal from '../features/leads/EditLeadModal'
 import DeleteConfirmModal from '../features/leads/DeleteConfirmModal'
@@ -432,9 +433,9 @@ export default function LeadsPage() {
     document.body.style.overflow = 'hidden'
     document.body.style.paddingRight = `${scrollbarWidth}px`
 
-    // Focus close button after render
+    // Focus close button after render (prevent auto-scroll)
     setTimeout(() => {
-      closeBtnRef.current?.focus()
+      safeFocus(closeBtnRef.current)
     }, 0)
   }
 
@@ -447,9 +448,9 @@ export default function LeadsPage() {
     document.body.style.overflow = prevBodyOverflowRef.current
     document.body.style.paddingRight = prevBodyPaddingRightRef.current
 
-    // Restore focus to trigger
+    // Restore focus to trigger (prevent auto-scroll to avoid rubber-band effect)
     if (lastQuickViewTriggerRef.current) {
-      lastQuickViewTriggerRef.current.focus()
+      safeFocus(lastQuickViewTriggerRef.current)
       lastQuickViewTriggerRef.current = null
     }
   }
@@ -468,7 +469,7 @@ export default function LeadsPage() {
 
     // Restore focus to trigger
     if (previewDetailAnchorRef.current) {
-      previewDetailAnchorRef.current.focus()
+      safeFocus(previewDetailAnchorRef.current)
       previewDetailAnchorRef.current = null
     }
   }
