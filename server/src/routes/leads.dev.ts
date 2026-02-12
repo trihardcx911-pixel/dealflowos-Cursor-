@@ -159,6 +159,15 @@ leadsDevRouter.post("/", async (req, res) => {
     };
     const dbType = typeMap[typeLower] || 'sfr';
     
+    // Validate dbType is a valid enum value (safety check before SQL cast)
+    const validTypes = ['sfr', 'land', 'multi', 'other'];
+    if (!validTypes.includes(dbType)) {
+      return res.status(400).json({
+        error: "VALIDATION_ERROR",
+        message: `Invalid lead type. Must be one of: ${validTypes.join(', ')}`
+      });
+    }
+    
     const result = await pool.query(
       `INSERT INTO "Lead" ("id", "orgId", type, address, city, state, zip, "addressHash", source, "homeownerName", "phoneNumber", temperature, "createdAt", "updatedAt")
        VALUES ($1, $2, $3::lead_type, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, 'cold'), $13, $14)
@@ -421,6 +430,14 @@ leadsDevRouter.patch("/:id", async (req, res) => {
   try {
     // Map type to enum value if provided
     const dbType = type ? (['sfr', 'land', 'multi', 'other'].includes(type.toLowerCase()) ? type.toLowerCase() : null) : null;
+    
+    // Validate type if provided (return 400 before attempting SQL cast)
+    if (type && !dbType) {
+      return res.status(400).json({
+        error: "VALIDATION_ERROR",
+        message: `Invalid lead type. Must be one of: sfr, land, multi, other`
+      });
+    }
     
     // Build dynamic update query
     const updates: string[] = [];
