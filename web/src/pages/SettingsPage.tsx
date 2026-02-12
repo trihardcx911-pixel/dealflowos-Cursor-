@@ -10,6 +10,7 @@ import { get, patch } from '../api'
 import { Edit2, LogOut } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { useAccessibility } from '../hooks/useAccessibility'
+import { logout as firebaseLogout } from '../auth/firebaseAuth'
 
 // API response type for /api/user/me
 type ApiUserMe = {
@@ -127,7 +128,15 @@ export default function SettingsPage() {
     return 'U'
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // Sign out from Firebase (if in use)
+      await firebaseLogout()
+    } catch (err) {
+      // Non-fatal: still clear local session below
+      console.error('[LOGOUT_ERROR]', err)
+    }
+
     // Clear auth token
     localStorage.removeItem('token')
     
@@ -141,8 +150,8 @@ export default function SettingsPage() {
     // Clear React Query cache
     queryClient.clear()
     
-    // Redirect to landing page
-    navigate('/', { replace: true })
+    // Redirect to login page to avoid public header flash
+    navigate('/login', { replace: true })
   }
 
 

@@ -130,6 +130,7 @@ import calendarRouter from "./routes/calendar.js";
 import { billingRouter } from "./routes/billing.js";
 import { stripeWebhookRouter } from "./routes/stripeWebhook.js";
 import { pool } from "./db/pool.js";
+import { prisma } from "./db/prisma.js";
 import { isStripeConfigured } from "./billing/stripeClient.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 import { authRateLimiter, apiRateLimiter, billingRateLimiter } from "./middleware/rateLimit.js";
@@ -374,6 +375,24 @@ console.log("[BOOT ENV]", {
 });
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3010;
+
+// Production: ensure ProcessedStripeEvent table exists (from prisma migrate deploy) to avoid P2021 in webhook
+async function ensureProcessedStripeEventTable(): Promise<void> {
+  try {
+    await prisma.processedStripeEvent.findFirst({ take: 1 });
+  } catch (e: any) {
+    if (e?.code === "P2021") {
+      console.error("ERROR: Table ProcessedStripeEvent does not exist. Run: npx prisma migrate deploy --schema prisma/schema.prisma");
+      process.exit(1);
+    }
+    throw e;
+  }
+}
+
+if (isProd && hasDatabase) {
+  await ensureProcessedStripeEventTable();
+}
+
 console.log(`>>> Starting server on port ${PORT}...`);
 const server = app.listen(PORT, "0.0.0.0", () => {
   const addr = server.address();

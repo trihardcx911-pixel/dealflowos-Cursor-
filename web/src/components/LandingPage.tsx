@@ -81,7 +81,7 @@ export default function LandingPage() {
       {/* NAV — desktop pill (hidden on mobile) */}
       <header className="sticky top-0 z-50 px-4 sm:px-6 pt-5 w-full">
         <div className="hidden min-[700px]:flex justify-center w-full">
-          <nav className="relative flex w-full max-w-full min-[700px]:inline-flex min-[700px]:w-auto min-[700px]:min-w-0 min-[700px]:max-w-full items-center gap-2 sm:gap-3 rounded-2xl overflow-hidden border border-white/15 ring-1 ring-white/10 bg-white/[0.04] backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_8px_30px_rgba(0,0,0,0.22),0_0_24px_rgba(255,10,69,0.06)] pl-3 pr-2 sm:pl-5 sm:pr-3 py-3 min-w-0">
+          <nav className="relative flex w-full max-w-full min-[700px]:inline-flex min-[700px]:w-auto min-[700px]:min-w-0 min-[700px]:max-w-full items-center gap-2 sm:gap-3 rounded-2xl overflow-hidden border border-white/15 ring-1 ring-white/10 bg-black/30 backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_8px_30px_rgba(0,0,0,0.22),0_0_24px_rgba(255,10,69,0.06)] pl-3 pr-2 sm:pl-5 sm:pr-3 py-3 min-w-0">
             {/* Inner highlight — crisp glass edge */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.12] to-transparent pointer-events-none z-0" aria-hidden="true" />
             {/* Specular reflection — soft radial gleam */}
