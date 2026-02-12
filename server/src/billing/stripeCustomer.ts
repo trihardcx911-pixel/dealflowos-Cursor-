@@ -34,15 +34,35 @@ export async function getOrCreateStripeCustomer(
       throw notFoundError;
     }
 
-    const existingCustomerId = userResult.rows[0].stripeCustomerId;
+    const existingCustomerId = userResult.rows[0].stripeCustomerId as string | null | undefined;
 
-    // If user already has a Stripe customer, return it
+    const stripe = getStripeClient();
+
+    // If user has a stored customer id, verify it exists in Stripe (handles test/live mismatch or deleted customer)
     if (existingCustomerId) {
-      return existingCustomerId;
+      try {
+        await stripe.customers.retrieve(existingCustomerId);
+        return existingCustomerId;
+      } catch (retrieveErr: any) {
+        const isMissing =
+          retrieveErr?.code === "resource_missing" ||
+          (typeof retrieveErr?.message === "string" && retrieveErr.message.includes("No such customer"));
+        if (isMissing) {
+          if (process.env.NODE_ENV !== "production" || process.env.DEV_DIAGNOSTICS === "1") {
+            console.log("[BILLING] Stale Stripe customer (missing in Stripe), creating new", {
+              uid: userId,
+              customerIdPrefix: existingCustomerId.substring(0, 12),
+              stripeCode: retrieveErr?.code,
+            });
+          }
+          // Fall through to create new customer and overwrite DB
+        } else {
+          throw retrieveErr;
+        }
+      }
     }
 
     // Create new Stripe customer
-    const stripe = getStripeClient();
     const customer = await stripe.customers.create({
       email: userEmail,
       metadata: {
@@ -60,6 +80,10 @@ export async function getOrCreateStripeCustomer(
 
     return customer.id;
   } catch (error: any) {
+    // Preserve Stripe errors so billing can return proper response (do not mask as DB error)
+    if (error?.type && String(error.type).startsWith("Stripe")) {
+      throw error;
+    }
     // Safe error logging (no secrets, no role names in message)
     if (process.env.NODE_ENV !== "production" || process.env.DEV_DIAGNOSTICS === "1") {
       console.error("[BILLING stripeCustomer] DB error:", {
@@ -72,16 +96,14 @@ export async function getOrCreateStripeCustomer(
         constraint: error?.constraint,
       });
     }
-    
     // Preserve "User not found" errors as-is (business logic, not DB connection issue)
     if (error?.message === "User not found" || error?.code === "USER_NOT_FOUND") {
-      throw error; // Re-throw unchanged so billing.ts can handle it
+      throw error;
     }
-    
-    // For actual DB errors, re-throw with safe message (no role names or secrets), preserving error code
+    // For actual DB errors, re-throw with safe message, preserving error code
     const safeError: any = new Error("DB error in stripeCustomer lookup");
     if (error?.code) {
-      safeError.code = error.code; // Preserve PostgreSQL error code for proper handling upstream
+      safeError.code = error.code;
     }
     throw safeError;
   }
