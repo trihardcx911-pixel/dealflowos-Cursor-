@@ -1,5 +1,5 @@
 // If react-window is not installed, run: npm install react-window @types/react-window
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import type { CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { List, type RowComponentProps } from 'react-window'
@@ -169,6 +169,12 @@ function validateLead(form: any): string | null {
   return null; // no errors
 }
 
+// Helper: Strip non-digits from phone for matching
+function normalizePhone(str: string | null | undefined): string {
+  if (!str) return ''
+  return str.replace(/\D/g, '')
+}
+
 export default function LeadsPage() {
   const [items, setItems] = useState<Lead[]>([])
   const [form, setForm] = useState(defaultLead)
@@ -185,17 +191,44 @@ export default function LeadsPage() {
   // "Select all" selects all items in the current items array (not global)
   // Selection is pruned on refresh() to remove IDs that no longer exist
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const headerCheckboxRef = useRef<HTMLInputElement | null>(null)
   const { notify } = useToast()
   const queryClient = useQueryClient()
 
+  // Derive filtered leads from search query
+  const visibleLeads = useMemo(() => {
+    if (!searchQuery.trim()) return items
+    
+    const query = searchQuery.toLowerCase().trim()
+    const queryDigits = normalizePhone(query)
+    
+    return items.filter(lead => {
+      // Match address (case-insensitive contains)
+      if (lead.address?.toLowerCase().includes(query)) return true
+      
+      // Match homeowner name (case-insensitive contains)
+      if (lead.homeownerName?.toLowerCase().includes(query)) return true
+      
+      // Match phone (digits-only contains)
+      if (queryDigits && normalizePhone(lead.phoneNumber).includes(queryDigits)) return true
+      
+      return false
+    })
+  }, [items, searchQuery])
+
+  // Derive visible lead IDs
+  const visibleLeadIds = useMemo(() => {
+    return new Set(visibleLeads.map(l => l.id))
+  }, [visibleLeads])
+
   // Computed selection state
   const selectedCount = selectedIds.size
   const maxBulk = 100
-  const allVisibleSelected = items.length > 0 && items.every(l => selectedIds.has(l.id))
-  const someVisibleSelected = items.some(l => selectedIds.has(l.id))
+  const allVisibleSelected = visibleLeads.length > 0 && visibleLeads.every(l => selectedIds.has(l.id))
+  const someVisibleSelected = visibleLeads.some(l => selectedIds.has(l.id)) && !allVisibleSelected
   const overLimit = selectedCount > maxBulk
-  const headerSelectDisabled = items.length === 0 || items.length > maxBulk
+  const headerSelectDisabled = visibleLeads.length === 0 || visibleLeads.length > maxBulk
 
   // Header checkbox indeterminate state (hardened)
   useEffect(() => {
@@ -743,12 +776,23 @@ export default function LeadsPage() {
 
   const toggleSelectAllVisible = (checked: boolean) => {
     if (!checked) {
-      setSelectedIds(new Set())
+      // Unselect all visible leads (keep non-visible selections intact)
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        visibleLeadIds.forEach(id => next.delete(id))
+        return next
+      })
       return
     }
-    // Policy A: if items.length > 100, do nothing (header disabled anyway)
-    // Select all visible rows (up to maxBulk limit)
-    setSelectedIds(new Set(items.map(l => l.id)))
+    
+    // Select all visible leads (up to maxBulk limit)
+    if (visibleLeads.length > maxBulk) return // Safety: header should be disabled anyway
+    
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      visibleLeads.forEach(l => next.add(l.id))
+      return next
+    })
   }
 
   // Import handlers
@@ -1711,58 +1755,91 @@ export default function LeadsPage() {
         )}
       </div>
 
-      {/* Bulk Actions Toolbar */}
-      {(selectedCount > 0 || items.length > maxBulk) && (
-        <div className="mb-4 flex items-center justify-between px-4 py-2 neon-glass rounded-lg border border-white/10">
-          <div className="flex items-center gap-4">
-            {selectedCount > 0 && (
-              <span className="text-sm text-white/80">
-                {selectedCount} selected
-              </span>
-            )}
-            {selectedCount > maxBulk && (
-              <span className="text-xs text-yellow-400/80">
-                Selection exceeds 100. Deselect some leads.
-              </span>
-            )}
-            {items.length > maxBulk && selectedCount <= maxBulk && (
-              <span className="text-xs text-yellow-400/80">
-                Bulk actions limited to 100 visible leads. Use filters to narrow.
-              </span>
-            )}
-            {selectedCount > 0 && (
-              <button
-                onClick={() => setSelectedIds(new Set())}
-                className="text-sm text-white/60 hover:text-white/80 transition underline"
-                aria-label="Clear selection"
-              >
-                Clear selection
-              </button>
-            )}
-          </div>
-          {selectedCount > 0 && (
+      {/* Search Bar */}
+      <div className="neon-glass p-4">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by address, homeowner, or phone..."
+            className="w-full px-4 py-2 pl-10 text-sm text-white bg-transparent border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff0a45]/60 placeholder:text-white/40"
+          />
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
+            🔍
+          </span>
+          {searchQuery && (
             <button
-              onClick={() => {
-                setBulkCountSnapshot(selectedCount)
-                setIsBulkConfirmOpen(true)
-              }}
-              disabled={selectedCount === 0 || overLimit}
-              aria-disabled={selectedCount === 0 || overLimit}
-              aria-label={`Delete ${selectedCount} selected lead(s)`}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600/20 border border-red-500/40 text-red-400 hover:bg-red-600/30 hover:border-red-500/60 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition"
+              aria-label="Clear search"
             >
-              <span>🗑️</span>
-              Delete selected ({selectedCount})
+              ✕
             </button>
           )}
         </div>
-      )}
+        {searchQuery && (
+          <div className="mt-2 text-xs text-white/60">
+            Showing {visibleLeads.length} of {items.length} lead{items.length !== 1 ? 's' : ''}
+          </div>
+        )}
+      </div>
+
+      {/* Bulk Actions Toolbar - Always mounted with fixed height to prevent layout shift */}
+      <div
+        className={`mb-4 min-h-[56px] flex items-center justify-between px-4 py-2 neon-glass rounded-lg border border-white/10 transition-opacity duration-200 ${
+          (selectedCount > 0 || visibleLeads.length > maxBulk) ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden={!(selectedCount > 0 || visibleLeads.length > maxBulk)}
+      >
+        <div className="flex items-center gap-4">
+          {selectedCount > 0 && (
+            <span className="text-sm text-white/80">
+              {selectedCount} selected
+            </span>
+          )}
+          {selectedCount > maxBulk && (
+            <span className="text-xs text-yellow-400/80">
+              Selection exceeds 100. Deselect some leads.
+            </span>
+          )}
+          {visibleLeads.length > maxBulk && selectedCount <= maxBulk && (
+            <span className="text-xs text-yellow-400/80">
+              Bulk actions limited to 100 visible leads. Use filters to narrow.
+            </span>
+          )}
+          {selectedCount > 0 && (
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="text-sm text-white/60 hover:text-white/80 transition underline"
+              aria-label="Clear selection"
+            >
+              Clear selection
+            </button>
+          )}
+        </div>
+        {selectedCount > 0 && (
+          <button
+            onClick={() => {
+              setBulkCountSnapshot(selectedCount)
+              setIsBulkConfirmOpen(true)
+            }}
+            disabled={selectedCount === 0 || overLimit}
+            aria-disabled={selectedCount === 0 || overLimit}
+            aria-label={`Delete ${selectedCount} selected lead(s)`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600/20 border border-red-500/40 text-red-400 hover:bg-red-600/30 hover:border-red-500/60 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span>🗑️</span>
+            Delete selected ({selectedCount})
+          </button>
+        )}
+      </div>
 
       <div className="neon-glass overflow-hidden text-sm">
         <table className="w-full text-left">
           <thead className="bg-white/5 text-xs uppercase tracking-[0.25em] text-white/60">
             <tr>
-              <th className="px-4 py-3 w-12">
+              <th className={`px-4 py-3 w-12 ${headerSelectDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <input
                   type="checkbox"
                   checked={allVisibleSelected}
@@ -1771,6 +1848,7 @@ export default function LeadsPage() {
                   disabled={headerSelectDisabled}
                   aria-label="Select all visible leads"
                   className="tron-checkbox"
+                  title={headerSelectDisabled ? 'Select all disabled when >100 leads visible' : 'Select all visible leads'}
                 />
               </th>
               <th className="px-4 py-3">Type</th>
@@ -1784,7 +1862,7 @@ export default function LeadsPage() {
             </tr>
           </thead>
           <tbody>
-            {items.map((lead) => (
+            {visibleLeads.map((lead) => (
               <tr
                 key={lead.id}
                 className="border-t border-white/5 hover:bg-white/5 transition-colors"
@@ -1876,7 +1954,7 @@ export default function LeadsPage() {
                 </td>
               </tr>
             ))}
-            {!items.length && (
+            {!visibleLeads.length && !searchQuery && (
               <tr>
                 <td
                   colSpan={9}
@@ -1884,6 +1962,22 @@ export default function LeadsPage() {
                 >
                   No leads yet. Use the form above to create one or import a
                   list.
+                </td>
+              </tr>
+            )}
+            {!visibleLeads.length && searchQuery && (
+              <tr>
+                <td
+                  colSpan={9}
+                  className="px-4 py-8 text-center text-white/60"
+                >
+                  No leads match your search.{' '}
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="underline hover:text-white transition"
+                  >
+                    Clear filter
+                  </button>
                 </td>
               </tr>
             )}
