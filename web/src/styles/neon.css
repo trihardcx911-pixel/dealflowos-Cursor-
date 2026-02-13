@@ -142,7 +142,10 @@ html:not(.dark) body {
     0 0 12px var(--neon-red-dim),
     inset 0 0 6px var(--glass-glow-inner);
   border-radius: var(--card-radius);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Explicit transitions to avoid layout-affecting properties */
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -407,9 +410,11 @@ html:not(.dark) body {
   border-color: var(--glass-border-hover);
 }
 
+/* Disabled: scale transform on :active causes layout shift / rubber-band effect
 .neon-glass:active {
   transform: scale(0.99);
 }
+*/
 
 /* ======================= */
 /* GLASS LAYER VARIANTS    */
@@ -1651,7 +1656,10 @@ html:not(.dark) .bg-\[\#080712\]\/80 button[class*="bg-\[#ff0a45\]/20"] {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 0 0 1px rgba(255, 0, 80, 0.15);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Specific transitions to avoid layout-affecting properties */
+  transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   position: relative;
   flex-shrink: 0;

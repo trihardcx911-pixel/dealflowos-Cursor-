@@ -1779,11 +1779,10 @@ export default function LeadsPage() {
             </button>
           )}
         </div>
-        {searchQuery && (
-          <div className="mt-2 text-xs text-white/60">
-            Showing {visibleLeads.length} of {items.length} lead{items.length !== 1 ? 's' : ''}
-          </div>
-        )}
+        {/* Always mounted with fixed min-height to prevent layout shift */}
+        <div className={`mt-2 min-h-[20px] text-xs text-white/60 transition-opacity duration-150 ${searchQuery ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          {searchQuery ? `Showing ${visibleLeads.length} of ${items.length} lead${items.length !== 1 ? 's' : ''}` : '\u00A0'}
+        </div>
       </div>
 
       {/* Bulk Actions Toolbar - Always mounted with fixed height to prevent layout shift */}
