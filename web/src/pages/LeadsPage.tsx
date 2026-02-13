@@ -218,24 +218,19 @@ export default function LeadsPage() {
     })
   }, [items, searchQuery])
 
-  // Derive visible lead IDs
-  const visibleLeadIds = useMemo(() => {
-    return new Set(visibleLeads.map(l => l.id))
-  }, [visibleLeads])
-
-  // Computed selection state
+  // Computed selection state (normalized IDs to prevent type mismatches)
   const selectedCount = selectedIds.size
   const maxBulk = 100
-  const allVisibleSelected = visibleLeads.length > 0 && visibleLeads.every(l => selectedIds.has(l.id))
-  const someVisibleSelected = visibleLeads.some(l => selectedIds.has(l.id)) && !allVisibleSelected
+  const allVisibleSelected = visibleLeads.length > 0 && visibleLeads.every(l => selectedIds.has(String(l.id)))
+  const someVisibleSelected = visibleLeads.some(l => selectedIds.has(String(l.id))) && !allVisibleSelected
   const overLimit = selectedCount > maxBulk
   const headerSelectDisabled = visibleLeads.length === 0 || visibleLeads.length > maxBulk
 
-  // Header checkbox indeterminate state (hardened)
+  // Header checkbox indeterminate state (simplified - someVisibleSelected already excludes allVisibleSelected)
   useEffect(() => {
     if (!headerCheckboxRef.current) return
-    headerCheckboxRef.current.indeterminate = someVisibleSelected && !allVisibleSelected
-  }, [someVisibleSelected, allVisibleSelected])
+    headerCheckboxRef.current.indeterminate = someVisibleSelected
+  }, [someVisibleSelected])
 
   // Quick View state
   const [quickViewOpen, setQuickViewOpen] = useState(false)
@@ -779,11 +774,25 @@ export default function LeadsPage() {
   }
 
   const toggleSelectAllVisible = (checked: boolean) => {
+    // Debug flag for production troubleshooting (keep OFF by default)
+    const DEBUG_SELECTION = false
+    
+    if (DEBUG_SELECTION) {
+      console.log('[SELECT_ALL_DEBUG]', {
+        action: checked ? 'SELECT' : 'UNSELECT',
+        visibleCount: visibleLeads.length,
+        selectedCount: selectedIds.size,
+        firstFiveVisible: visibleLeads.slice(0, 5).map(l => ({ id: l.id, type: typeof l.id })),
+        sampleSelected: Array.from(selectedIds).slice(0, 3)
+      })
+    }
+    
     if (!checked) {
       // Unselect all visible leads (keep non-visible selections intact)
+      // Use fresh visibleLeads array to avoid stale closure over memoized Set
       setSelectedIds(prev => {
         const next = new Set(prev)
-        visibleLeadIds.forEach(id => next.delete(id))
+        visibleLeads.forEach(l => next.delete(String(l.id)))
         return next
       })
       return
@@ -794,7 +803,7 @@ export default function LeadsPage() {
     
     setSelectedIds(prev => {
       const next = new Set(prev)
-      visibleLeads.forEach(l => next.add(l.id))
+      visibleLeads.forEach(l => next.add(String(l.id)))
       return next
     })
   }
@@ -1873,7 +1882,7 @@ export default function LeadsPage() {
                 <td className="px-4 py-3">
                   <input
                     type="checkbox"
-                    checked={selectedIds.has(lead.id)}
+                    checked={selectedIds.has(String(lead.id))}
                     onChange={(e) => toggleRowSelected(lead.id, e.target.checked)}
                     onClick={(e) => e.stopPropagation()}
                     aria-label={`Select lead at ${lead.address || 'unknown address'}`}
