@@ -1851,7 +1851,19 @@ export default function LeadsPage() {
         <table className="w-full text-left">
           <thead className="bg-white/5 text-xs uppercase tracking-[0.25em] text-white/60">
             <tr>
-              <th className={`px-4 py-3 w-12 ${headerSelectDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <th
+                className={`px-4 py-3 w-12 ${headerSelectDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onMouseDownCapture={(e) => {
+                  if (!headerSelectDisabled) return
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onClickCapture={(e) => {
+                  if (!headerSelectDisabled) return
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={allVisibleSelected}
@@ -1859,7 +1871,7 @@ export default function LeadsPage() {
                   onChange={(e) => toggleSelectAllVisible(e.target.checked)}
                   disabled={headerSelectDisabled}
                   aria-label="Select all visible leads"
-                  className="tron-checkbox"
+                  className={`tron-checkbox ${headerSelectDisabled ? 'pointer-events-none' : ''}`}
                   title={headerSelectDisabled ? 'Select all disabled when >100 leads visible' : 'Select all visible leads'}
                 />
               </th>
