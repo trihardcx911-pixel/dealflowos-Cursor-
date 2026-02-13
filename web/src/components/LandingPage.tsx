@@ -63,6 +63,18 @@ export default function LandingPage() {
       
       {/* Content Wrapper */}
       <div className="relative z-10">
+      <a
+        href="/"
+        className="min-[700px]:hidden fixed top-5 left-5 z-[110] flex items-center"
+        aria-label="DealflowOS home"
+      >
+        <img
+          src="/dealflowos-logo.svg"
+          alt="DealflowOS"
+          className="h-10 w-auto select-none opacity-90"
+          draggable={false}
+        />
+      </a>
       {/* Mobile-only floating hamburger — visible only on mobile */}
       <div className="min-[700px]:hidden fixed top-4 left-1/2 -translate-x-1/2 z-[110]">
         <button
@@ -80,6 +92,19 @@ export default function LandingPage() {
 
       {/* NAV — desktop pill (hidden on mobile) */}
       <header className="sticky top-0 z-50 px-4 sm:px-6 pt-5 w-full">
+        {/* Logo (desktop) — absolute so it doesn't shift the centered pill */}
+        <a
+          href="/"
+          className="hidden min-[700px]:flex absolute left-6 top-6 items-center"
+          aria-label="DealflowOS home"
+        >
+          <img
+            src="/dealflowos-logo.svg"
+            alt="DealflowOS"
+            className="h-12 w-auto select-none drop-shadow-[0_0_18px_rgba(255,10,69,0.25)]"
+            draggable={false}
+          />
+        </a>
         <div className="hidden min-[700px]:flex justify-center w-full">
           <nav className="relative flex w-full max-w-full min-[700px]:inline-flex min-[700px]:w-auto min-[700px]:min-w-0 min-[700px]:max-w-full items-center gap-2 sm:gap-3 rounded-2xl overflow-hidden border border-white/15 ring-1 ring-white/10 bg-black/30 backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_8px_30px_rgba(0,0,0,0.22),0_0_24px_rgba(255,10,69,0.06)] pl-3 pr-2 sm:pl-5 sm:pr-3 py-3 min-w-0">
             {/* Inner highlight — crisp glass edge */}
@@ -483,19 +508,19 @@ export default function LandingPage() {
 
             <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
               <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
-                Is there a free plan / do I need a credit card?
+                Is there a free trial?
               </summary>
               <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
-                Start free during early access. No credit card required. Pricing will be simple when it's finalized.
+                Yes — you can start with a free trial during early access. Pricing will stay simple when it's finalized.
               </p>
             </details>
 
             <details className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
               <summary className="cursor-pointer font-medium mb-2" style={{ color: '#F5F7FA' }}>
-                Can I export my data?
+                Can I import my data?
               </summary>
               <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
-                Export is planned. We won't trap your data. Basic CSV export will be available.
+                Import is planned. You'll be able to bring in leads and deals from a CSV so you can start without retyping everything.
               </p>
             </details>
 
@@ -513,7 +538,7 @@ export default function LandingPage() {
                 Is my data private and secure?
               </summary>
               <p className="text-[16px] leading-relaxed mt-3" style={{ color: '#A8AFB8' }}>
-                Yes. Your data is encrypted in transit and protected by standard account security. We don't sell your data or use it for advertising.
+                Yes. Your data is encrypted in transit and protected with standard account security practices. We don't sell your data, and we only use it to provide the service you signed up for.
               </p>
             </details>
 
