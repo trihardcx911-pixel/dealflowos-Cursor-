@@ -697,7 +697,7 @@ leadsDevRouter.delete("/:id", async (req, res) => {
 
 // POST /api/leads/bulk-delete
 // ===========================================
-// Bulk delete leads by IDs (max 100 per request)
+// Bulk delete leads by IDs (max 500 per request)
 // Payload: { ids: string[] }
 // Response: { success: true, deletedCount: number, items: Lead[] }
 //
@@ -707,7 +707,7 @@ leadsDevRouter.delete("/:id", async (req, res) => {
 // - Silently ignores IDs that don't exist or belong to other orgs
 //
 // Error handling:
-// - 400: Invalid payload (not array, empty, or > 100 IDs)
+// - 400: Invalid payload (not array, empty, or > 500 IDs)
 // - 401: Unauthorized
 // - 500: Database error
 leadsDevRouter.post("/bulk-delete", express.json(), async (req, res) => {
@@ -729,8 +729,8 @@ leadsDevRouter.post("/bulk-delete", express.json(), async (req, res) => {
     return res.status(400).json({ error: "Empty ids array" });
   }
 
-  if (ids.length > 100) {
-    return res.status(400).json({ error: "Too many ids: maximum 100 per bulk delete" });
+  if (ids.length > 500) {
+    return res.status(400).json({ error: "Too many ids: maximum 500 per bulk delete" });
   }
 
   // Deduplicate and filter: only keep non-empty strings

@@ -220,7 +220,7 @@ export default function LeadsPage() {
 
   // Computed selection state (normalized IDs to prevent type mismatches)
   const selectedCount = selectedIds.size
-  const maxBulk = 100
+  const maxBulk = 500
   const allVisibleSelected = visibleLeads.length > 0 && visibleLeads.every(l => selectedIds.has(String(l.id)))
   const someVisibleSelected = visibleLeads.some(l => selectedIds.has(String(l.id))) && !allVisibleSelected
   const overLimit = selectedCount > maxBulk
@@ -700,8 +700,8 @@ export default function LeadsPage() {
       return;
     }
     
-    if (idsArray.length > 100) {
-      notify("error", "Bulk delete limited to 100 leads");
+    if (idsArray.length > 500) {
+      notify("error", "Bulk delete limited to 500 leads");
       return;
     }
 
@@ -1812,12 +1812,12 @@ export default function LeadsPage() {
           )}
           {selectedCount > maxBulk && (
             <span className="text-xs text-yellow-400/80">
-              Selection exceeds 100. Deselect some leads.
+              Selection exceeds 500. Deselect some leads.
             </span>
           )}
           {visibleLeads.length > maxBulk && selectedCount <= maxBulk && (
             <span className="text-xs text-yellow-400/80">
-              Bulk actions limited to 100 visible leads. Use filters to narrow.
+              Bulk actions limited to 500 visible leads. Use filters to narrow.
             </span>
           )}
           {selectedCount > 0 && (
@@ -1877,7 +1877,7 @@ export default function LeadsPage() {
                   disabled={headerSelectDisabled}
                   aria-label="Select all visible leads"
                   className={`tron-checkbox ${headerSelectDisabled ? 'pointer-events-none' : ''}`}
-                  title={headerSelectDisabled ? 'Select all disabled when >100 leads visible' : 'Select all visible leads'}
+                  title={headerSelectDisabled ? 'Select all disabled when >500 leads visible' : 'Select all visible leads'}
                 />
               </th>
               <th className="px-4 py-3">Type</th>
