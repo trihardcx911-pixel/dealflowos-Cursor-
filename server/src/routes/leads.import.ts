@@ -122,17 +122,30 @@ function findHeaderForField(headers: string[], field: string): string | null {
 // --- Helper: detect if headers look like a header row vs data row ---
 // Uses core fields only: address, city, state, zip, ownerName, phone
 // Returns true if at least 2 core fields match (avoids false positives)
+// Special case: single-column file with "Address" header is valid (for splitRule guidance)
 const CORE_FIELDS = ["address", "city", "state", "zip", "ownerName", "phone"] as const;
 
-function looksLikeHeaderRow(headers: string[]): { isHeaderRow: boolean; matchCount: number } {
+function looksLikeHeaderRow(headers: string[]): { isHeaderRow: boolean; matchCount: number; isSingleAddressColumn: boolean } {
+  // Filter out empty and __EMPTY* headers (XLSX artifacts)
+  const usableHeaders = headers.filter(h => h && !h.startsWith("__EMPTY") && !/^_\d+$/.test(h));
+
   let matchCount = 0;
+  const matchedFields: string[] = [];
   for (const field of CORE_FIELDS) {
-    if (findHeaderForField(headers, field) !== null) {
+    if (findHeaderForField(usableHeaders, field) !== null) {
       matchCount++;
+      matchedFields.push(field);
     }
   }
-  // Threshold: at least 2 core fields must match
-  return { isHeaderRow: matchCount >= 2, matchCount };
+
+  // Special case: single usable column that matches "address" is valid
+  // This allows single-column "Address" files to proceed with splitRule guidance
+  const isSingleAddressColumn = usableHeaders.length === 1 && matchedFields.includes("address");
+
+  // Threshold: at least 2 core fields must match, OR single address column
+  const isHeaderRow = matchCount >= 2 || isSingleAddressColumn;
+
+  return { isHeaderRow, matchCount, isSingleAddressColumn };
 }
 
 // --- Helper: extract value from row with type coercion (XLSX returns numbers) ---
@@ -295,16 +308,16 @@ leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req
     const headers: string[] = rows.length > 0 ? Object.keys(rows[0]) : [];
 
     // --- Headerless detection: check if first row looks like headers ---
-    // Only check when we have data but custom mapping is NOT provided (user hasn't explicitly mapped)
+    // Runs unconditionally (regardless of mapping) to catch truly headerless files
     const mappingStr = req.body?.mapping;
-    if (rows.length > 0 && headers.length > 0 && !mappingStr) {
-      const { isHeaderRow, matchCount } = looksLikeHeaderRow(headers);
+    if (rows.length > 0 && headers.length > 0) {
+      const { isHeaderRow, matchCount, isSingleAddressColumn } = looksLikeHeaderRow(headers);
       if (!isHeaderRow) {
         // Cleanup temp file before returning error
         fs.unlinkSync(filePath);
 
         if (DEBUG_IMPORT) {
-          console.log("[IMPORT DEBUG] NO_HEADERS", { matchCount, headerCount: headers.length });
+          console.log("[IMPORT DEBUG] NO_HEADERS", { matchCount, headerCount: headers.length, isSingleAddressColumn });
         }
 
         return res.status(400).json({
@@ -430,6 +443,10 @@ leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req
 
     fs.unlinkSync(filePath); // cleanup
 
+    // Compute usable headers count for response
+    const usableHeadersForResponse = headers.filter(h => h && !h.startsWith("__EMPTY") && !/^_\d+$/.test(h));
+    const isSingleColumn = usableHeadersForResponse.length === 1;
+
     // Build response with all metadata
     const response: {
       preview: LeadImportRow[];
@@ -442,6 +459,7 @@ leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req
       invalidRows: number;
       warningMessage?: string;
       mappingApplied?: boolean;
+      isSingleColumn?: boolean;
     } = {
       preview,
       headers,
@@ -458,11 +476,31 @@ leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req
       response.mappingApplied = true;
     }
 
-    // Add warning if no valid rows (likely single-column file)
+    // Include isSingleColumn for client-side splitRule guidance
+    if (isSingleColumn) {
+      response.isSingleColumn = true;
+    }
+
+    // Add warning if no valid rows - provide context-specific guidance
     if (validRowsCount === 0 && rows.length > 0) {
-      response.warningMessage =
-        "No Address column detected. This file appears to have a single text column (e.g., 'address - issue'). " +
-        "Use the county-cleaner tool or provide a custom mapping with splitRule: 'address_dash_notes'.";
+      // Reuse already-computed usableHeadersForResponse
+      const usableHeaders = usableHeadersForResponse;
+
+      if (usableHeaders.length === 1) {
+        // Single column: suggest splitRule
+        response.warningMessage =
+          "Single-column file detected. If your column contains 'address - notes' format, " +
+          "open Edit mapping and enable 'Address + Notes (split on dash)'.";
+      } else if (usableHeaders.length > 1) {
+        // Multi-column but no address detected
+        response.warningMessage =
+          "No Address column detected. Your file has headers, but none match standard address fields. " +
+          "Use Edit mapping to select which column contains addresses.";
+      } else {
+        // No usable headers at all
+        response.warningMessage =
+          "No valid columns detected. Please check that your file contains data.";
+      }
     }
 
     res.json(response);

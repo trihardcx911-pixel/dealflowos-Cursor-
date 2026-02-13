@@ -1697,9 +1697,23 @@ export default function LeadsPage() {
                       <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm">
                         <div className="flex items-start gap-2">
                           <span className="text-lg">⚠️</span>
-                          <div>
+                          <div className="flex-1">
                             <div className="font-medium">File format issue detected</div>
                             <div className="text-yellow-400/80 mt-1">{importWarningMessage}</div>
+                            {/* Quick action button for single-column splitRule */}
+                            {importMetadata?.isSingleColumn && (
+                              <button
+                                onClick={() => {
+                                  const singleHeader = getValidHeaders()[0];
+                                  if (singleHeader) {
+                                    applySingleColumnMapping(singleHeader, true);
+                                  }
+                                }}
+                                className="mt-3 px-3 py-1.5 text-xs font-medium bg-yellow-500/20 border border-yellow-500/40 rounded hover:bg-yellow-500/30 transition-colors"
+                              >
+                                Try "Address + Notes (split on dash)"
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
