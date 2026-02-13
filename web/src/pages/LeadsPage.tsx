@@ -1853,6 +1853,11 @@ export default function LeadsPage() {
             <tr>
               <th
                 className={`px-4 py-3 w-12 ${headerSelectDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onPointerDownCapture={(e) => {
+                  if (!headerSelectDisabled) return
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
                 onMouseDownCapture={(e) => {
                   if (!headerSelectDisabled) return
                   e.preventDefault()
