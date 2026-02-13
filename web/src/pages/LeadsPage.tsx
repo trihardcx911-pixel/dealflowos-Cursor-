@@ -260,6 +260,13 @@ export default function LeadsPage() {
   const [dragActive, setDragActive] = useState(false)
   const [importMetadata, setImportMetadata] = useState<any>(null)
   const [importWarningMessage, setImportWarningMessage] = useState<string | null>(null)
+  const [importError, setImportError] = useState<{
+    errorCode: string
+    error: string
+    hint?: string
+    requiredHeaders?: string[]
+    detectedHeaderSample?: string[]
+  } | null>(null)
   const [abandonmentMessageShown, setAbandonmentMessageShown] = useState(false)
   const hasCommittedRef = useRef(false)
 
@@ -364,6 +371,7 @@ export default function LeadsPage() {
     setPreviewRows([])
     setImportMetadata(null)
     setImportWarningMessage(null)
+    setImportError(null)
     setDragActive(false)
     setImportMode('idle')
     hasCommittedRef.current = false
@@ -847,8 +855,22 @@ export default function LeadsPage() {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Upload failed' }));
-      throw new Error(error.error || 'Upload failed');
+      const errorBody = await response.json().catch(() => ({ error: 'Upload failed' }));
+
+      // Handle NO_HEADERS error specially - show in UI instead of throwing
+      if (response.status === 400 && errorBody.errorCode === 'NO_HEADERS') {
+        setImportError({
+          errorCode: errorBody.errorCode,
+          error: errorBody.error,
+          hint: errorBody.hint,
+          requiredHeaders: errorBody.requiredHeaders,
+          detectedHeaderSample: errorBody.detectedHeaderSample,
+        });
+        setImportMode('idle'); // Return to idle so user can retry
+        return null; // Signal to caller to stop processing
+      }
+
+      throw new Error(errorBody.error || 'Upload failed');
     }
 
     const data = await response.json();
@@ -873,12 +895,14 @@ export default function LeadsPage() {
     setCurrentFile(file);
     setPresetApplied(false);
     setMappingChanged(false);
+    setImportError(null); // Clear any previous error
 
     try {
       // Initial upload without mapping
       const result = await uploadFileWithMapping(file);
       if (!result) {
-        throw new Error('Upload failed');
+        // uploadFileWithMapping returns null for NO_HEADERS - error state already set
+        return;
       }
 
       const { data, rows } = result;
@@ -1525,10 +1549,53 @@ export default function LeadsPage() {
                     )}
                   </label>
                 </div>
-                {importMode === 'idle' && (
+                {importMode === 'idle' && !importError && (
                   <p className="text-xs text-white/50 mt-3 text-center">
                     You can upload a county or municipal spreadsheet here. Nothing is imported until you confirm.
                   </p>
+                )}
+
+                {/* NO_HEADERS error display */}
+                {importError && importError.errorCode === 'NO_HEADERS' && (
+                  <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <span className="text-xl text-red-400">⚠️</span>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-red-400">
+                          {importError.error}
+                        </p>
+                        {importError.hint && (
+                          <p className="text-xs text-red-400/80">
+                            {importError.hint}
+                          </p>
+                        )}
+                        {importError.detectedHeaderSample && importError.detectedHeaderSample.length > 0 && (
+                          <div className="text-xs text-white/60 mt-2">
+                            <span className="text-white/40">First row detected:</span>{' '}
+                            <code className="bg-white/5 px-1 py-0.5 rounded">
+                              {importError.detectedHeaderSample.slice(0, 4).join(', ')}
+                              {importError.detectedHeaderSample.length > 4 ? '…' : ''}
+                            </code>
+                          </div>
+                        )}
+                        {importError.requiredHeaders && (
+                          <details className="mt-2 text-xs">
+                            <summary className="text-white/60 cursor-pointer hover:text-white/80">
+                              Show required columns
+                            </summary>
+                            <ul className="mt-1 ml-4 list-disc text-white/50 space-y-0.5">
+                              {importError.requiredHeaders.map((h, i) => (
+                                <li key={i}>{h}</li>
+                              ))}
+                            </ul>
+                          </details>
+                        )}
+                        <p className="text-xs text-white/50 mt-2">
+                          Add a header row to your file and try again.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             ) : importMode === 'preview' ? (

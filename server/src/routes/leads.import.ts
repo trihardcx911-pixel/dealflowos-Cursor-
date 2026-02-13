@@ -119,6 +119,22 @@ function findHeaderForField(headers: string[], field: string): string | null {
   return null;
 }
 
+// --- Helper: detect if headers look like a header row vs data row ---
+// Uses core fields only: address, city, state, zip, ownerName, phone
+// Returns true if at least 2 core fields match (avoids false positives)
+const CORE_FIELDS = ["address", "city", "state", "zip", "ownerName", "phone"] as const;
+
+function looksLikeHeaderRow(headers: string[]): { isHeaderRow: boolean; matchCount: number } {
+  let matchCount = 0;
+  for (const field of CORE_FIELDS) {
+    if (findHeaderForField(headers, field) !== null) {
+      matchCount++;
+    }
+  }
+  // Threshold: at least 2 core fields must match
+  return { isHeaderRow: matchCount >= 2, matchCount };
+}
+
 // --- Helper: extract value from row with type coercion (XLSX returns numbers) ---
 function extractRowValue(row: any, header: string | null): string {
   if (!header || row[header] === undefined || row[header] === null) return "";
@@ -278,14 +294,45 @@ leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req
     // Extract raw headers from first row
     const headers: string[] = rows.length > 0 ? Object.keys(rows[0]) : [];
 
+    // --- Headerless detection: check if first row looks like headers ---
+    // Only check when we have data but custom mapping is NOT provided (user hasn't explicitly mapped)
+    const mappingStr = req.body?.mapping;
+    if (rows.length > 0 && headers.length > 0 && !mappingStr) {
+      const { isHeaderRow, matchCount } = looksLikeHeaderRow(headers);
+      if (!isHeaderRow) {
+        // Cleanup temp file before returning error
+        fs.unlinkSync(filePath);
+
+        if (DEBUG_IMPORT) {
+          console.log("[IMPORT DEBUG] NO_HEADERS", { matchCount, headerCount: headers.length });
+        }
+
+        return res.status(400).json({
+          errorCode: "NO_HEADERS",
+          error: "No headers detected—add a header row or provide column mapping.",
+          requiredHeaders: [
+            "Address (or Property Address / Street Address)",
+            "City",
+            "State",
+            "Zip (or Zip Code / Postal Code)",
+            "Owner Name (or Owner)",
+            "Phone (optional)",
+            "Notes (optional)",
+          ],
+          hint: "Your first row must be column names, not data. Example: Address, City, State, Zip, Owner Name",
+          matchCount,
+          detectedHeaderSample: headers.slice(0, 6),
+        });
+      }
+    }
+
     // Build header samples
     const headerSamples = buildHeaderSamples(rows, headers);
 
     // Compute source fingerprint
     const sourceFingerprint = computeSourceFingerprint(headers);
 
-    // Parse optional custom mapping from FormData
-    const mappingStr = req.body?.mapping;
+    // Parse optional custom mapping from FormData (already extracted above for headerless check)
     const customMapping = parseCustomMapping(mappingStr, headers);
 
     // Build column mapping (which header is used for each field)
