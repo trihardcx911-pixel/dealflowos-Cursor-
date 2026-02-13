@@ -65,7 +65,7 @@ export default function LandingPage() {
       <div className="relative z-10">
       <a
         href="/"
-        className="min-[700px]:hidden fixed top-5 left-5 z-[110] flex items-center"
+        className="min-[700px]:hidden fixed top-5 left-5 z-[110] flex items-center ml-2"
         aria-label="DealflowOS home"
       >
         <img
@@ -95,7 +95,7 @@ export default function LandingPage() {
         {/* Logo (desktop) — absolute so it doesn't shift the centered pill */}
         <a
           href="/"
-          className="hidden min-[700px]:flex absolute left-6 top-6 items-center"
+          className="hidden min-[700px]:flex absolute left-6 top-6 items-center ml-6"
           aria-label="DealflowOS home"
         >
           <img
@@ -201,12 +201,6 @@ export default function LandingPage() {
               >
                 Create account
               </Link>
-              <p className="text-[13px] text-[#7C828A]">
-                No credit card required.
-              </p>
-              <p className="text-[13px] text-[#7C828A] mt-1">
-                You can stop anytime.
-              </p>
             </div>
           </div>
         </div>
