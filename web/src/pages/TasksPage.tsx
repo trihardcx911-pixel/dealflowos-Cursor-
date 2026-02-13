@@ -113,14 +113,30 @@ export default function TasksPage() {
     if (!deleteConfirmId) return
     
     setIsDeleting(true)
+    
+    // Cancel outgoing refetches
+    await queryClient.cancelQueries({ queryKey: ['tasks'] })
+    
+    // Snapshot previous value
+    const previousTasks = queryClient.getQueryData<Task[]>(['tasks'])
+    
+    // Optimistically remove task from cache
+    queryClient.setQueryData<Task[]>(['tasks'], (oldTasks) => {
+      if (!oldTasks) return oldTasks
+      return oldTasks.filter((t) => t.id !== deleteConfirmId)
+    })
+    
     try {
       await del(`/tasks/${deleteConfirmId}`)
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
       setDeleteConfirmId(null)
     } catch (err) {
       console.error('[TasksPage] Failed to delete task:', err)
+      // Rollback on error
+      queryClient.setQueryData(['tasks'], previousTasks)
     } finally {
       setIsDeleting(false)
+      // Sync with server truth
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
     }
   }
 
@@ -133,11 +149,27 @@ export default function TasksPage() {
   }
 
   const handleDirectDelete = async (taskId: string) => {
+    // Cancel outgoing refetches
+    await queryClient.cancelQueries({ queryKey: ['tasks'] })
+    
+    // Snapshot previous value
+    const previousTasks = queryClient.getQueryData<Task[]>(['tasks'])
+    
+    // Optimistically remove task from cache
+    queryClient.setQueryData<Task[]>(['tasks'], (oldTasks) => {
+      if (!oldTasks) return oldTasks
+      return oldTasks.filter((t) => t.id !== taskId)
+    })
+    
     try {
       await del(`/tasks/${taskId}`)
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
     } catch (err) {
       console.error('[TasksPage] Failed to delete task:', err)
+      // Rollback on error
+      queryClient.setQueryData(['tasks'], previousTasks)
+    } finally {
+      // Sync with server truth
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
     }
   }
 
