@@ -12,6 +12,9 @@ import { getOrgId } from "../middleware/getOrgId.js";
 
 export const leadsImportRouter = express.Router();
 
+// Debug flag: set DEBUG_IMPORT=1 to log mapping resolution (no PII)
+const DEBUG_IMPORT = process.env.DEBUG_IMPORT === "1";
+
 // Multer configuration with file size limit (10MB max to prevent DoS)
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const upload = multer({
@@ -130,6 +133,17 @@ interface CustomMapping {
   splitRule?: "address_dash_notes";
 }
 
+// Map frontend *Key suffix to canonical keys (frontend sends addressKey, server uses address)
+const FRONTEND_KEY_MAP: Record<string, string> = {
+  addressKey: "address",
+  cityKey: "city",
+  stateKey: "state",
+  zipKey: "zip",
+  ownerKey: "ownerName",
+  phoneKey: "phone",
+  notesKey: "notes",
+};
+
 function parseCustomMapping(mappingStr: string | undefined, headers: string[]): CustomMapping | null {
   if (!mappingStr) return null;
 
@@ -161,9 +175,16 @@ function parseCustomMapping(mappingStr: string | undefined, headers: string[]): 
           result.splitRule = "address_dash_notes";
         }
       } else {
-        // Header reference - must exist in headers
+        // Header reference - accept both canonical key (address) and frontend *Key suffix (addressKey)
+        // First check canonical key
         if (typeof parsed[key] === "string" && headers.includes(parsed[key])) {
           (result as any)[key] = parsed[key];
+        } else {
+          // Check for *Key variant from frontend (e.g., addressKey → address)
+          const frontendKey = Object.entries(FRONTEND_KEY_MAP).find(([_, canonical]) => canonical === key)?.[0];
+          if (frontendKey && typeof parsed[frontendKey] === "string" && headers.includes(parsed[frontendKey])) {
+            (result as any)[key] = parsed[frontendKey];
+          }
         }
       }
     }
@@ -224,6 +245,15 @@ leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req
       if (header) {
         columnMapping[field] = header;
       }
+    }
+
+    // Debug logging (no PII - only field/header names)
+    if (DEBUG_IMPORT) {
+      console.log("[IMPORT DEBUG]", {
+        sourceFingerprint,
+        customMappingKeys: customMapping ? Object.keys(customMapping) : null,
+        effectiveHeaders,
+      });
     }
 
     // Check if splitRule applies
