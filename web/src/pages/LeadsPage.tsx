@@ -390,9 +390,11 @@ export default function LeadsPage() {
     setError(null)
     try {
       const res = await get<{ items: any[] }>('/leads')
-      // Normalize milestone fields: ensure assignmentFee is string | null (Decimal from DB may be string)
+      // Normalize fields: ensure id is always string (prevents type mismatch in Set operations)
+      // Also normalize assignmentFee to string | null (Decimal from DB may be string)
       const normalizedItems: Lead[] = res.items.map((item: any) => ({
         ...item,
+        id: String(item.id), // CRITICAL: normalize ID to string for consistent Set membership
         assignmentFee: item.assignmentFee == null ? null : String(item.assignmentFee),
         // Milestone timestamps: ensure null stays null, strings stay strings (already ISO format)
         underContractAt: item.underContractAt ?? null,
@@ -403,9 +405,9 @@ export default function LeadsPage() {
         buyerName: item.buyerName ?? null,
       }))
       setItems(normalizedItems)
-      // Prune selection to only IDs that still exist
+      // Prune selection to only IDs that still exist (use normalized IDs)
       setSelectedIds(prev => {
-        const validIds = new Set(res.items.map(l => l.id))
+        const validIds = new Set(normalizedItems.map(l => l.id))
         return new Set(Array.from(prev).filter(id => validIds.has(id)))
       })
     } catch (e: any) {
@@ -764,12 +766,13 @@ export default function LeadsPage() {
 
   // Selection handlers
   const toggleRowSelected = (id: string, checked: boolean) => {
+    const normalizedId = String(id) // Ensure consistent string type
     setSelectedIds(prev => {
       const next = new Set(prev)
       if (checked) {
-        next.add(id)
+        next.add(normalizedId)
       } else {
-        next.delete(id)
+        next.delete(normalizedId)
       }
       return next
     })
