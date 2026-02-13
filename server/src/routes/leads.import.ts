@@ -61,28 +61,61 @@ function parseXLSX(filePath: string): any[] {
   return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 }
 
+// --- Helper: normalize header for matching (strip BOM, punctuation, whitespace, lowercase) ---
+function normalizeHeaderForMatching(header: string): string {
+  return header
+    .replace(/^\uFEFF/, "") // strip BOM
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, ""); // remove all non-alphanumeric
+}
+
 // --- Alias map for default column mapping ---
+// Each alias list includes common variants; normalization handles case/punctuation
 const COLUMN_ALIAS_MAP: Record<string, string[]> = {
-  address: ["Address", "address", "Property Address", "street", "Street", "STREET", "ADDRESS"],
+  address: ["Address", "address", "Property Address", "street", "Street", "STREET", "ADDRESS", "property_address", "propertyaddress"],
   city: ["City", "city", "Town", "CITY", "TOWN"],
   state: ["State", "state", "ST", "STATE"],
-  zip: ["Zip", "zip", "ZIP", "Postal", "Postal Code", "ZIPCODE", "Zip Code"],
-  ownerName: ["Owner Name", "ownerName", "homeowner_name", "homeownerName", "Homeowner", "Owner", "OWNER", "OWNER NAME"],
-  phone: ["Phone", "phone", "phoneNumber", "sellerPhone", "Phone #", "Contact Phone", "PHONE", "PHONE NUMBER"],
+  zip: ["Zip", "zip", "ZIP", "Postal", "Postal Code", "ZIPCODE", "Zip Code", "zip_code", "zipcode"],
+  ownerName: ["Owner Name", "ownerName", "homeowner_name", "homeownerName", "Homeowner", "Owner", "OWNER", "OWNER NAME", "owner_name", "ownername"],
+  phone: ["Phone", "phone", "phoneNumber", "sellerPhone", "Phone #", "Contact Phone", "PHONE", "PHONE NUMBER", "phone_number", "phonenumber"],
   notes: ["Notes", "notes", "County", "county", "Violation", "violation", "Reason", "NOTES", "COUNTY"],
-  parcelId: ["Parcel ID", "parcelId", "Parcel", "PARCEL", "APN"],
-  legalDescription: ["Legal Description", "legalDescription", "Legal"],
+  parcelId: ["Parcel ID", "parcelId", "Parcel", "PARCEL", "APN", "parcel_id", "parcelid"],
+  legalDescription: ["Legal Description", "legalDescription", "Legal", "legal_description", "legaldescription"],
 };
+
+// Pre-compute normalized alias -> field lookup for fallback matching
+const NORMALIZED_ALIAS_LOOKUP: Map<string, { field: string; original: string }> = new Map();
+for (const [field, aliases] of Object.entries(COLUMN_ALIAS_MAP)) {
+  for (const alias of aliases) {
+    const normalized = normalizeHeaderForMatching(alias);
+    // First alias wins if there's a collision (unlikely)
+    if (!NORMALIZED_ALIAS_LOOKUP.has(normalized)) {
+      NORMALIZED_ALIAS_LOOKUP.set(normalized, { field, original: alias });
+    }
+  }
+}
 
 // --- Helper: find which header matches a field using alias map ---
 function findHeaderForField(headers: string[], field: string): string | null {
   const aliases = COLUMN_ALIAS_MAP[field];
   if (!aliases) return null;
+
+  // Fast path: exact match
   for (const alias of aliases) {
     if (headers.includes(alias)) {
       return alias;
     }
   }
+
+  // Fallback: normalized match (handles case/punctuation/BOM)
+  const aliasNormSet = new Set(aliases.map(normalizeHeaderForMatching));
+  for (const header of headers) {
+    const headerNorm = normalizeHeaderForMatching(header);
+    if (aliasNormSet.has(headerNorm)) {
+      return header; // Return ORIGINAL header from file
+    }
+  }
+
   return null;
 }
 
@@ -90,6 +123,37 @@ function findHeaderForField(headers: string[], field: string): string | null {
 function extractRowValue(row: any, header: string | null): string {
   if (!header || row[header] === undefined || row[header] === null) return "";
   return String(row[header]).trim();
+}
+
+// --- Helper: normalize ZIP for preview display ---
+// Rules: strip non-digits; 4-5 digits -> left-pad to 5; 9+ digits -> keep first 5; <4 -> as-is
+function normalizeZipForPreview(value: string): string {
+  if (!value) return "";
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 0) return "";
+  if (digits.length >= 4 && digits.length <= 5) {
+    return digits.padStart(5, "0");
+  }
+  if (digits.length >= 9) {
+    return digits.slice(0, 5);
+  }
+  // <4 digits or 6-8 digits: return as-is (unusual but don't mangle)
+  return digits;
+}
+
+// --- Helper: normalize phone for preview display ---
+// Rules: digits-only; 11 digits starting with 1 -> strip leading 1; <7 -> empty; else keep
+function normalizePhoneForPreview(value: string): string {
+  if (!value) return "";
+  let digits = value.replace(/\D/g, "");
+  if (digits.length === 0) return "";
+  // Strip leading 1 from 11-digit US numbers
+  if (digits.length === 11 && digits.startsWith("1")) {
+    digits = digits.slice(1);
+  }
+  // Too short to be a valid phone
+  if (digits.length < 7) return "";
+  return digits;
 }
 
 // --- Helper: compute sourceFingerprint from headers ---
@@ -285,14 +349,18 @@ leadsImportRouter.post("/", upload.single("file"), handleMulterError, async (req
       if (!city && customMapping?.defaultCity) city = customMapping.defaultCity;
       if (!state && customMapping?.defaultState) state = customMapping.defaultState;
 
+      // Normalize ZIP and phone for preview display
+      const rawZip = extractRowValue(r, effectiveHeaders.zip);
+      const rawPhone = extractRowValue(r, effectiveHeaders.phone);
+
       const mapped: LeadImportRow = {
         address,
         city,
         state,
-        zip: extractRowValue(r, effectiveHeaders.zip),
+        zip: normalizeZipForPreview(rawZip),
         county: extractRowValue(r, findHeaderForField(headers, "notes")), // County often in notes alias
         ownerName: extractRowValue(r, effectiveHeaders.ownerName),
-        phone: extractRowValue(r, effectiveHeaders.phone),
+        phone: normalizePhoneForPreview(rawPhone) || undefined, // empty string -> undefined for cleaner display
         parcelId: extractRowValue(r, effectiveHeaders.parcelId),
         legalDescription: extractRowValue(r, effectiveHeaders.legalDescription),
         notes,
@@ -387,9 +455,15 @@ interface LeadImportRow {
 }
 
 // --- Helper: normalize phone to digits only, null if too short ---
+// Same logic as normalizePhoneForPreview for consistency
 function normalizePhone(value: string | undefined | null): string | null {
   if (!value) return null;
-  const digits = value.replace(/\D/g, "");
+  let digits = value.replace(/\D/g, "");
+  if (digits.length === 0) return null;
+  // Strip leading 1 from 11-digit US numbers
+  if (digits.length === 11 && digits.startsWith("1")) {
+    digits = digits.slice(1);
+  }
   return digits.length >= 7 ? digits : null;
 }
 
@@ -512,9 +586,17 @@ function normalizeAddressFields(row: LeadImportRow): {
   };
 
   const normalizeZip = (s: string | undefined | null): string => {
+    // Use same logic as normalizeZipForPreview for consistency
     if (!s) return "";
     const digits = String(s).replace(/\D/g, "");
-    return digits.slice(0, 5);
+    if (digits.length === 0) return "";
+    if (digits.length >= 4 && digits.length <= 5) {
+      return digits.padStart(5, "0");
+    }
+    if (digits.length >= 9) {
+      return digits.slice(0, 5);
+    }
+    return digits;
   };
 
   return {
