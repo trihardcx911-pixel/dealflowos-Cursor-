@@ -43,6 +43,7 @@ export default function LandingPage() {
   // Determine active states for pills
   const isPricingActive = location.hash === '#pricing';
   const isFaqsActive = location.hash === '#faqs';
+  const isFeaturesActive = location.hash === '#features';
   const isWhyActive = location.hash === '#why';
   const isSupportActive = location.hash === '#support';
 
@@ -135,12 +136,12 @@ export default function LandingPage() {
                     FAQs
                   </button>
                   <button
-                    onClick={() => handleNavClick('#why')}
+                    onClick={() => handleNavClick('#features')}
                     className={`px-3 py-1.5 rounded-full text-sm transition shrink-0 ${
-                      isWhyActive ? 'bg-white/8 text-[#F5F7FA]' : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
+                      isFeaturesActive ? 'bg-white/8 text-[#F5F7FA]' : 'text-[#A8AFB8] hover:text-[#F5F7FA] hover:bg-white/5'
                     }`}
                   >
-                    Why this exists
+                    Features
                   </button>
                   <button
                     onClick={() => handleNavClick('#support')}
@@ -406,7 +407,9 @@ export default function LandingPage() {
       <div className="mx-auto my-16 h-px w-full max-w-5xl bg-white/5" />
 
       {/* PRICING */}
-      <PricingSection />
+      <section id="pricing" className="scroll-mt-28">
+        <PricingSection />
+      </section>
 
       {/* Section Divider */}
       <div className="mx-auto my-16 h-px w-full max-w-5xl bg-white/5" />

@@ -322,7 +322,7 @@ export default function PricingSection() {
         </div>
 
         {/* Comparison Table */}
-        <div className="mt-20">
+        <div id="features" className="mt-20 scroll-mt-28">
           <div className="overflow-x-auto max-w-full min-w-0">
             <table className="w-full border-collapse">
               <thead>
