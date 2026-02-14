@@ -65,13 +65,17 @@ export default function LandingPage() {
       <div className="relative z-10">
       <a
         href="/"
+<<<<<<< HEAD
         className="min-[700px]:hidden fixed top-5 left-5 z-[110] flex items-center ml-2"
+=======
+        className="min-[700px]:hidden fixed top-5 left-8 z-[110] flex items-center"
+>>>>>>> eb86b51 (Polish landing header logo placement + SVG halo padding)
         aria-label="DealflowOS home"
       >
         <img
           src="/dealflowos-logo.svg"
           alt="DealflowOS"
-          className="h-10 w-auto select-none opacity-90"
+          className="h-12 w-12 select-none opacity-90"
           draggable={false}
         />
       </a>
@@ -92,6 +96,7 @@ export default function LandingPage() {
 
       {/* NAV — desktop pill (hidden on mobile) */}
       <header className="sticky top-0 z-50 px-4 sm:px-6 pt-5 w-full">
+<<<<<<< HEAD
         {/* Logo (desktop) — absolute so it doesn't shift the centered pill */}
         <a
           href="/"
@@ -106,6 +111,23 @@ export default function LandingPage() {
           />
         </a>
         <div className="hidden min-[700px]:flex justify-center w-full">
+=======
+        <div className="relative w-full max-w-7xl mx-auto">
+          {/* Logo (desktop) — aligned to max-w container left edge, above pill */}
+          <a
+            href="/"
+            className="hidden min-[700px]:flex absolute left-12 top-1/2 -translate-y-1/2 items-center z-[120]"
+            aria-label="DealflowOS home"
+          >
+            <img
+              src="/dealflowos-logo.svg"
+              alt="DealflowOS"
+              className="h-[5.5rem] w-[5.5rem] select-none drop-shadow-[0_0_18px_rgba(255,10,69,0.25)]"
+              draggable={false}
+            />
+          </a>
+          <div className="hidden min-[700px]:flex justify-center w-full">
+>>>>>>> eb86b51 (Polish landing header logo placement + SVG halo padding)
           <nav className="relative flex w-full max-w-full min-[700px]:inline-flex min-[700px]:w-auto min-[700px]:min-w-0 min-[700px]:max-w-full items-center gap-2 sm:gap-3 rounded-2xl overflow-hidden border border-white/15 ring-1 ring-white/10 bg-black/30 backdrop-blur-md backdrop-saturate-[1.5] shadow-[0_8px_30px_rgba(0,0,0,0.22),0_0_24px_rgba(255,10,69,0.06)] pl-3 pr-2 sm:pl-5 sm:pr-3 py-3 min-w-0">
             {/* Inner highlight — crisp glass edge */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.12] to-transparent pointer-events-none z-0" aria-hidden="true" />
@@ -159,6 +181,7 @@ export default function LandingPage() {
               </div>
             </div>
           </nav>
+          </div>
         </div>
       </header>
 
